@@ -1,0 +1,72 @@
+[package]
+name = "fastnum"
+version = "0.0.1"
+edition = "2021"
+authors = ["Neo"]
+description = "Fast numbers library"
+documentation = "https://docs.rs/fastnum"
+homepage = "https://github.com/neogenie/fastnum"
+repository = "https://github.com/neogenie/fastnum"
+keywords = [
+    "numeric",
+    "decimal",
+    "const",
+    "no-std",
+    "arbitrary-precision",
+]
+categories = ["mathematics", "science", "no-std"]
+license = "MIT"
+autobenches = false
+rust-version = "1.82"
+
+[lib]
+bench = false
+
+[dependencies]
+
+num-integer = { version = "0.1", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+const-str = { version = "0.5", default-features = false }
+
+serde = { version = ">= 1.0.0", default-features = false, optional = true }
+diesel = { version = ">=2.2.4", default-features = false, features = ["numeric"], optional = true }
+sqlx = { version = ">=0.8.0", default-features = false, optional = true }
+utoipa = { version = ">= 4.0.0", default-features = false, optional = true }
+
+bnum = { version = "0.12.0", default-features = false, features = ["numtraits"]}
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+rstest = { version = "0.23.0" }
+serde_test = { version = ">= 1.0.0" }
+serde_json = { version = ">=0.8.0, <2.0", default-features = false }
+paste = { version = "1.0.15" }
+
+[build-dependencies]
+autocfg = "1"
+
+[features]
+default = ["std"]
+std = ["num-traits/std"]
+serde = ["dep:serde"]
+
+diesel = ["dep:diesel"]
+diesel_postgres = ["diesel", "diesel/postgres_backend"]
+diesel_mysql = ["diesel", "diesel/mysql_backend"]
+
+sqlx = ["dep:sqlx"]
+sqlx_postgres = ["sqlx", "sqlx/postgres"]
+sqlx_mysql = ["sqlx", "sqlx/mysql"]
+
+utoipa = ["dep:utoipa"]
+
+# For internal use only
+test-util = []
+
+[[test]]
+name = "tests"
+required-features = ["test-util"]
+
+[[bench]]
+name = "benchmark"
+harness = false
