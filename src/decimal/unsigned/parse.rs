@@ -276,6 +276,7 @@ const fn parse_exp(buf: &[u8], pos: usize) -> Result<i64, ParseError> {
         return Err(ParseError::Empty);
     }
 
+    #[allow(unsafe_code)]
     let src = unsafe { from_utf8_unchecked(buf.split_at(pos).1) };
 
     match i64::from_str_radix(src, 10) {

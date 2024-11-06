@@ -27,6 +27,7 @@ macro_rules! macro_impl {
 
                 let buf = s.as_bytes();
 
+                #[allow(unsafe_code)]
                 let (sign, src) = match buf[0] {
                     b'+' => (Sign::Plus, unsafe {
                         from_utf8_unchecked(buf.split_at(1).1)

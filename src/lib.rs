@@ -2,7 +2,7 @@
 //! numbers implemented in pure Rust. Suitable for financial, crypto and any
 //! other fixed-precision calculations.
 
-// #![deny(unsafe_code, missing_docs, clippy::all, clippy::cargo)]
+#![deny(unsafe_code, missing_docs, clippy::all, clippy::cargo)]
 
 extern crate alloc;
 extern crate core;

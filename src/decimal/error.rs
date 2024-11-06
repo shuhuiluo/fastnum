@@ -1,22 +1,23 @@
-use core::fmt;
-use core::fmt::{Debug, Display, Formatter};
-use core::num::{IntErrorKind, ParseIntError};
+use core::{
+    fmt,
+    fmt::{Debug, Display, Formatter},
+    num::{IntErrorKind, ParseIntError},
+};
 
 use crate::utils::err_prefix;
 
-/// Enum to store the various types of errors that can cause parsing [crate::decimal::Decimal] to fail.
+/// Enum to store the various types of errors that can cause parsing decimal to
+/// fail.
 ///
 /// # Example
 ///
 /// ```
-/// use fastnum::decimal::Decimal;
+/// use fastnum::UD256;
 /// use std::str::FromStr;
 ///
-/// # fn main() {
-/// if let Err(e) = Decimal::from_str("e12") {
+/// if let Err(e) = UD256::from_str("e12") {
 ///     println!("Failed conversion to Decimal: {e}");
 /// }
-/// # }
 /// ```
 #[derive(Copy, Clone, PartialEq)]
 pub enum ParseError {
@@ -27,11 +28,11 @@ pub enum ParseError {
 
     /// Contains an invalid digit in its context.
     ///
-    /// Among other causes, this variant will be constructed when parsing a string that
-    /// contains a non-ASCII char.
+    /// Among other causes, this variant will be constructed when parsing a
+    /// string that contains a non-ASCII char.
     ///
-    /// This variant is also constructed when a `+` or `-` is misplaced within a string
-    /// either on its own or in the middle of a number.
+    /// This variant is also constructed when a `+` or `-` is misplaced within a
+    /// string either on its own or in the middle of a number.
     InvalidLiteral,
 
     /// Integer is too large to store in target integer type.
@@ -45,14 +46,20 @@ pub enum ParseError {
 
     /// Value was Zero
     ///
-    /// This variant will be emitted when the parsing string has a value of zero, which
-    /// would be illegal for non-zero types.
+    /// This variant will be emitted when the parsing string has a value of
+    /// zero, which would be illegal for non-zero types.
     Zero,
 
+    /// Value was Signed
+    ///
+    /// This variant will be emitted when the parsing string has a sign literal,
+    /// which would be illegal for unsigned types.
     Signed,
 
+    /// Value is infinity.
     Infinite,
 
+    /// Value is NaN.
     NaN,
 
     /// Invalid radix.
@@ -63,7 +70,7 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub const fn description(&self) -> &str {
+    pub(crate) const fn description(&self) -> &str {
         use ParseError::*;
         match self {
             Empty => "cannot parse decimal from empty string",
@@ -120,6 +127,7 @@ impl std::error::Error for ParseError {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn pretty_error_msg(ty: &str, e: ParseError) -> String {
     use ParseError::*;
     let msg = match e {

@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast numbers library"
@@ -48,7 +48,7 @@ autocfg = "1"
 [features]
 default = ["std"]
 std = ["num-traits/std"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "bnum/serde"]
 
 diesel = ["dep:diesel"]
 diesel_postgres = ["diesel", "diesel/postgres_backend"]
@@ -63,10 +63,14 @@ utoipa = ["dep:utoipa"]
 # For internal use only
 test-util = []
 
+[profile.release]
+lto = true # enable link-time optimisation for faster runtime, but slower compile time
+opt-level = 3 # maximum optimisation level for faster runtime, but slower compile time
+
+[package.metadata.docs.rs]
+all-features = true
+
 [[test]]
 name = "tests"
 required-features = ["test-util"]
 
-[[bench]]
-name = "benchmark"
-harness = false

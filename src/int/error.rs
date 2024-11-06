@@ -4,18 +4,17 @@ use core::num::{IntErrorKind, ParseIntError};
 
 use crate::utils::err_prefix;
 
-/// Enum to store the various types of errors that can cause parsing [crate::decimal::Decimal] to fail.
+/// Enum to store the various types of errors that can cause parsing `Big Integer` to fail.
 ///
 /// # Example
 ///
 /// ```
 /// use fastnum::U256;
 ///
-/// # fn main() {
 /// if let Err(e) = U256::from_str_radix("a12", 10) {
-///     println!("Failed conversion to U256: {}", e);
+///     println!("Failed conversion to U256: {e}");
 /// }
-/// # }
+/// 
 /// ```
 #[derive(Copy, Clone, PartialEq)]
 pub enum ParseError {
@@ -39,12 +38,13 @@ pub enum ParseError {
     /// Integer is too small to store in target integer type.
     NegOverflow,
 
-    /// Value was Zero
+    /// Value was Zero.
     ///
     /// This variant will be emitted when the parsing string has a value of zero, which
     /// would be illegal for non-zero types.
     Zero,
 
+    /// Unknown error.
     Unknown,
 }
 

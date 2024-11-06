@@ -15,6 +15,7 @@ pub const MAX_EXP: i64 = f32::MAX_EXP as i64;
 
 #[inline]
 pub const fn to_bits(n: f32) -> u32 {
+    #[allow(unsafe_code)]
     unsafe { core::mem::transmute(n) }
 }
 
