@@ -58,7 +58,7 @@ sqlx = ["dep:sqlx"]
 sqlx_postgres = ["sqlx", "sqlx/postgres"]
 sqlx_mysql = ["sqlx", "sqlx/mysql"]
 
-utoipa = ["dep:utoipa"]
+utoipa = ["utoipa/macros"]
 
 # For internal use only
 test-util = []
