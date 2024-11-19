@@ -1,8 +1,6 @@
-use std::str::FromStr;
-
 use rstest::*;
 
-use fastnum::{decimal::signed::Sign, u256, D256, U256};
+use fastnum::{decimal::Sign, u256, D256, U256};
 
 #[rstest]
 #[trace]
@@ -41,9 +39,9 @@ use fastnum::{decimal::signed::Sign, u256, D256, U256};
 #[case("115792089237316195423570985008687907853269984665640564039457584007913129639935", Sign::NoSign, u256!(115792089237316195423570985008687907853269984665640564039457584007913129639935), 0)]
 fn test_parse_ok(#[case] s: &str, #[case] sign: Sign, #[case] _int: U256, #[case] exp: i64) {
     let dec = D256::from_str(s).unwrap();
-    assert_eq!(dec.significant_digits(), _int);
+    assert_eq!(dec.decimal_digits(), _int);
     assert_eq!(dec.sign(), sign);
-    assert_eq!(dec.fractional_digit_count(), -exp);
+    assert_eq!(dec.fractional_digits_count(), -exp);
 }
 
 #[rstest]
@@ -80,8 +78,8 @@ fn test_parse_invalid_digit(#[case] s: &str) {
 #[rstest]
 #[trace]
 #[case::invalid_exponent("1e-9223372036854775809")]
-#[case::invalid_exponent("1e9223372036854775808")]
-#[case::invalid_exponent("-1e9223372036854775808")]
+#[case::invalid_exponent("1e-9223372036854775808")]
+#[case::invalid_exponent("-1e9223372036854775809")]
 #[should_panic(expected = "(fastnum) exponent is too large to fit in target type")]
 fn test_parse_exponent_overflow(#[case] s: &str) {
     let _ = D256::from_str(s).unwrap();

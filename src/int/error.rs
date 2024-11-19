@@ -1,10 +1,13 @@
-use core::fmt;
-use core::fmt::{Debug, Display, Formatter};
-use core::num::{IntErrorKind, ParseIntError};
+use core::{
+    fmt,
+    fmt::{Debug, Display, Formatter},
+    num::{IntErrorKind, ParseIntError},
+};
 
 use crate::utils::err_prefix;
 
-/// Enum to store the various types of errors that can cause parsing `Big Integer` to fail.
+/// Enum to store the various types of errors that can cause parsing `Big
+/// Integer` to fail.
 ///
 /// # Example
 ///
@@ -14,7 +17,6 @@ use crate::utils::err_prefix;
 /// if let Err(e) = U256::from_str_radix("a12", 10) {
 ///     println!("Failed conversion to U256: {e}");
 /// }
-/// 
 /// ```
 #[derive(Copy, Clone, PartialEq)]
 pub enum ParseError {
@@ -25,11 +27,11 @@ pub enum ParseError {
 
     /// Contains an invalid digit in its context.
     ///
-    /// Among other causes, this variant will be constructed when parsing a string that
-    /// contains a non-ASCII char.
+    /// Among other causes, this variant will be constructed when parsing a
+    /// string that contains a non-ASCII char.
     ///
-    /// This variant is also constructed when a `+` or `-` is misplaced within a string
-    /// either on its own or in the middle of a number.
+    /// This variant is also constructed when a `+` or `-` is misplaced within a
+    /// string either on its own or in the middle of a number.
     InvalidDigit,
 
     /// Integer is too large to store in target integer type.
@@ -40,8 +42,8 @@ pub enum ParseError {
 
     /// Value was Zero.
     ///
-    /// This variant will be emitted when the parsing string has a value of zero, which
-    /// would be illegal for non-zero types.
+    /// This variant will be emitted when the parsing string has a value of
+    /// zero, which would be illegal for non-zero types.
     Zero,
 
     /// Unknown error.
@@ -92,8 +94,7 @@ impl From<bnum::errors::ParseIntError> for ParseError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ParseError {
+impl core::error::Error for ParseError {
     fn description(&self) -> &str {
         self.description()
     }

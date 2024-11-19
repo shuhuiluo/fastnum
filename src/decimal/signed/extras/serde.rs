@@ -1,18 +1,10 @@
 mod visitors;
 
-use core::fmt::Display;
-use core::str::FromStr;
-
 use serde::{self, de, ser};
 
-use crate::decimal::extras::serde::DeserializeMode;
-use crate::decimal::signed::Decimal;
-use crate::decimal::ParseError;
+use crate::decimal::{extras::serde::DeserializeMode, signed::Decimal};
 
-impl<UINT> ser::Serialize for Decimal<UINT>
-where
-    Self: Display,
-{
+impl<const N: usize> ser::Serialize for Decimal<N> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: ser::Serializer,
@@ -21,16 +13,7 @@ where
     }
 }
 
-impl<'de, UINT> de::Deserialize<'de> for Decimal<UINT>
-where
-    Self: From<u64>
-        + From<u128>
-        + From<i64>
-        + From<i128>
-        + TryFrom<f32, Error = ParseError>
-        + TryFrom<f64, Error = ParseError>
-        + FromStr<Err = ParseError>,
-{
+impl<'de, const N: usize> de::Deserialize<'de> for Decimal<N> {
     fn deserialize<D>(d: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -38,13 +21,11 @@ where
         const MODE: DeserializeMode = DeserializeMode::default();
 
         match MODE {
-            DeserializeMode::Strict => {
-                d.deserialize_str(visitors::strict::Visitor::<UINT>::default())
-            }
+            DeserializeMode::Strict => d.deserialize_str(visitors::strict::Visitor::<N>::default()),
             DeserializeMode::Stringify => {
-                d.deserialize_any(visitors::stringify::Visitor::<UINT>::default())
+                d.deserialize_any(visitors::stringify::Visitor::<N>::default())
             }
-            DeserializeMode::Any => d.deserialize_any(visitors::any::Visitor::<UINT>::default()),
+            DeserializeMode::Any => d.deserialize_any(visitors::any::Visitor::<N>::default()),
         }
     }
 }

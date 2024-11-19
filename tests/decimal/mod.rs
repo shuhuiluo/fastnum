@@ -4,6 +4,11 @@
 
 pub(crate) mod common;
 
+mod math;
+mod round;
+mod smoke;
+mod parse;
+
 mod d128;
 mod d256;
 mod d512;

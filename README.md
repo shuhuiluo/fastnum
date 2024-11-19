@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/fastnum.svg)](https://crates.io/crates/fastnum)
 [![doc.rs](https://img.shields.io/docsrs/fastnum)](https://docs.rs/fastnum/latest/fastnum)
 
-Fixed-size signed and unsigned integers and arbitrary precision decimal numbers implemented in pure Rust. Suitable for
+Fixed-size decimal numbers implemented in pure Rust. Suitable for
 financial, crypto and any other fixed-precision calculations.
 
 [API Docs](https://docs.rs/fastnum/latest/fastnum)
@@ -14,7 +14,8 @@ This crate is inspired by [num_bigint](https://docs.rs/num-bigint/0.4.6/num_bigi
 and [bigdecimal](https://docs.rs/bigdecimal/latest/bigdecimal/) - an amazing crates that allows you to store big
 integers and arbitrary precision fixed-point decimal numbers almost any precision.
 
-[BigInt](https://docs.rs/num-bigint/latest/num_bigint/struct.BigInt.html) internally uses a [`Vec`](https://doc.rust-lang.org/std/vec/struct.Vec.html) of decimal digits
+[BigInt](https://docs.rs/num-bigint/latest/num_bigint/struct.BigInt.html) internally uses a [
+`Vec`](https://doc.rust-lang.org/std/vec/struct.Vec.html) of decimal digits
 the size of which is theoretically limited only by the `usize` max value or memory capacity.
 
 Under the hood [BigDecimal](https://docs.rs/bigdecimal/latest/bigdecimal/struct.BigDecimal.html) uses
@@ -46,58 +47,15 @@ integer to store decimal digits.
 
 So In this library, a different approach was chosen.
 
-### Big Integers
-
-For big integers this crate provides integer types of arbitrary fixed size which behave exactly like Rust's internal
-primitive integer types (`u8`, `i8`, `u16`, `i16`, etc.):
-
-| Unit    | Bits | Representation | Signed | Min               | Max                | Helper Macro   |
-|---------|------|----------------|--------|-------------------|--------------------|----------------|
-| `I128`  | 128  | `2 x u64`      | +      | -2<sup>127</sup>  | 2<sup>127</sup>-1  | `int128!(1)`   |
-| `U128`  | 128  | `2 x u64`      |        | 0                 | 2<sup>128</sup>    | `uint128!(1)`  |
-| `I256`  | 256  | `4 x u64`      | +      | -2<sup>255</sup>  | 2<sup>255</sup>-1  | `int256!(1)`   |
-| `U256`  | 256  | `4 x u64`      |        | 0                 | 2<sup>256</sup>    | `uint256!(1)`  |
-| `I512`  | 512  | `8 x u64`      | +      | -2<sup>511</sup>  | 2<sup>511</sup>-1  | `int512!(1)`   |
-| `U512`  | 512  | `8 x u64`      |        | 0                 | 2<sup>512</sup>    | `uint512!(1)`  |
-| `I1024` | 1024 | `16 x u64`     | +      | -2<sup>1023</sup> | 2<sup>1023</sup>-1 | `int1024!(1)`  |
-| `U1024` | 1024 | `16 x u64`     |        | 0                 | 2<sup>1024</sup>   | `uint1024!(1)` |
-| `I2048` | 2048 | `32 x u64`     | +      | -2<sup>2047</sup> | 2<sup>2047</sup>-1 | `int2048!(1)`  |
-| `U2048` | 2048 | `32 x u64`     |        | 0                 | 2<sup>2048</sup>   | `uint2048!(1)` |
-| `I4096` | 4096 | `64 x u64`     | +      | -2<sup>4095</sup> | 2<sup>4095</sup>-1 | `int4096!(1)`  |
-| `U4096` | 4096 | `64 x u64`     |        | 0                 | 2<sup>4096</sup>   | `uint4096!(1)` |
-| `I8192` | 8192 | `128 x u64`    | +      | -2<sup>8191</sup> | 2<sup>8191</sup>-1 | `int8192!(1)`  |
-| `U8192` | 8192 | `128 x u64`    |        | 0                 | 2<sup>8192</sup>   | `uint8192!(1)` |
-
-Nearly all methods defined on Rust's signed and unsigned primitive integers are defined `fastnum`'s signed and unsigned
-integers.
-
-Under the hood [bnum](https://docs.rs/bnum/latest/bnum/) is currently used as the backend as most meeting the
-requirements.
-Subsequently, the implementation can be replaced in favor of its own implementation, which enables `SIMD`.
-
-Unsigned integers are stored as an array of digits (primitive unsigned integers) of length `N`. This means all
-`fastnum` integers can be stored on the stack, as they are fixed size. Signed integers are simply stored as an unsigned
-integer in two's complement.
-
 ### Decimals
 
-`fastnum` provides a several decimal numbers suitable for financial calculations that require significant
+`fastnum` provides a signed and unsigned decimal numbers suitable for financial calculations that require significant
 integral and fractional digits with no round-off errors.
 
-| Decimal type | Integer part | Bits | Memory representation | Signed | Max significant_digits | Helper macro    |
-|--------------|--------------|------|-----------------------|--------|------------------------|-----------------|
-| `D128`       | `U128`       | 128  | `2 x u64 + i64 + i64` | +      | 2<sup>128</sup>        | `dec128!(0.1)`  |
-| `UD128`      | `U128`       | 128  | `2 x u64 + i64`       |        | 2<sup>128</sup>        | `udec128!(0.1)` |
-| `D256`       | `U256`       | 256  | `4 x u64 + i64 + i64` | +      | 2<sup>256</sup>        | `dec256!(0.1)`  |
-| `UD256`      | `U256`       | 256  | `4 x u64 + i64`       |        | 2<sup>256</sup>        | `udec256!(0.1)` |
-| `D512`       | `U512`       | 512  | `8 x u64 + i64 + i64` | +      | 2<sup>512</sup>        | `dec512!(0.1)`  |
-| `UD512`      | `U512`       | 512  | `8 x u64 + i64`       |        | 2<sup>512</sup>        | `udec512!(0.1)` |
-
-Under the hood any `[D|UD]N` decimal type consists of a N-bit big unsigned integer, paired with a 64-bit signed integer
-scaling factor which determines the position of the decimal point and sign (for signed types only). Therefore, the
-precision is not actually arbitrary, but limited to 2<sup>63</sup> decimal places. Because of this representation,
-trailing zeros are preserved and may be exposed when in string form. These can be truncated using the normalize or
-round_dp functions.
+Under the hood any `fastnum` decimal type consists of a N-bit big unsigned integer, paired with a 64-bit signed integer
+scaling factor which determines the position of the decimal point and sign (for signed types only). Trailing zeros are
+preserved and may be exposed when in string form. These can be truncated using the normalize or
+round functions.
 
 Thus, fixed-point numbers are trivially copyable and do not require any dynamic allocation. This allows you to get
 additional performance gains by eliminating not only dynamic allocation, like such, but also will get rid of one
@@ -105,7 +63,7 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 
 ## Why fastnum?
 
-- **Blazing fast**: `fastnum` numerics as fast as native types, well almost :).
+- **Blazing fast**: `fastnum` numerics are as fast as native types, well almost :).
 - **Trivially copyable types**: all `fastnum` numerics are trivially copyable (both integer and decimal, ether signed
   and unsigned) and can be stored on the stack, as they are fixed size.
 - **No dynamic allocation**: no expensive sys-call's, no indirect addressing, cache-friendly.
@@ -117,7 +75,8 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 - **Const-evaluated in compile time macro-helpers**: any type has its own macro helper which can be used for
   definitions of constants or variables whose value is known in advance. This allows you to perform all the necessary
   checks at the compile time.
-- **Small dependencies by default**: `fastnum` does not depend on any other crates by default. Support for crates such
+- **Short dependencies list by default**: `fastnum` does not depend on many other crates by default. Support for crates
+  such
   as [`rand`](https://docs.rs/rand/latest/rand/) and [`serde`](https://docs.rs/serde/latest/serde/) can be enabled with
   crate [features](#features).
 - **`no-std` compatible**: `fastnum` can be used in `no_std` environments.
@@ -129,13 +88,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.0.3"
+fastnum = "0.0.6"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.0.3", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.0.6", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -155,11 +114,30 @@ fn main() {
 
 ## Features
 
+### Generic numeric `num_traits` and `num_integer` trait implementations
+
+The `numtraits` feature includes implementations of traits from the [
+`num_traits`](https://docs.rs/num-traits/latest/num_traits/) and [
+`num_integer`](https://docs.rs/num-integer/latest/num_integer/) crates, e.g. [
+`AsPrimitive`](https://docs.rs/num-traits/latest/num_traits/cast/trait.AsPrimitive.html), [
+`Signed`](https://docs.rs/num-traits/latest/num_traits/sign/trait.Signed.html), [
+`Integer`](https://docs.rs/num-integer/latest/num_integer/trait.Integer.html), etc.
+
+### Random Number Generation
+
+The `rand` feature allows creation of random `fastnum` decimals via the [`rand`](https://docs.rs/rand/latest/rand/)
+crate.
+
 ### Serialization and Deserialization
 
 The `serde` feature enables serialization and deserialization of `fastnum` decimals via the [
 `serde`](https://docs.rs/serde/latest/serde/) crate. More details about serialization and deserialization you can found
 in
+
+### Zeroize
+
+The `zeroize` feature enables the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) trait from
+the [`zeroize`](https://docs.rs/zeroize/latest/zeroize/) crate.
 
 ### Database ORM's support
 
@@ -177,12 +155,35 @@ The `utoipa` feature enables support of `fastnum` decimals for autogenerated Ope
 ## Performance
 
 `fastnum` is blazing fast. As much as possible given the overhead of arbitrary precision support. It **x10** faster than
-bigdecimal and **x1.1 - x4** slower than native floating point `f64` Rust type.
+`bigdecimal` and **x1.1 - x4** slower than native floating point `f64` Rust type.
+
+Some benchmark reports are shown below:
+
+### Parse from string
+
+![](doc/parse_str.svg)
+
+### Allocation
+
+![](doc/allocate.svg)
+
+You can run benchmark tests with [`Criterion.rs`](https://bheisler.github.io/criterion.rs/book/criterion_rs.html) tool:
+
+```shell
+cd benchmark
+cargo criterion
+```
 
 ## Testing
 
 This crate is tested with the [`rstest`](https://docs.rs/rstest/latest/rstest/) crate as well as with specific edge
 cases.
+
+We have more than `4500` tests, so we recommend run it using [`nextest`](https://nexte.st/):
+
+```shell
+cargo nextest run --all-features
+```
 
 ## Minimum Supported Rust Version
 
@@ -190,31 +191,25 @@ The current Minimum Supported Rust Version (MSRV) is `1.82.0`.
 
 ## Documentation
 
-If a method is not documented explicitly, it will have a link to the equivalent method defined on primitive Rust
-integers (since the methods have the same functionality).
+[API Docs](https://docs.rs/fastnum/latest/fastnum)
 
-**NB: `fastnum` is currently pre-`1.0.0`. As per the [Semantic Versioning guidelines](https://semver.org/#spec-item-4),
-the
-public API may contain breaking changes while it is in this stage. However, as the API is designed to be as similar as
-possible to the API of Rust's primitive integers, it is unlikely that there will be a large number of breaking changes.
-**
+**NB**: `fastnum` is currently pre-`1.0.0`. As per
+the [Semantic Versioning guidelines](https://semver.org/#spec-item-4),
+the public API may contain breaking changes while it is in this stage. However, as the API is designed to be as similar
+as possible to the API of Rust's primitive integers, it is unlikely that there will be a large number of breaking
+changes.
 
 ## Compile-Time Configuration
 
 You can set a few default parameters at _compile-time_ via environment variables:
 
-| Environment Variable                           | Default    |
-|------------------------------------------------|------------|
-| `RUST_FASTNUM_DEFAULT_PRECISION`               | 100        |
-| `RUST_FASTNUM_DEFAULT_ROUNDING_MODE`           | `HalfEven` |
-| `RUST_FASTNUM_FMT_EXPONENTIAL_LOWER_THRESHOLD` | 5          |
-| `RUST_FASTNUM_FMT_EXPONENTIAL_UPPER_THRESHOLD` | 15         |
-| `RUST_FASTNUM_FMT_MAX_INTEGER_PADDING`         | 1000       |
-| `RUST_FASTNUM_DEFAULT_SERDE_DESERIALIZE_MODE`  | `Strict`   |
-
-Examine [build.rs] for how those are converted to constants in the code (if interested).
-
-[build.rs]: ./build.rs
+| Environment Variable                           | Default  |
+|------------------------------------------------|----------|
+| `RUST_FASTNUM_DEFAULT_ROUNDING_MODE`           | `HalfUp` |
+| `RUST_FASTNUM_FMT_EXPONENTIAL_LOWER_THRESHOLD` | 5        |
+| `RUST_FASTNUM_FMT_EXPONENTIAL_UPPER_THRESHOLD` | 15       |
+| `RUST_FASTNUM_FMT_MAX_INTEGER_PADDING`         | 1000     |
+| `RUST_FASTNUM_SERDE_DESERIALIZE_MODE`          | `Strict` |
 
 ## Future Work
 

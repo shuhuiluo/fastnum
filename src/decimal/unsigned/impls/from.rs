@@ -1,17 +1,21 @@
-use crate::decimal::unsigned::{parse, UnsignedDecimal};
-use crate::decimal::ParseError;
-use crate::{U128, U256, U512};
+use crate::{
+    decimal::{
+        unsigned::{parse, UnsignedDecimal},
+        ParseError,
+    },
+    int::UInt,
+};
 
 macro_rules! from_uint {
     ($($uint: tt),*) => {
         $(
-            impl<UINT> From<$uint> for UnsignedDecimal<UINT>
+            impl<const N: usize> From<$uint> for UnsignedDecimal<N>
             where
-                UINT: From<$uint>
+                UInt<N>: From<$uint>
             {
                 #[inline]
                 fn from(int: $uint) -> Self {
-                    Self::new(UINT::from(int), 0)
+                    Self::new(UInt::from(int), 0)
                 }
             }
         )*
@@ -21,9 +25,9 @@ macro_rules! from_uint {
 macro_rules! try_from_int {
     ($($int: tt as $uint: tt),*) => {
         $(
-            impl<UINT> TryFrom<$int> for UnsignedDecimal<UINT>
+            impl<const N: usize> TryFrom<$int> for UnsignedDecimal<N>
             where
-                UINT: From<$uint>
+                UInt<N>: From<$uint>
             {
                 type Error = ParseError;
 
@@ -33,7 +37,7 @@ macro_rules! try_from_int {
                         return Err(ParseError::Signed);
                     }
                     let bits = int as $uint;
-                    Ok(Self::new(UINT::from(bits), 0))
+                    Ok(Self::new(UInt::from(bits), 0))
                 }
             }
         )*
@@ -50,28 +54,20 @@ try_from_int!(
     i128 as u128
 );
 
-macro_rules! try_from_float {
-    ($UINT: ident, $bits: literal, $name: ident) => {
-        impl TryFrom<f32> for UnsignedDecimal<$UINT> {
-            type Error = ParseError;
+impl<const N: usize> TryFrom<f32> for UnsignedDecimal<N> {
+    type Error = ParseError;
 
-            #[inline]
-            fn try_from(n: f32) -> Result<Self, Self::Error> {
-                parse::$name::from_f32(n)
-            }
-        }
-
-        impl TryFrom<f64> for UnsignedDecimal<$UINT> {
-            type Error = ParseError;
-
-            #[inline]
-            fn try_from(n: f64) -> Result<Self, Self::Error> {
-                parse::$name::from_f64(n)
-            }
-        }
-    };
+    #[inline]
+    fn try_from(n: f32) -> Result<Self, Self::Error> {
+        parse::from_f32(n)
+    }
 }
 
-try_from_float!(U128, 128, d128);
-try_from_float!(U256, 256, d256);
-try_from_float!(U512, 512, d512);
+impl<const N: usize> TryFrom<f64> for UnsignedDecimal<N> {
+    type Error = ParseError;
+
+    #[inline]
+    fn try_from(n: f64) -> Result<Self, Self::Error> {
+        parse::from_f64(n)
+    }
+}

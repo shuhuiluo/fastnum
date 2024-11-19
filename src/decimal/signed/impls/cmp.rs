@@ -1,14 +1,11 @@
-use crate::decimal::signed::Decimal;
-use crate::decimal::unsigned::UnsignedDecimal;
+use crate::decimal::{signed::Decimal};
 
-impl<UINT> PartialEq for Decimal<UINT>
-where
-    UnsignedDecimal<UINT>: PartialEq,
+impl<const N: usize> PartialEq for Decimal<N>
 {
     #[inline]
-    fn eq(&self, rhs: &Decimal<UINT>) -> bool {
-        (self.sign == rhs.sign) && (self.value == rhs.value)
+    fn eq(&self, rhs: &Decimal<N>) -> bool {
+        self.eq(rhs)
     }
 }
 
-impl<UINT> Eq for Decimal<UINT> where UnsignedDecimal<UINT>: PartialEq {}
+impl<const N: usize> Eq for Decimal<N> {}

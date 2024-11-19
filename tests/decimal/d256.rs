@@ -1,4 +1,3 @@
-// mod math;
 mod cmp;
 mod extras;
 mod fmt;

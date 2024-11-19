@@ -38,8 +38,8 @@ macro_rules! test_impl {
         #[case(1e38, $udec!(99999996802856924650656260769173209088))]
         #[case(317e36, $udec!(317000006395220278118691742155288870912))]
         #[case(6.99999952316, $udec!(6.999999523162841796875))]
-        #[case(4294967295., $udec!(4294967296))]
         #[case(1.58456325029e+29, $udec!(158456325028528675187087900672))]
+        #[case(4294967295., $udec!(4294967296))]
         fn test_from_f32_ok_ex(#[case] n: f32, #[case] expected: $UD) {
             let d = $UD::try_from(n).unwrap();
             assert_eq!(d, expected);

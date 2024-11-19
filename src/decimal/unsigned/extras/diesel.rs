@@ -4,42 +4,47 @@ mod mysql;
 #[cfg(feature = "diesel_postgres")]
 mod pg;
 
-use diesel;
-use diesel::backend::Backend;
-use diesel::deserialize::{self, FromSql, Queryable};
-use diesel::expression::AsExpression;
-use diesel::internal::derives::as_expression::Bound;
-use diesel::serialize::{self, Output, ToSql};
-use diesel::sql_types::{Nullable, Numeric, SingleValue};
+use diesel::{
+    self,
+    backend::Backend,
+    deserialize::{self, FromSql, Queryable},
+    expression::AsExpression,
+    internal::derives::as_expression::Bound,
+    serialize::{self, Output, ToSql},
+    sql_types::{Nullable, Numeric, SingleValue},
+};
 
 use crate::decimal::unsigned::UnsignedDecimal;
 
-impl<DB, ST, UINT> Queryable<ST, DB> for UnsignedDecimal<UINT>
+impl<DB, ST, const N: usize> Queryable<ST, DB> for UnsignedDecimal<N>
 where
     DB: Backend,
     ST: SingleValue,
     Self: FromSql<ST, DB>,
 {
     type Row = Self;
+
     fn build(row: Self::Row) -> deserialize::Result<Self> {
         Ok(row)
     }
 }
 
-impl<'expr, UINT> AsExpression<Numeric> for &'expr UnsignedDecimal<UINT> {
+impl<'expr, const N: usize> AsExpression<Numeric> for &'expr UnsignedDecimal<N> {
     type Expression = Bound<Numeric, Self>;
+
     fn as_expression(self) -> Self::Expression {
         Bound::new(self)
     }
 }
-impl<'expr, UINT> AsExpression<Nullable<Numeric>> for &'expr UnsignedDecimal<UINT> {
+impl<'expr, const N: usize> AsExpression<Nullable<Numeric>> for &'expr UnsignedDecimal<N> {
     type Expression = Bound<Nullable<Numeric>, Self>;
+
     fn as_expression(self) -> Self::Expression {
         Bound::new(self)
     }
 }
 
-impl<DB, UINT> ToSql<Nullable<Numeric>, DB> for UnsignedDecimal<UINT>
+impl<DB, const N: usize> ToSql<Nullable<Numeric>, DB> for UnsignedDecimal<N>
 where
     DB: Backend,
     Self: ToSql<Numeric, DB>,
@@ -49,15 +54,17 @@ where
     }
 }
 
-impl<UINT> AsExpression<Numeric> for UnsignedDecimal<UINT> {
+impl<const N: usize> AsExpression<Numeric> for UnsignedDecimal<N> {
     type Expression = Bound<Numeric, Self>;
+
     fn as_expression(self) -> Self::Expression {
         Bound::new(self)
     }
 }
 
-impl<UINT> AsExpression<Nullable<Numeric>> for UnsignedDecimal<UINT> {
+impl<const N: usize> AsExpression<Nullable<Numeric>> for UnsignedDecimal<N> {
     type Expression = Bound<Nullable<Numeric>, Self>;
+
     fn as_expression(self) -> Self::Expression {
         Bound::new(self)
     }

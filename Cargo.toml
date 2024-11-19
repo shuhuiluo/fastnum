@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.0.5"
+version = "0.0.6"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast numbers library"
@@ -12,7 +12,7 @@ keywords = [
     "decimal",
     "const",
     "no-std",
-    "arbitrary-precision",
+    "fixed-point",
 ]
 categories = ["mathematics", "science", "no-std"]
 license = "MIT"
@@ -24,22 +24,23 @@ bench = false
 
 [dependencies]
 
-num-integer = { version = "0.1", default-features = false }
-num-traits = { version = "0.2", default-features = false }
+bnum = { version = "0.12.0", default-features = false}
 const-str = { version = "0.5", default-features = false }
+bitflags = { version = "2.6.0", default-features = false }
 
+num-integer = { version = "0.1", default-features = false, optional = true }
+num-traits = { version = "0.2", default-features = false, optional = true }
+zeroize = { version = "1.6", default-features = false, optional = true }
+rand = { version = "0.8", features = ["min_const_gen"], default-features = false, optional = true }
 serde = { version = ">= 1.0.0", default-features = false, optional = true }
 diesel = { version = ">=2.2.4", default-features = false, features = ["numeric"], optional = true }
 sqlx = { version = ">=0.8.0", default-features = false, optional = true }
 utoipa = { version = ">= 4.0.0", default-features = false, optional = true }
 
-bnum = { version = "0.12.0", default-features = false, features = ["numtraits"]}
-
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
 rstest = { version = "0.23.0" }
 serde_test = { version = ">= 1.0.0" }
-serde_json = { version = ">=0.8.0, <2.0", default-features = false }
+serde_json = { version = ">=0.8.0, <2.0" }
 paste = { version = "1.0.15" }
 
 [build-dependencies]
@@ -47,7 +48,13 @@ autocfg = "1"
 
 [features]
 default = ["std"]
-std = ["num-traits/std"]
+std = []
+
+numtraits = ["num-integer", "num-traits", "bnum/numtraits"]
+
+rand = ["dep:rand"]
+zeroize = ["dep:zeroize"]
+
 serde = ["dep:serde", "bnum/serde"]
 
 diesel = ["dep:diesel"]
@@ -58,7 +65,7 @@ sqlx = ["dep:sqlx"]
 sqlx_postgres = ["sqlx", "sqlx/postgres"]
 sqlx_mysql = ["sqlx", "sqlx/mysql"]
 
-utoipa = ["utoipa/macros"]
+utoipa = ["dep:utoipa", "utoipa/macros"]
 
 # For internal use only
 test-util = []

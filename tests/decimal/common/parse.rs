@@ -43,8 +43,8 @@ macro_rules! test_impl {
         #[case("0.20935706972060549068014", $uint!(20935706972060549068014), -23)]
         fn test_parse_ok(#[case] s: &str, #[case] _int: $UINT, #[case] exp: i64) {
             let dec = $UD::from_str(s).unwrap();
-            assert_eq!(dec.significant_digits(), _int);
-            assert_eq!(dec.fractional_digit_count(), -exp);
+            assert_eq!(dec.decimal_digits(), _int);
+            assert_eq!(dec.fractional_digits_count(), -exp);
         }
 
         #[rstest(::trace)]
@@ -77,8 +77,8 @@ macro_rules! test_impl {
         }
 
         #[rstest(::trace)]
-        #[case("1e-9223372036854775809")]
-        #[case("1e9223372036854775808")]
+        #[case("1e-9223372036854775808")]
+        #[case("1e9223372036854775809")]
         #[should_panic(expected = "(fastnum) exponent is too large to fit in target type")]
         fn test_parse_exponent_overflow(#[case] s: &str) {
             let _ = $UD::from_str(s).unwrap();
@@ -124,9 +124,9 @@ macro_rules! test_impl_signed {
             #[case] exp: i64,
         ) {
             let dec = $D::from_str(s).unwrap();
-            assert_eq!(dec.significant_digits(), _int);
+            assert_eq!(dec.decimal_digits(), _int);
             assert_eq!(dec.sign(), sign);
-            assert_eq!(dec.fractional_digit_count(), -exp);
+            assert_eq!(dec.fractional_digits_count(), -exp);
         }
 
         #[rstest(::trace)]
@@ -141,7 +141,8 @@ macro_rules! test_impl_signed {
         }
 
         #[rstest(::trace)]
-        #[case::invalid_exponent("-1e9223372036854775808")]
+        #[case::invalid_exponent("-1e9223372036854775809")]
+        #[case::invalid_exponent("-1e-9223372036854775808")]
         #[should_panic(expected = "(fastnum) exponent is too large to fit in target type")]
         fn test_parse_exponent_overflow_signed(#[case] s: &str) {
             let _ = $D::from_str(s).unwrap();

@@ -19,7 +19,7 @@ fn test_from_f32_ok_512(#[case] n: f32, #[case] expected: D512) {
 
     let n = f32::from_bits(n.to_bits() | (1 << 31));
     let d = D512::try_from(n).unwrap();
-    assert_eq!(d, expected.negative());
+    assert_eq!(d, expected.neg());
 }
 
 #[rstest]

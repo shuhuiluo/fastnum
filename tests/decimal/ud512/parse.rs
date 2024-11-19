@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use rstest::*;
 
 use fastnum::{u512, U512, UD512};
@@ -20,8 +18,8 @@ test_impl_unsigned!(u512, U256, UD512);
 #[case("1340780792994259709957402499820584612747936582.0592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095", u512!(13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095), -109)]
 fn test_parse_ok_512(#[case] s: &str, #[case] _int: U512, #[case] exp: i64) {
     let dec = UD512::from_str(s).unwrap();
-    assert_eq!(dec.significant_digits(), _int);
-    assert_eq!(dec.fractional_digit_count(), -exp);
+    assert_eq!(dec.decimal_digits(), _int);
+    assert_eq!(dec.fractional_digits_count(), -exp);
 }
 
 #[rstest(::trace)]

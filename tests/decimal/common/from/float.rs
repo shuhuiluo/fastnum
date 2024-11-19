@@ -19,6 +19,7 @@ macro_rules! test_ok_impl {
         #[case(0.15625, $udec!(0.15625))]
         #[case(1401757440., $udec!(1401757440))]
         #[case(10000000., $udec!(10000000))]
+        #[case(1048576., $udec!(1048576))]
         fn $name(#[case] n: $f, #[case] expected: $UD) {
             let d = $UD::try_from(n).unwrap();
             assert_eq!(d, expected);
@@ -88,7 +89,7 @@ macro_rules! test_ok_impl_signed {
         fn $name(#[case] n: $f, #[case] expected: $D) {
             let n = $f::from_bits(n.to_bits() | (1 << ($bits - 1)));
             let d = $D::try_from(n).unwrap();
-            assert_eq!(d, expected.negative());
+            assert_eq!(d, expected.neg());
         }
     };
 }

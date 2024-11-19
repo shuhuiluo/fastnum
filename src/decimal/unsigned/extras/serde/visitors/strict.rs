@@ -1,25 +1,19 @@
 use core::fmt;
-use core::marker::PhantomData;
-use core::str::FromStr;
-
 use serde::de;
 
 use crate::decimal::unsigned::UnsignedDecimal;
-use crate::decimal::ParseError;
 
-pub struct Visitor<UINT>(PhantomData<UINT>);
+pub struct Visitor<const N: usize>;
 
-impl<UINT> Visitor<UINT> {
+impl<const N: usize> Visitor<N> {
     pub const fn default() -> Self {
-        Self(PhantomData)
+        Self
     }
 }
 
-impl<'de, UINT> de::Visitor<'de> for Visitor<UINT>
-where
-    UnsignedDecimal<UINT>: FromStr<Err = ParseError>,
+impl<'de, const N: usize> de::Visitor<'de> for Visitor<N>
 {
-    type Value = UnsignedDecimal<UINT>;
+    type Value = UnsignedDecimal<N>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "formatted decimal string in strict mode")
@@ -29,6 +23,6 @@ where
     where
         E: de::Error,
     {
-        UnsignedDecimal::<UINT>::from_str(value).map_err(|err| E::custom(format!("{}", err)))
+        UnsignedDecimal::<N>::from_str(value).map_err(|err| E::custom(format!("{}", err)))
     }
 }

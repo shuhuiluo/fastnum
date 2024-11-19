@@ -1,17 +1,18 @@
-use core::str::FromStr;
-use std::fmt::{Debug, Display};
-use std::io::prelude::*;
+use core::fmt::{Debug, Write};
 
-use diesel::deserialize::{self, FromSql};
-use diesel::mysql::{Mysql, MysqlType, MysqlValue};
-use diesel::serialize::{self, IsNull, Output, ToSql};
-use diesel::sql_types::Numeric;
+use diesel::{
+    deserialize::{self, FromSql},
+    mysql::{Mysql, MysqlType, MysqlValue},
+    serialize::{self, IsNull, Output, ToSql},
+    sql_types::Numeric,
+};
 
 use crate::decimal::signed::Decimal;
 
-impl<UINT> ToSql<Numeric, Mysql> for Decimal<UINT>
+impl<const N: usize> ToSql<Numeric, Mysql> for Decimal<N>
 where
-    Decimal<UINT>: Debug + Display,
+    for<'a, 'b> Output<'a, 'b, Mysql>: Write,
+    Decimal<N>: Debug,
 {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> serialize::Result {
         write!(out, "{}", *self)
@@ -20,20 +21,7 @@ where
     }
 }
 
-impl<UINT> FromSql<Numeric, Mysql> for Decimal<UINT>
-where
-    Self: From<u8>
-        + From<i8>
-        + From<u16>
-        + From<i16>
-        + From<u32>
-        + From<i32>
-        + From<u64>
-        + From<i64>
-        + TryFrom<f32>
-        + TryFrom<f64>
-        + FromStr,
-{
+impl<const N: usize> FromSql<Numeric, Mysql> for Decimal<N> {
     fn from_sql(value: MysqlValue<'_>) -> deserialize::Result<Self> {
         let raw = value.as_bytes();
 
@@ -81,7 +69,7 @@ where
                     .map_err(|_| format!("{i} is not valid decimal number").into())
             }
             MysqlType::Numeric => {
-                let s = std::str::from_utf8(raw)?;
+                let s = core::str::from_utf8(raw)?;
                 Decimal::from_str(s).map_err(|_| format!("{s} is not valid decimal number ").into())
             }
             _ => Err(format!("{value:?} is not valid decimal number").into()),

@@ -30,5 +30,5 @@ fn test_from_f64_ok_512(#[case] n: f64, #[case] expected: D512) {
 
     let n = f64::from_bits(n.to_bits() | (1 << 63));
     let d = D512::try_from(n).unwrap();
-    assert_eq!(d, expected.negative());
+    assert_eq!(d, expected.neg());
 }

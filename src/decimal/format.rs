@@ -1,11 +1,12 @@
-use core::cmp::Ordering;
-use core::fmt;
-use core::fmt::Write;
-use core::ops::Neg;
+use core::{cmp::Ordering, fmt, fmt::Write, ops::Neg};
+
+use crate::decimal::round::round_pair_digits;
+#[cfg(not(feature = "numtraits"))]
+use crate::decimal::utils::cast::ToPrimitive;
+#[cfg(feature = "numtraits")]
 use num_traits::ToPrimitive;
 
-use crate::decimal::signed::Sign;
-use crate::decimal::RoundingMode;
+use crate::decimal::{signed::Sign, RoundingMode};
 
 include!(concat!(env!("OUT_DIR"), "/exponential_format_threshold.rs"));
 
@@ -135,7 +136,8 @@ fn format_full_scale(
         zero_right_pad_integer_ascii_digits(&mut digits, &mut exp, f.precision());
     } else {
         let scale = scale as u64;
-        // no-precision behaves the same as precision matching scale (i.e. no padding or rounding)
+        // no-precision behaves the same as precision matching scale (i.e. no padding or
+        // rounding)
         let prec = f
             .precision()
             .and_then(|prec| prec.to_u64())
@@ -165,10 +167,10 @@ fn format_full_scale(
     f.pad_integral(non_negative, "", &buf)
 }
 
-/// Fill appropriate number of zeros and decimal point into Vec of (ascii/utf-8) digits
+/// Fill appropriate number of zeros and decimal point into Vec of (ascii/utf-8)
+/// digits
 ///
 /// Exponent is set to zero if zeros were added
-///
 fn zero_right_pad_integer_ascii_digits(
     digits: &mut Vec<u8>,
     exp: &mut i128,
@@ -252,8 +254,12 @@ fn shift_or_trim_fractional_digits(
             let insig_digit = digits[0] - b'0';
             let trailing_zeros = digits[1..].iter().all(|&d| d == b'0');
 
-            let rounded_value =
-                RoundingMode::default().round_pair(sign, (0, insig_digit), trailing_zeros);
+            let rounded_value = round_pair_digits(
+                (0, insig_digit),
+                sign,
+                RoundingMode::default(),
+                trailing_zeros,
+            );
 
             digits.clear();
             if leading_zeros != 0 {
@@ -397,8 +403,12 @@ fn apply_rounding_to_ascii_digits(
     let sig_digit = ascii_digits[prec - 1] - b'0';
     let insig_digit = ascii_digits[prec] - b'0';
 
-    let rounded_digit =
-        RoundingMode::default().round_pair(sign, (sig_digit, insig_digit), trailing_zeros);
+    let rounded_digit = round_pair_digits(
+        (sig_digit, insig_digit),
+        sign,
+        RoundingMode::default(),
+        trailing_zeros,
+    );
 
     // remove insignificant digits
     ascii_digits.truncate(prec - 1);

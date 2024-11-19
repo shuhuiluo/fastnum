@@ -1,5 +1,4 @@
 use rstest::*;
-use std::str::FromStr;
 
 use fastnum::{udec512, UD512};
 

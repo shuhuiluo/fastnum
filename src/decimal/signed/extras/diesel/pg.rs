@@ -1,100 +1,109 @@
-use std::error::Error;
-use std::fmt::Debug;
+use core::{error::Error, fmt::Debug};
 
-use diesel::data_types::PgNumeric;
-use diesel::deserialize::FromSql;
-use diesel::pg::{Pg, PgValue};
-use diesel::serialize::{Output, ToSql};
-use diesel::sql_types::Numeric;
-use diesel::{deserialize, serialize};
+use diesel::{
+    data_types::PgNumeric,
+    deserialize,
+    deserialize::FromSql,
+    pg::{Pg, PgValue},
+    serialize,
+    serialize::{Output, ToSql},
+    sql_types::Numeric,
+};
 
-use crate::decimal::extras::utils::db::postgres;
-use crate::decimal::macros::decimal_err;
-use crate::decimal::signed::Decimal;
-use crate::decimal::signed::Sign;
-use crate::decimal::ParseError;
-use crate::{D128, D256, D512};
+use crate::decimal::{
+    error::pretty_error_msg,
+    extras::utils::db::postgres,
+    signed::{Decimal, Sign},
+    utils::name::TypeName,
+    ParseError,
+};
 
-macro_rules! macro_impl {
-    ($DEC: ident, $bits: literal, $module: ident) => {
-        impl<'a> TryFrom<&'a PgNumeric> for $DEC {
-            type Error = Box<dyn Error + Send + Sync>;
+impl<'a, const N: usize> TryFrom<&'a PgNumeric> for Decimal<N>
+where
+    Self: TypeName,
+{
+    type Error = Box<dyn Error + Send + Sync>;
 
-            fn try_from(numeric: &'a PgNumeric) -> deserialize::Result<Self> {
-                let (sign, weight, scale, digits) = match *numeric {
-                    PgNumeric::Positive {
-                        weight,
-                        scale,
-                        ref digits,
-                    } => (Sign::NoSign, weight, scale, digits),
-                    PgNumeric::Negative {
-                        weight,
-                        scale,
-                        ref digits,
-                    } => (Sign::Minus, weight, scale, digits),
-                    PgNumeric::NaN => return Err(decimal_err!($DEC, ParseError::NaN).into()),
-                };
-
-                let udec = postgres::$module::from_nbase(weight, scale, digits)
-                    .map_err(|e| decimal_err!($DEC, e))?;
-
-                Ok(Decimal::new(udec, sign))
+    fn try_from(numeric: &'a PgNumeric) -> deserialize::Result<Self> {
+        let (sign, weight, scale, digits) = match *numeric {
+            PgNumeric::Positive {
+                weight,
+                scale,
+                ref digits,
+            } => (Sign::NoSign, weight, scale, digits),
+            PgNumeric::Negative {
+                weight,
+                scale,
+                ref digits,
+            } => (Sign::Minus, weight, scale, digits),
+            PgNumeric::NaN => {
+                return Err(pretty_error_msg(Self::type_name(), ParseError::NaN).into())
             }
-        }
+        };
 
-        impl TryFrom<PgNumeric> for $DEC {
-            type Error = Box<dyn Error + Send + Sync>;
+        let udec = postgres::from_nbase(weight, scale, digits)
+            .map_err(|e| pretty_error_msg(Self::type_name(), e))?;
 
-            #[inline]
-            fn try_from(numeric: PgNumeric) -> deserialize::Result<Self> {
-                (&numeric).try_into()
-            }
-        }
-
-        impl<'a> TryFrom<&'a $DEC> for PgNumeric {
-            type Error = Box<dyn Error + Send + Sync>;
-
-            fn try_from(decimal: &'a $DEC) -> deserialize::Result<Self> {
-                let sign = decimal.sign();
-                let udec = decimal.abs();
-
-                let (weight, scale, digits) =
-                    postgres::$module::to_nbase(&udec).map_err(|e| decimal_err!($DEC, e))?;
-
-                match sign {
-                    Sign::Minus => Ok(PgNumeric::Negative {
-                        weight,
-                        scale,
-                        digits,
-                    }),
-                    Sign::NoSign | Sign::Plus => Ok(PgNumeric::Positive {
-                        weight,
-                        scale,
-                        digits,
-                    }),
-                }
-            }
-        }
-
-        impl TryFrom<$DEC> for PgNumeric {
-            type Error = Box<dyn Error + Send + Sync>;
-
-            #[inline]
-            fn try_from(decimal: $DEC) -> deserialize::Result<Self> {
-                (&decimal).try_into()
-            }
-        }
-    };
+        Ok(Decimal::new(udec, sign))
+    }
 }
 
-macro_impl!(D128, 128, u128);
-macro_impl!(D256, 256, u256);
-macro_impl!(D512, 512, u512);
-
-impl<UINT> ToSql<Numeric, Pg> for Decimal<UINT>
+impl<const N: usize> TryFrom<PgNumeric> for Decimal<N>
 where
-    Decimal<UINT>: Debug,
-    PgNumeric: for<'a> TryFrom<&'a Decimal<UINT>, Error = Box<dyn Error + Send + Sync>>,
+    Self: TypeName,
+{
+    type Error = Box<dyn Error + Send + Sync>;
+
+    #[inline]
+    fn try_from(numeric: PgNumeric) -> deserialize::Result<Self> {
+        (&numeric).try_into()
+    }
+}
+
+impl<'a, const N: usize> TryFrom<&'a Decimal<N>> for PgNumeric
+where
+    Decimal<N>: TypeName,
+{
+    type Error = Box<dyn Error + Send + Sync>;
+
+    fn try_from(decimal: &'a Decimal<N>) -> deserialize::Result<Self> {
+        let sign = decimal.sign();
+        let udec = decimal.abs();
+
+        let (weight, scale, digits) = postgres::to_nbase(&udec)
+            .map_err(|e| pretty_error_msg(Decimal::<N>::type_name(), e))?;
+
+        match sign {
+            Sign::Minus => Ok(PgNumeric::Negative {
+                weight,
+                scale,
+                digits,
+            }),
+            Sign::NoSign | Sign::Plus => Ok(PgNumeric::Positive {
+                weight,
+                scale,
+                digits,
+            }),
+        }
+    }
+}
+
+impl<const N: usize> TryFrom<Decimal<N>> for PgNumeric
+where
+    Decimal<N>: TypeName,
+{
+    type Error = Box<dyn Error + Send + Sync>;
+
+    #[inline]
+    fn try_from(decimal: Decimal<N>) -> deserialize::Result<Self> {
+        (&decimal).try_into()
+    }
+}
+
+impl<const N: usize> ToSql<Numeric, Pg> for Decimal<N>
+where
+    Decimal<N>: Debug,
+    PgNumeric: for<'a> TryFrom<&'a Decimal<N>, Error = Box<dyn Error + Send + Sync>>,
 {
     #[inline]
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
@@ -103,7 +112,7 @@ where
     }
 }
 
-impl<UINT> FromSql<Numeric, Pg> for Decimal<UINT>
+impl<const N: usize> FromSql<Numeric, Pg> for Decimal<N>
 where
     Self: TryFrom<PgNumeric, Error = Box<dyn Error + Send + Sync>>,
 {

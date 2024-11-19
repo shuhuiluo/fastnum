@@ -561,7 +561,7 @@ macro_rules! test_impl_signed {
 
             assert_eq!(format!("{:+.7}", d), "-90037659.6905000");
             assert_eq!(format!("{:.0}", d), "-90037660");
-            assert_eq!(format!("{:.3}", d), "-90037659.690");
+            assert_eq!(format!("{:.3}", d), "-90037659.691");
             assert_eq!(format!("{:.4}", d), "-90037659.6905");
             assert_eq!(format!("{:14.4}", d), "-90037659.6905");
             assert_eq!(format!("{:15.4}", d), " -90037659.6905");

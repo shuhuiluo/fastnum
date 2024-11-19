@@ -1,8 +1,6 @@
-use std::str::FromStr;
-
 use rstest::*;
 
-use fastnum::{decimal::signed::Sign, u128, D128, U128};
+use fastnum::{decimal::Sign, u128, D128, U128};
 
 use crate::decimal::common::parse::{test_impl, test_impl_signed};
 
@@ -16,8 +14,8 @@ test_impl_signed!(u128, U128, D128);
 #[case("-340282366920938463.463374607431768211455e-1000", Sign::Minus, u128!(340282366920938463463374607431768211455), -1021)]
 fn test_parse_ok_128(#[case] s: &str, #[case] sign: Sign, #[case] _int: U128, #[case] exp: i64) {
     let dec = D128::from_str(s).unwrap();
-    assert_eq!(dec.significant_digits(), _int);
-    assert_eq!(dec.fractional_digit_count(), -exp);
+    assert_eq!(dec.decimal_digits(), _int);
+    assert_eq!(dec.fractional_digits_count(), -exp);
     assert_eq!(sign, dec.sign());
 }
 

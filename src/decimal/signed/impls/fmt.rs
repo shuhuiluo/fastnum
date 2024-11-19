@@ -1,65 +1,58 @@
-use std::fmt::{self, Debug, Display, Formatter, LowerExp, UpperExp};
+use core::fmt::{self, Debug, Display, Formatter, LowerExp, UpperExp};
 
-use crate::decimal::format;
-use crate::decimal::signed::Decimal;
-use crate::{U128, U256, U512};
+use crate::decimal::{format, signed::Decimal, utils::name::TypeName};
 
-macro_rules! macro_impl {
-    ($UINT: ident, $bits: literal) => {
-        impl Display for Decimal<$UINT> {
-            #[inline]
-            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                let digits = self.significant_digits().to_str_radix(10);
-                let scale = self.fractional_digit_count();
-                format::format(digits, scale, self.sign, f)
-            }
-        }
-
-        impl LowerExp for Decimal<$UINT> {
-            #[inline]
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                let digits = self.significant_digits().to_str_radix(10);
-                let scale = self.fractional_digit_count();
-                format::format_exponential(digits, scale, self.sign, f, "e")
-            }
-        }
-
-        impl UpperExp for Decimal<$UINT> {
-            #[inline]
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                let digits = self.significant_digits().to_str_radix(10);
-                let scale = self.fractional_digit_count();
-                format::format_exponential(digits, scale, self.sign, f, "E")
-            }
-        }
-
-        impl Debug for Decimal<$UINT> {
-            #[inline]
-            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                if f.alternate() {
-                    write!(
-                        f,
-                        "D{}(\"{}{}e{:}\")",
-                        $bits,
-                        self.sign,
-                        self.significant_digits(),
-                        -self.fractional_digit_count()
-                    )
-                } else {
-                    write!(
-                        f,
-                        "D{}(sign = \"{}\", scale={}, digits=[{:?}])",
-                        $bits,
-                        self.sign,
-                        self.fractional_digit_count(),
-                        self.significant_digits()
-                    )
-                }
-            }
-        }
-    };
+impl<const N: usize> Display for Decimal<N> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let digits = self.decimal_digits().to_str_radix(10);
+        let scale = self.fractional_digits_count();
+        format::format(digits, scale, self.sign, f)
+    }
 }
 
-macro_impl!(U128, 128);
-macro_impl!(U256, 256);
-macro_impl!(U512, 512);
+impl<const N: usize> LowerExp for Decimal<N> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let digits = self.decimal_digits().to_str_radix(10);
+        let scale = self.fractional_digits_count();
+        format::format_exponential(digits, scale, self.sign, f, "e")
+    }
+}
+
+impl<const N: usize> UpperExp for Decimal<N> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let digits = self.decimal_digits().to_str_radix(10);
+        let scale = self.fractional_digits_count();
+        format::format_exponential(digits, scale, self.sign, f, "E")
+    }
+}
+
+impl<const N: usize> Debug for Decimal<N>
+where
+    Self: TypeName,
+{
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(
+                f,
+                "{}(\"{}{}e{:}\")",
+                Self::type_name(),
+                self.sign,
+                self.decimal_digits(),
+                -self.fractional_digits_count()
+            )
+        } else {
+            write!(
+                f,
+                "{}(sign = \"{}\", scale={}, digits=[{:?}])",
+                Self::type_name(),
+                self.sign,
+                self.fractional_digits_count(),
+                self.decimal_digits()
+            )
+        }
+    }
+}

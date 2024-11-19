@@ -1,5 +1,4 @@
 use rstest::*;
-use std::str::FromStr;
 
 use fastnum::{dec128, D128};
 

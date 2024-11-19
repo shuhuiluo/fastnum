@@ -29,11 +29,5 @@ fn test_from_f64_ok_256(#[case] n: f64, #[case] expected: D256) {
 
     let n = f64::from_bits(n.to_bits() | (1 << 63));
     let d = D256::try_from(n).unwrap();
-    assert_eq!(d, expected.negative());
+    assert_eq!(d, expected.neg());
 }
-
-// #[rstest(::trace)]
-// #[should_panic(expected = "(fastnum) number too large to fit in target type")]
-// fn test_from_f64_overflow_256(#[case] n: f64) {
-//     let _ = D256::try_from(n).unwrap();
-// }

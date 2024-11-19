@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use rstest::*;
 
 use fastnum::{u256, U256, UD256};
@@ -18,8 +16,8 @@ test_impl_unsigned!(u256, U256, UD256);
 #[case("1157920892373161954235709850086.87907853269984665640564039457584007913129639935", u256!(115792089237316195423570985008687907853269984665640564039457584007913129639935), -47)]
 fn test_parse_ok_256(#[case] s: &str, #[case] _int: U256, #[case] exp: i64) {
     let dec = UD256::from_str(s).unwrap();
-    assert_eq!(dec.significant_digits(), _int);
-    assert_eq!(dec.fractional_digit_count(), -exp);
+    assert_eq!(dec.decimal_digits(), _int);
+    assert_eq!(dec.fractional_digits_count(), -exp);
 }
 
 #[rstest(::trace)]

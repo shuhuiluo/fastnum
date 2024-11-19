@@ -13,7 +13,6 @@ use crate::utils::err_prefix;
 ///
 /// ```
 /// use fastnum::UD256;
-/// use std::str::FromStr;
 ///
 /// if let Err(e) = UD256::from_str("e12") {
 ///     println!("Failed conversion to Decimal: {e}");
@@ -119,8 +118,7 @@ impl From<ParseIntError> for ParseError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ParseError {
+impl core::error::Error for ParseError {
     #[inline]
     fn description(&self) -> &str {
         self.description()
@@ -144,5 +142,5 @@ pub(crate) fn pretty_error_msg(ty: &str, e: ParseError) -> String {
         Unknown => "decimal unknown error",
     };
 
-    format!("{} {ty} {}", err_prefix!(), msg)
+    format!("{} {ty} {msg}", err_prefix!())
 }

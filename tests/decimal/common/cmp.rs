@@ -18,6 +18,9 @@ macro_rules! test_impl {
         #[case($udec!(1234000000000), $udec!(12345e9))]
         #[case($udec!(1514932018891593916341142774e-24), $udec!(1514932018891593916341142773.0001))]
         #[case($UD::from_scale(i64::MIN + 1), $UD::from_scale(i64::MAX - 1))]
+        #[case($udec!(2), $udec!(0.2e2))]
+        #[case($udec!(1e-900), $udec!(1e45))]
+        #[case($udec!(1e-900), $udec!(1e+900))]
         fn test_cmp(#[case] a: $UD, #[case] b: $UD) {
             #[allow(clippy::eq_op)]
             (assert_eq!(a, a));
@@ -51,6 +54,15 @@ macro_rules! test_impl {
         #[case($udec!(1514932018891593.916341142773), $udec!(1514932018891593916341142773e-12))]
         #[case($UD::from_scale(i64::MAX - 1), $UD::from_scale(i64::MAX - 1))]
         #[case($UD::from_scale(i64::MIN + 1), $UD::from_scale(i64::MIN + 1))]
+        #[case($udec!(2), $udec!(0.2e1))]
+        #[case($udec!(0e1), $udec!(0.0))]
+        #[case($udec!(0e1), $udec!(0.0))]
+        #[case($udec!(0e0), $udec!(0.0))]
+        #[case($udec!(0e-0), $udec!(0.0))]
+        #[case($udec!(0901300e-3), $udec!(901.3))]
+        #[case($udec!(0.901300e+3), $udec!(901.3))]
+        #[case($udec!(0e-1), $udec!(0.0))]
+        #[case($udec!(2123121e1231), $udec!(212.3121e1235))]
         fn test_eq(#[case] a: $UD, #[case] b: $UD) {
             #[allow(clippy::eq_op)]
             (assert_eq!(a, a));

@@ -1,17 +1,18 @@
-use std::fmt::{Debug, Display};
-use std::io::prelude::*;
-use std::str::FromStr;
+use core::fmt::{Debug, Display, Write};
 
-use diesel::deserialize::{self, FromSql};
-use diesel::mysql::{Mysql, MysqlType, MysqlValue};
-use diesel::serialize::{self, IsNull, Output, ToSql};
-use diesel::sql_types::Numeric;
+use diesel::{
+    deserialize::{self, FromSql},
+    mysql::{Mysql, MysqlType, MysqlValue},
+    serialize::{self, IsNull, Output, ToSql},
+    sql_types::Numeric,
+};
 
 use crate::decimal::unsigned::UnsignedDecimal;
 
-impl<UINT> ToSql<Numeric, Mysql> for UnsignedDecimal<UINT>
+impl<const N: usize> ToSql<Numeric, Mysql> for UnsignedDecimal<N>
 where
-    UnsignedDecimal<UINT>: Debug + Display,
+    for<'a, 'b> Output<'a, 'b, Mysql>: Write,
+    UnsignedDecimal<N>: Debug + Display,
 {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> serialize::Result {
         write!(out, "{}", *self)
@@ -20,20 +21,7 @@ where
     }
 }
 
-impl<UINT> FromSql<Numeric, Mysql> for UnsignedDecimal<UINT>
-where
-    Self: From<u8>
-        + TryFrom<i8>
-        + From<u16>
-        + TryFrom<i16>
-        + From<u32>
-        + TryFrom<i32>
-        + From<u64>
-        + TryFrom<i64>
-        + TryFrom<f32>
-        + TryFrom<f64>
-        + FromStr,
-{
+impl<const N: usize> FromSql<Numeric, Mysql> for UnsignedDecimal<N> {
     fn from_sql(value: MysqlValue<'_>) -> deserialize::Result<Self> {
         let raw = value.as_bytes();
 
@@ -85,9 +73,9 @@ where
                     .map_err(|_| format!("{i} is not valid decimal number").into())
             }
             MysqlType::Numeric => {
-                let s = std::str::from_utf8(raw)?;
+                let s = core::str::from_utf8(raw)?;
                 UnsignedDecimal::from_str(s)
-                    .map_err(|_| format!("{s} is not valid decimal number ").into())
+                    .map_err(|_| format!("{s} is not valid decimal number").into())
             }
             _ => Err(format!("{value:?} is not valid decimal number").into()),
         }

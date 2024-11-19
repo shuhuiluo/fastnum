@@ -1,31 +1,17 @@
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
-use crate::decimal::signed::{Decimal, Sign};
-use crate::decimal::unsigned::UnsignedDecimal;
+use crate::decimal::signed::Decimal;
 
-impl<UINT> PartialOrd for Decimal<UINT>
-where
-    UnsignedDecimal<UINT>: Ord,
-{
+impl<const N: usize> PartialOrd for Decimal<N> {
     #[inline]
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
-        Some(self.cmp(rhs))
+        Some(std::cmp::Ord::cmp(self, rhs))
     }
 }
 
-impl<UINT> Ord for Decimal<UINT>
-where
-    UnsignedDecimal<UINT>: Ord,
-{
+impl<const N: usize> Ord for Decimal<N> {
     #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
-        match (self.sign, rhs.sign) {
-            (Sign::NoSign, Sign::Minus) | (Sign::Plus, Sign::Minus) => Ordering::Greater,
-            (Sign::Minus, Sign::NoSign) | (Sign::Minus, Sign::Plus) => Ordering::Less,
-            (Sign::Minus, Sign::Minus) => self.value.cmp(&rhs.value).reverse(),
-            (Sign::Plus, Sign::NoSign) => self.value.cmp(&rhs.value).then(Ordering::Greater),
-            (Sign::NoSign, Sign::Plus) => self.value.cmp(&rhs.value).then(Ordering::Less),
-            (Sign::NoSign, Sign::NoSign) | (Sign::Plus, Sign::Plus) => self.value.cmp(&rhs.value),
-        }
+        self.cmp(rhs)
     }
 }

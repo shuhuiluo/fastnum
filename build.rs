@@ -1,19 +1,17 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-const DEFAULT_PRECISION: &str = "100";
-const DEFAULT_ROUNDING_MODE: &str = "HalfEven";
+const DEFAULT_ROUNDING_MODE: &str = "HalfUp";
 const FMT_EXPONENTIAL_LOWER_THRESHOLD: &str = "5";
 const FMT_EXPONENTIAL_UPPER_THRESHOLD: &str = "15";
 const FMT_MAX_INTEGER_PADDING: &str = "1000";
-const DEFAULT_SERDE_DESERIALIZE_MODE: &str = "Strict";
+const SERDE_DESERIALIZE_MODE: &str = "Strict";
 
 fn main() {
     let out_dir: PathBuf = env::var_os("OUT_DIR").unwrap().into();
-    write_default_precision(&out_dir);
     write_default_rounding_mode(&out_dir);
     write_exponential_format_threshold(&out_dir);
-    write_default_serde_deserialize_mode(&out_dir);
+    write_serde_deserialize_mode(&out_dir);
 }
 
 macro_rules! load_env {
@@ -21,20 +19,6 @@ macro_rules! load_env {
         println!("cargo:rerun-if-env-changed={}", $name);
         $env::var($name).unwrap_or_else(|_| $default.to_owned())
     }};
-}
-
-fn write_default_precision(out_dir: &Path) {
-    let env_var = load_env!(env, "RUST_FASTNUM_DEFAULT_PRECISION", DEFAULT_PRECISION);
-    let rust_file_path = out_dir.join("default_precision.rs");
-
-    let default_prec: u32 = env_var
-        .parse::<std::num::NonZeroU32>()
-        .expect("$RUST_FASTNUM_DEFAULT_PRECISION must be an integer > 0")
-        .into();
-
-    let rust_file_contents = format!("const DEFAULT_PRECISION: u64 = {};", default_prec);
-
-    std::fs::write(rust_file_path, rust_file_contents).unwrap();
 }
 
 fn write_default_rounding_mode(out_dir: &Path) {
@@ -100,16 +84,16 @@ fn write_exponential_format_threshold(out_dir: &Path) {
     std::fs::write(rust_file_path, rust_file_contents.join("\n")).unwrap();
 }
 
-fn write_default_serde_deserialize_mode(out_dir: &Path) {
+fn write_serde_deserialize_mode(out_dir: &Path) {
     let mode = load_env!(
         env,
-        "RUST_FASTNUM_DEFAULT_SERDE_DESERIALIZE_MODE",
-        DEFAULT_SERDE_DESERIALIZE_MODE
+        "RUST_FASTNUM_SERDE_DESERIALIZE_MODE",
+        SERDE_DESERIALIZE_MODE
     );
 
-    let rust_file_path = out_dir.join("default_serde_deserialize_mode.rs");
+    let rust_file_path = out_dir.join("serde_deserialize_mode.rs");
     let rust_file_contents = format!(
-        "const DEFAULT_SERDE_DESERIALIZE_MODE: DeserializeMode = DeserializeMode::{};",
+        "const SERDE_DESERIALIZE_MODE: DeserializeMode = DeserializeMode::{};",
         mode
     );
 
