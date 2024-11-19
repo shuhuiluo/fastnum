@@ -45,6 +45,67 @@ const fn cast_down<const N: usize, const M: usize>(this: BUint<N>) -> BUint<M> {
     BUint::from_digits(out)
 }
 
+macro_rules! to_int {
+    { $($name: ident -> $int: ty), * }  => {
+        $(
+            #[inline]
+            pub const fn $name<const N: usize>(this: BUint<N>) -> Option<$int> {
+                let digits = this.digits();
+                let mut out = 0;
+                let mut i = 0;
+                if BITS > <$int>::BITS {
+                    let small = digits[i] as $int;
+                    let trunc = small as Digit;
+                    if digits[i] != trunc {
+                        return None;
+                    }
+                    out = small;
+                    i = 1;
+                } else {
+                    loop {
+                        let shift = i << BIT_SHIFT;
+                        if i >= N || shift >= <$int>::BITS as usize {
+                            break;
+                        }
+                        out |= digits[i] as $int << shift;
+                        i += 1;
+                    }
+                }
+
+                #[allow(unused_comparisons)]
+                if out < 0 {
+                    return None;
+                }
+
+                while i < N {
+                    if digits[i] != 0 {
+                        return None;
+                    }
+                    i += 1;
+                }
+
+                Some(out)
+            }
+        )*
+    };
+}
+
+to_int! {
+    // to_u8 -> u8,
+    // to_u16 -> u16,
+    // to_u32 -> u32,
+    // to_u64 -> u64,
+    // to_u128 -> u128,
+    // to_usize -> usize,
+
+    // to_i8 -> i8,
+    to_i16 -> i16
+    // to_i32 -> i32,
+    // to_i64 -> i64,
+    // to_i128 -> i128,
+    // to_isize -> isize
+}
+
 // This Hell is here because of the div_rem methods are not public in the bnum.
 
 #[inline]
@@ -353,7 +414,7 @@ const fn unchecked_shl_internal<const N: usize>(digits: Digits<N>, rhs: ExpType)
 
     let digit_shift = (rhs >> BIT_SHIFT) as usize;
     let bit_shift = rhs & BITS_MINUS_1;
-    
+
     if bit_shift != 0 {
         let carry_shift = BITS - bit_shift;
         let mut carry = 0;
@@ -387,7 +448,7 @@ const fn unchecked_shr_pad_internal<const N: usize, const NEG: bool>(
 
     let digit_shift = (rhs >> BIT_SHIFT) as usize;
     let bit_shift = rhs & BITS_MINUS_1;
-    
+
     let num_copies = N.saturating_sub(digit_shift);
 
     if bit_shift != 0 {

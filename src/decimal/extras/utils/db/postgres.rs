@@ -1,11 +1,10 @@
 use core::cmp::Ordering;
-use num_integer::Integer;
-use num_traits::ToPrimitive;
 
 use crate::{
     decimal::{unsigned::UnsignedDecimal, ParseError},
     int::UInt,
 };
+use crate::int::math::{div_rem, to_i16};
 
 struct NBaseConsts<const N: usize>;
 
@@ -96,10 +95,10 @@ pub(crate) fn to_nbase<const N: usize>(
     let mut weight = 0;
 
     while !uint.is_zero() {
-        let (div, rem) = uint.div_rem(&NBaseConsts::<N>::NBASE);
+        let (div, rem) = div_rem(uint, NBaseConsts::<N>::NBASE);
 
         if !digits.is_empty() || !rem.is_zero() {
-            digits.push(rem.to_i16().expect("10000 always fits in an i16"));
+            digits.push(to_i16(rem).expect("10000 always fits in an i16"));
         }
 
         uint = div;
