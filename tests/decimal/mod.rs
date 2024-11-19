@@ -8,6 +8,7 @@ mod math;
 mod round;
 mod smoke;
 mod parse;
+mod extras;
 
 mod d128;
 mod d256;

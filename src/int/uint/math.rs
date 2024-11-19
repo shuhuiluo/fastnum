@@ -48,6 +48,7 @@ const fn cast_down<const N: usize, const M: usize>(this: BUint<N>) -> BUint<M> {
 macro_rules! to_int {
     { $($name: ident -> $int: ty), * }  => {
         $(
+            #[allow(dead_code)]
             #[inline]
             pub const fn $name<const N: usize>(this: BUint<N>) -> Option<$int> {
                 let digits = this.digits();
@@ -91,19 +92,19 @@ macro_rules! to_int {
 }
 
 to_int! {
-    // to_u8 -> u8,
-    // to_u16 -> u16,
-    // to_u32 -> u32,
-    // to_u64 -> u64,
-    // to_u128 -> u128,
-    // to_usize -> usize,
+    to_u8 -> u8,
+    to_u16 -> u16,
+    to_u32 -> u32,
+    to_u64 -> u64,
+    to_u128 -> u128,
+    to_usize -> usize,
 
-    // to_i8 -> i8,
-    to_i16 -> i16
-    // to_i32 -> i32,
-    // to_i64 -> i64,
-    // to_i128 -> i128,
-    // to_isize -> isize
+    to_i8 -> i8,
+    to_i16 -> i16,
+    to_i32 -> i32,
+    to_i64 -> i64,
+    to_i128 -> i128,
+    to_isize -> isize
 }
 
 // This Hell is here because of the div_rem methods are not public in the bnum.
