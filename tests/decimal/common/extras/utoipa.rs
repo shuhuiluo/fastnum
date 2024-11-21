@@ -24,16 +24,16 @@ macro_rules! test_impl {
             fn test_utoipa() {
                 let schema = Pet::schema();
                 let json = serde_json::to_value(schema).unwrap();
-                
+
                 let name = format!("#/components/schemas/{}", stringify!($D));
-                
+
                 assert_eq!(json, json!({
                         "properties": {
-                            "age": {"$ref": name}, 
-                            "id": {"format": "int64", "minimum": 0, "type": "integer"}, 
+                            "age": {"$ref": name},
+                            "id": {"format": "int64", "minimum": 0, "type": "integer"},
                             "name": {"type": "string"}
-                        }, 
-                        "required": ["id", "name", "age"], 
+                        },
+                        "required": ["id", "name", "age"],
                         "type": "object"
                     })
                 );

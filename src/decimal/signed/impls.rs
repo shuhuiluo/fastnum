@@ -15,3 +15,6 @@ mod ord;
 
 #[cfg(feature = "numtraits")]
 mod numtraits;
+
+#[cfg(feature = "zeroize")]
+mod zeroize;
