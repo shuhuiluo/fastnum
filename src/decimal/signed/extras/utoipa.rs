@@ -1,16 +1,18 @@
 use alloc::borrow::Cow;
 
-use crate::decimal::{signed::Decimal, utils::name::TypeName};
 use utoipa::{
-    openapi::{schema::SchemaType, KnownFormat, ObjectBuilder, SchemaFormat, Type},
+    openapi::{schema::SchemaType, KnownFormat, ObjectBuilder, RefOr, Schema, SchemaFormat, Type},
     PartialSchema,
+    __dev::ComposeSchema,
 };
 
-impl<const N: usize> utoipa::PartialSchema for Decimal<N>
+use crate::decimal::{signed::Decimal, utils::name::TypeName};
+
+impl<const N: usize> ComposeSchema for Decimal<N>
 where
     Self: TypeName,
 {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::Schema> {
+    fn compose(_: Vec<RefOr<Schema>>) -> RefOr<Schema> {
         ObjectBuilder::new()
             .schema_type(SchemaType::Type(Type::String))
             .title(Some(Self::type_name()))
@@ -28,12 +30,7 @@ where
         Cow::Borrowed(Self::type_name())
     }
 
-    fn schemas(
-        schemas: &mut Vec<(
-            String,
-            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
-        )>,
-    ) {
+    fn schemas(schemas: &mut Vec<(String, RefOr<Schema>)>) {
         schemas.extend([(format!("{}", Self::type_name()), Self::schema())]);
     }
 }

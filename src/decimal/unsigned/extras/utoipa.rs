@@ -29,4 +29,8 @@ where
     fn name() -> Cow<'static, str> {
         Cow::Borrowed(Self::type_name())
     }
+
+    fn schemas(schemas: &mut Vec<(String, RefOr<Schema>)>) {
+        schemas.extend([(format!("{}", Self::type_name()), Self::schema())]);
+    }
 }
