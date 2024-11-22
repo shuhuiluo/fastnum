@@ -2,7 +2,7 @@ use alloc::borrow::Cow;
 
 use utoipa::{
     __dev::ComposeSchema,
-    openapi::{schema::SchemaType, KnownFormat, ObjectBuilder, RefOr, Schema, SchemaFormat, Type},
+    openapi::{schema::SchemaType, ObjectBuilder, RefOr, Schema, SchemaFormat, Type},
     *,
 };
 
@@ -16,7 +16,12 @@ where
         ObjectBuilder::new()
             .schema_type(SchemaType::Type(Type::String))
             .title(Some(Self::type_name()))
-            .format(Some(SchemaFormat::KnownFormat(KnownFormat::Double)))
+            .description(Some(format!(
+                "Fixed-size unsigned {}-bits decimal number",
+                N * 64
+            )))
+            .examples(["0.0", "1.23", "1.5"])
+            .format(Some(SchemaFormat::Custom("number".to_string())))
             .build()
             .into()
     }
@@ -28,9 +33,5 @@ where
 {
     fn name() -> Cow<'static, str> {
         Cow::Borrowed(Self::type_name())
-    }
-
-    fn schemas(schemas: &mut Vec<(String, RefOr<Schema>)>) {
-        schemas.extend([(format!("{}", Self::type_name()), Self::schema())]);
     }
 }

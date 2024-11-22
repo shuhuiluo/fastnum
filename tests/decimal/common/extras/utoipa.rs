@@ -1,11 +1,11 @@
 macro_rules! test_impl {
     (D, $bits: literal) => {
-        paste::paste! { test_impl!($bits, [< dec $bits >], [<D $bits>]); }
+        paste::paste! { test_impl!($bits, [< dec $bits >], [<D $bits>], "signed", ["0.0", "1.23", "-1.5"]); }
     };
     (UD, $bits: literal) => {
-        paste::paste! { test_impl!($bits, [< udec $bits >], [<UD $bits>]); }
+        paste::paste! { test_impl!($bits, [< udec $bits >], [<UD $bits>], "unsigned", ["0.0", "1.23", "1.5"]); }
     };
-    ($bits: tt, $dec: ident, $D: ident) => {
+    ($bits: tt, $dec: ident, $D: ident, $sign: literal, $examples: tt) => {
         #[allow(dead_code)]
         mod $dec {
             use rstest::*;
@@ -145,7 +145,9 @@ macro_rules! test_impl {
                           name: {
                             "type": "string",
                             "title": name,
-                            "format": "double"
+                            "format": "number", 
+                            "description": concat!("Fixed-size ", $sign, " ", stringify!($bits), "-bits decimal number"), 
+                            "examples": $examples, 
                           }
                         }
                       }
