@@ -9,7 +9,6 @@ mod from;
 mod from_str;
 mod hash;
 mod iter;
-mod name;
 mod ops;
 mod ord;
 

@@ -6,12 +6,9 @@ use utoipa::{
     *,
 };
 
-use crate::decimal::{unsigned::UnsignedDecimal, utils::name::TypeName};
+use crate::decimal::unsigned::UnsignedDecimal;
 
-impl<const N: usize> ComposeSchema for UnsignedDecimal<N>
-where
-    Self: TypeName,
-{
+impl<const N: usize> ComposeSchema for UnsignedDecimal<N> {
     fn compose(_: Vec<RefOr<Schema>>) -> RefOr<Schema> {
         ObjectBuilder::new()
             .schema_type(SchemaType::Type(Type::String))
@@ -27,11 +24,8 @@ where
     }
 }
 
-impl<const N: usize> ToSchema for UnsignedDecimal<N>
-where
-    Self: TypeName,
-{
+impl<const N: usize> ToSchema for UnsignedDecimal<N> {
     fn name() -> Cow<'static, str> {
-        Cow::Borrowed(Self::type_name())
+        Cow::Owned(Self::type_name())
     }
 }

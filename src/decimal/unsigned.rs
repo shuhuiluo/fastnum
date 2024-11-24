@@ -2,7 +2,7 @@ mod doc;
 mod extras;
 mod impls;
 
-use impls::decimal::{consts::consts_impl, ops::ops_impl};
+use impls::decimal::consts::consts_impl;
 
 pub(crate) mod math;
 pub(crate) mod parse;
@@ -11,10 +11,7 @@ pub(crate) mod round;
 use core::{cmp::Ordering, fmt};
 
 use crate::{
-    decimal::{
-        format, math::DecimalResult, signed::Decimal, ParseError, RoundingMode,
-        Sign,
-    },
+    decimal::{format, math::DecimalResult, signed::Decimal, ParseError, RoundingMode, Sign},
     int::{math::div_rem, UInt},
 };
 
@@ -33,7 +30,6 @@ pub struct UnsignedDecimal<const N: usize> {
 }
 
 consts_impl!();
-ops_impl!();
 
 impl<const N: usize> UnsignedDecimal<N> {
     #[inline]
@@ -460,8 +456,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a + b;
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn add(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
@@ -499,12 +495,51 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a - b;
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn sub(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
         math::sub(self, rhs, rounding_mode)
+    }
+
+    /// Calculates `self` × `rhs`.
+    ///
+    /// Returns [DecimalResult] with result of multiplication and [emergency
+    /// flags](crate#arithmetic-result). Is internally used by the `*`
+    /// operator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::{udec256, UD256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = UD256::FIVE;
+    /// let b = UD256::TWO;
+    ///
+    /// let c = a.mul(b, RoundingMode::default()).unwrap();
+    /// assert_eq!(c, udec256!(10));
+    /// ```
+    ///
+    /// ```should_panic
+    /// use fastnum::{udec256, UD256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = UD256::MAX;
+    /// let b = UD256::MAX;
+    ///
+    /// let c = a * b;
+    /// ```
+    ///
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn mul(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
+        math::mul(self, rhs, rounding_mode)
     }
 
     /// Calculates `self` ÷ `rhs`.
@@ -538,12 +573,40 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a / b;
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn div(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
         math::div(self, rhs, rounding_mode)
+    }
+
+    /// Calculates `self` % `rhs`.
+    ///
+    /// Returns [DecimalResult] with result of division reminder and [emergency
+    /// flags](crate#arithmetic-result). Is internally used by the `%`
+    /// operator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::{udec256, UD256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = UD256::FIVE;
+    /// let b = UD256::TWO;
+    ///
+    /// let c = a.rem(b, RoundingMode::default()).unwrap();
+    /// assert_eq!(c, udec256!(1));
+    /// ```
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn rem(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
+        math::rem(self, rhs, rounding_mode)
     }
 
     /// Return given decimal number rounded to 'digits' precision after the
@@ -553,11 +616,12 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// # Panics:
     ///
     /// This method will panic if round operation (up-scale or down-scale)
-    /// performs with some emergency flags and specified [crate::decimal::ArithmeticPolicy]
-    /// enjoin to panic when the corresponding flag occurs.
+    /// performs with some emergency flags and specified
+    /// [crate::decimal::ArithmeticPolicy] enjoin to panic when the
+    /// corresponding flag occurs.
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     ///
     ///
     /// # Examples
@@ -578,10 +642,11 @@ impl<const N: usize> UnsignedDecimal<N> {
     }
 
     /// Returns [DecimalResult] with result of round given decimal number
-    /// to 'digits' precision after the decimal point using given [RoundingMode].
+    /// to 'digits' precision after the decimal point using given
+    /// [RoundingMode].
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     ///
     /// # Examples
     ///
@@ -607,7 +672,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Create string of this unsigned decimal in scientific notation.
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use fastnum::udec256;
     ///
@@ -625,12 +690,12 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// Engineering notation is scientific notation with the exponent
     /// coerced to a multiple of three.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
     /// use fastnum::udec256;
-    /// 
+    ///
     /// let n = udec256!(12345678);
     /// assert_eq!(&n.to_engineering_notation(), "12.345678e6");
     /// ```
@@ -644,6 +709,11 @@ impl<const N: usize> UnsignedDecimal<N> {
 
 #[doc(hidden)]
 impl<const N: usize> UnsignedDecimal<N> {
+    #[inline]
+    pub(crate) fn type_name() -> String {
+        format!("UD{}", N * 64)
+    }
+
     /// Write unsigned decimal in scientific notation to writer `w`.
     #[inline]
     pub(crate) fn write_scientific_notation<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {

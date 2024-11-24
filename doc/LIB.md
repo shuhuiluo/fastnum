@@ -44,13 +44,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.0.12"
+fastnum = "0.0.13"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.0.12", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.0.13", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -476,20 +476,20 @@ let my_struct: MyStruct = serde_json::from_str(&json_src).unwrap();
 
 ## Features
 
-| Feature           | Default | Description                                                                                                                                                                                                                                                                                                                                                                                  |
-|-------------------|:-------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `std`             |    ✅    |                                                                                                                                                                                                                                                                                                                                                                                              |
-| `numtraits`       |         | Includes implementations of traits from the [`num_traits`](https://docs.rs/num-traits/latest/num_traits/) and [`num_integer`](https://docs.rs/num-integer/latest/num_integer/) crates, e.g. [`AsPrimitive`](https://docs.rs/num-traits/latest/num_traits/cast/trait.AsPrimitive.html), [`Signed`](https://docs.rs/num-traits/latest/num_traits/sign/trait.Stper/trait.Integer.html) and etc. |
-| `rand`            |         | Allows creation of random `fastnum` decimals via the [`rand`](https://docs.rs/rand/latest/rand/) crate.                                                                                                                                                                                                                                                                                      |
-| `zeroize`         |         | Enables the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) trait implementation from the [`zeroize`](https://docs.rs/zeroize/latest/zeroize/) crate for `fastnum` decimals.                                                                                                                                                                                          |
-| `serde`           |         | Enables serialization and deserialization of `fastnum` decimals via the [`serde`](https://docs.rs/serde/latest/serde/) crate.                                                                                                                                                                                                                                                                |
-| `diesel`          |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) crate.                                                                                                                                                                                                                                                                 |
-| `diesel_postgres` |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) PostgreSQL backend.                                                                                                                                                                                                                                                    |
-| `diesel_mysql`    |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) MySQL backend.                                                                                                                                                                                                                                                         |
-| `sqlx`            |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) crate.                                                                                                                                                                                                                                                                       |
-| `sqlx_postgres`   |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) PostgreSQL backend.                                                                                                                                                                                                                                                          |
-| `sqlx_mysql`      |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) MySQL backend.                                                                                                                                                                                                                                                               |
-| `utoipa`          |         | Enables support of `fastnum` decimals for autogenerated OpenAPI documentation via the [`utoipa`](https://docs.rs/utoipa/latest/utoipa/) crate.                                                                                                                                                                                                                                               |
+| Feature           | Default | Description                                                                                                                                                                                         |
+|-------------------|:-------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `std`             |    ✅    |                                                                                                                                                                                                     |
+| `numtraits`       |         | Includes implementations of traits from the [`num_traits`](https://docs.rs/num-traits/latest/num_traits/) crate.                                                                                    |
+| `rand`            |         | Allows creation of random `fastnum` decimals via the [`rand`](https://docs.rs/rand/latest/rand/) crate.                                                                                             |
+| `zeroize`         |         | Enables the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) trait implementation from the [`zeroize`](https://docs.rs/zeroize/latest/zeroize/) crate for `fastnum` decimals. |
+| `serde`           |         | Enables serialization and deserialization of `fastnum` decimals via the [`serde`](https://docs.rs/serde/latest/serde/) crate.                                                                       |
+| `diesel`          |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) crate.                                                                        |
+| `diesel_postgres` |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) PostgreSQL backend.                                                           |
+| `diesel_mysql`    |         | Enables serialization and deserialization of `fastnum` decimals for [`diesel`](https://docs.rs/diesel/latest/diesel/) MySQL backend.                                                                |
+| `sqlx`            |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) crate.                                                                              |
+| `sqlx_postgres`   |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) PostgreSQL backend.                                                                 |
+| `sqlx_mysql`      |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) MySQL backend.                                                                      |
+| `utoipa`          |         | Enables support of `fastnum` decimals for autogenerated OpenAPI documentation via the [`utoipa`](https://docs.rs/utoipa/latest/utoipa/) crate.                                                      |
 
 ### Compile-Time Configuration
 

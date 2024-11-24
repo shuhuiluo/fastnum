@@ -11,40 +11,6 @@ const BITS: ExpType = Digit::BITS;
 const BITS_MINUS_1: ExpType = BITS - 1;
 const BIT_SHIFT: ExpType = BITS.trailing_zeros();
 
-#[inline]
-pub const fn cast<const N: usize, const M: usize>(this: BUint<N>) -> BUint<M> {
-    if M < N {
-        cast_down(this)
-    } else {
-        cast_up(this)
-    }
-}
-
-#[inline]
-const fn cast_up<const N: usize, const M: usize>(this: BUint<N>) -> BUint<M> {
-    let mut out = [0; M];
-    let digits = this.digits();
-    let mut i = M - N;
-    while i < M {
-        let index = i - (M - N);
-        out[index] = digits[index];
-        i += 1;
-    }
-    BUint::from_digits(out)
-}
-
-#[inline]
-const fn cast_down<const N: usize, const M: usize>(this: BUint<N>) -> BUint<M> {
-    let mut out = [0; M];
-    let digits = this.digits();
-    let mut i = 0;
-    while i < M {
-        out[i] = digits[i];
-        i += 1;
-    }
-    BUint::from_digits(out)
-}
-
 macro_rules! to_int {
     { $($name: ident -> $int: ty), * }  => {
         $(
@@ -132,6 +98,15 @@ pub const fn div_rem<const N: usize>(
     }
 }
 
+#[inline]
+pub const fn div_rem_wide(low: Digit, high: Digit, rhs: Digit) -> (Digit, Digit) {
+    let a = to_double_digit(low, high);
+    (
+        (a / rhs as DoubleDigit) as Digit,
+        (a % rhs as DoubleDigit) as Digit,
+    )
+}
+
 const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
     let mut index = 0;
     let mut i = 1;
@@ -153,7 +128,7 @@ const fn div_rem_digit<const N: usize>(digits: Digits<N>, rhs: Digit) -> (Digits
 
     while i > 0 {
         i -= 1;
-        let (q, r) = div_rem_wide::<N>(digits[i], rem, rhs);
+        let (q, r) = div_rem_wide(digits[i], rem, rhs);
         rem = r;
         out[i] = q;
     }
@@ -185,7 +160,7 @@ const fn basecase_div_rem<const N: usize>(
 
         // q_hat will be either `q` or `q + 1`
         let mut q_hat = if u_jn < v_n_m1 {
-            let (mut q_hat, r_hat) = div_rem_wide::<N>(u.digit(j + n - 1), u_jn, v_n_m1); // D3
+            let (mut q_hat, r_hat) = div_rem_wide(u.digit(j + n - 1), u_jn, v_n_m1); // D3
 
             if tuple_gt(
                 widening_mul::<N>(q_hat, v_n_m2),
@@ -259,22 +234,13 @@ const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
 }
 
 #[inline]
-const fn div_rem_wide<const N: usize>(low: Digit, high: Digit, rhs: Digit) -> (Digit, Digit) {
-    let a = to_double_digit::<N>(low, high);
-    (
-        (a / rhs as DoubleDigit) as Digit,
-        (a % rhs as DoubleDigit) as Digit,
-    )
-}
-
-#[inline]
 const fn widening_mul<const N: usize>(a: Digit, b: Digit) -> (Digit, Digit) {
     let prod = a as DoubleDigit * b as DoubleDigit;
     (prod as Digit, (prod >> BUint::<N>::BITS) as Digit)
 }
 
 #[inline]
-const fn to_double_digit<const N: usize>(low: Digit, high: Digit) -> DoubleDigit {
+const fn to_double_digit(low: Digit, high: Digit) -> DoubleDigit {
     ((high as DoubleDigit) << BITS) | low as DoubleDigit
 }
 

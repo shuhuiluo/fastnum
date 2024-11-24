@@ -3,25 +3,17 @@ use core::cmp::Ordering;
 use crate::{
     decimal::{
         math::{result, DecimalResult, Flags},
-        round::{round, RoundConsts},
-        unsigned::{round, UnsignedDecimal},
+        round::{round, scale_round, RoundConsts},
+        unsigned::{round::with_scale, UnsignedDecimal},
         RoundingMode,
     },
     int::{
-        math::{cast, div_rem},
+        math::{div_rem, div_rem_wide},
         UInt,
     },
 };
 
 type UD<const N: usize> = UnsignedDecimal<N>;
-
-// TODO: Replace DN with {2 * N} and remove all upward macros when `generic_const_exprs` is stabilized: https://github.com/rust-lang/rust/issues/76560
-
-struct MulConsts<const N: usize, const DN: usize>;
-
-impl<const N: usize, const DN: usize> MulConsts<N, DN> {
-    pub const MAX: UInt<DN> = cast::<N, DN>(UInt::<N>::MAX);
-}
 
 #[inline]
 pub(crate) const fn add<const N: usize>(
@@ -63,16 +55,16 @@ pub(crate) const fn sub<const N: usize>(
     if lhs.scale == rhs.scale {
         sub_aligned(lhs, rhs)
     } else if lhs.scale < rhs.scale {
-        let (lhs, flags) = round::with_scale(lhs, rhs.scale, rounding_mode).split();
+        let (lhs, flags) = with_scale(lhs, rhs.scale, rounding_mode).split();
         sub_aligned(lhs, rhs).add_flags(flags)
     } else {
-        let (rhs, flags) = round::with_scale(rhs, lhs.scale, rounding_mode).split();
+        let (rhs, flags) = with_scale(rhs, lhs.scale, rounding_mode).split();
         sub_aligned(lhs, rhs).add_flags(flags)
     }
 }
 
 #[inline]
-pub(crate) const fn mul<const N: usize, const DN: usize>(
+pub(crate) const fn mul<const N: usize>(
     lhs: UD<N>,
     rhs: UD<N>,
     rounding_mode: RoundingMode,
@@ -89,26 +81,56 @@ pub(crate) const fn mul<const N: usize, const DN: usize>(
             return result!(UD::new(UInt::MAX, scale)).overflow();
         }
 
-        let mut value = cast::<N, DN>(lhs.value);
-        value = value.strict_mul(cast::<N, DN>(rhs.value));
+        let (mut low, mut high) = lhs.value.widening_mul(rhs.value);
 
-        if value.gt(&MulConsts::<N, DN>::MAX) {
-            while value.gt(&MulConsts::<N, DN>::MAX) {
-                (scale, overflow) = scale.overflowing_sub(1);
+        let mut out;
+        let mut rem;
 
-                if overflow {
-                    return result!(UD::new(UInt::MAX, i64::MIN)).overflow();
-                }
+        if high.is_zero() {
+            let value = UD::new(low, scale);
+            return result!(value);
+        }
 
-                (value, _) = round(value, rounding_mode);
+        while !high.is_zero() {
+            (scale, overflow) = scale.overflowing_sub(1);
+
+            if overflow {
+                return result!(UD::new(UInt::MAX, i64::MIN)).overflow();
             }
 
-            let value = UD::new(cast(value), scale);
-            result!(value).inexact()
-        } else {
-            let value = UD::new(cast(value), scale);
-            result!(value)
+            out = [0; N];
+            rem = 0;
+
+            let mut i = N;
+            while i > 0 {
+                i -= 1;
+                let (q, r) = div_rem_wide(high.digits()[i], rem, 10);
+                rem = r;
+                out[i] = q;
+            }
+
+            high = UInt::from_digits(out);
+
+            i = N;
+            out = [0; N];
+
+            while i > 0 {
+                i -= 1;
+                let (q, r) = div_rem_wide(low.digits()[i], rem, 10);
+                rem = r;
+                out[i] = q;
+            }
+
+            low = UInt::from_digits(out);
+
+            if rem != 0 {
+                // TODO
+                low = round(low, UInt::from_digit(rem), rounding_mode);
+            }
         }
+
+        let value = UD::new(low, scale);
+        result!(value).inexact()
     }
 }
 
@@ -146,7 +168,7 @@ pub(crate) const fn div<const N: usize>(
 
                 if value.gt(&RoundConsts::MAX) {
                     // TODO: performance optimizations
-                    let (digit, _) = round(quotient, rounding_mode);
+                    let (digit, _) = scale_round(quotient, rounding_mode);
                     if digit.is_one() {
                         value = value.saturating_add(digit);
                     }
@@ -175,15 +197,39 @@ pub(crate) const fn div<const N: usize>(
 }
 
 #[inline]
+pub(crate) const fn rem<const N: usize>(
+    lhs: UD<N>,
+    rhs: UD<N>,
+    rounding_mode: RoundingMode,
+) -> DecimalResult<UD<N>> {
+    let scale = if lhs.scale >= rhs.scale {
+        lhs.scale
+    } else {
+        rhs.scale
+    };
+
+    let (num, flags_num) = with_scale(lhs, scale, rounding_mode).split();
+    let (den, flags_den) = with_scale(rhs, scale, rounding_mode).split();
+
+    if num.scale != den.scale {
+        return result!(lhs).overflow();
+    }
+
+    result!(UD::new(num.value.rem(den.value), scale))
+        .add_flags(flags_num)
+        .add_flags(flags_den)
+}
+
+#[inline]
 const fn add_rescale<const N: usize>(
     mut lhs: UD<N>,
     mut rhs: UD<N>,
     rounding_mode: RoundingMode,
 ) -> DecimalResult<UD<N>> {
     let mut flags;
-    (lhs, flags) = round::with_scale(lhs, rhs.scale, rounding_mode).split();
+    (lhs, flags) = with_scale(lhs, rhs.scale, rounding_mode).split();
     if flags.contains(Flags::OVERFLOW) {
-        (rhs, flags) = round::with_scale(rhs, lhs.scale, rounding_mode).split();
+        (rhs, flags) = with_scale(rhs, lhs.scale, rounding_mode).split();
         add_aligned(lhs, rhs, rounding_mode).add_flags(flags)
     } else {
         add_aligned(lhs, rhs, rounding_mode).add_flags(flags)
@@ -220,7 +266,7 @@ const fn add_aligned<const N: usize>(
 
         let flags;
 
-        (lhs, flags) = round::with_scale(lhs, scale, rounding_mode).split();
+        (lhs, flags) = with_scale(lhs, scale, rounding_mode).split();
         add_aligned(lhs, rhs, rounding_mode)
             .add_flags(flags)
             .inexact()
@@ -247,7 +293,7 @@ const fn extend_scale_to<const N: usize>(
     rounding_mode: RoundingMode,
 ) -> DecimalResult<UD<N>> {
     if new_scale > dec.scale {
-        round::with_scale(dec, new_scale, rounding_mode)
+        with_scale(dec, new_scale, rounding_mode)
     } else {
         result!(dec)
     }

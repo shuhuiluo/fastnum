@@ -5,12 +5,9 @@ use utoipa::{
     openapi::{schema::SchemaType, ObjectBuilder, RefOr, Schema, SchemaFormat, Type},
 };
 
-use crate::decimal::{signed::Decimal, utils::name::TypeName};
+use crate::decimal::signed::Decimal;
 
-impl<const N: usize> ComposeSchema for Decimal<N>
-where
-    Self: TypeName,
-{
+impl<const N: usize> ComposeSchema for Decimal<N> {
     fn compose(_: Vec<RefOr<Schema>>) -> RefOr<Schema> {
         ObjectBuilder::new()
             .schema_type(SchemaType::Type(Type::String))
@@ -26,11 +23,8 @@ where
     }
 }
 
-impl<const N: usize> utoipa::ToSchema for Decimal<N>
-where
-    Self: TypeName,
-{
+impl<const N: usize> utoipa::ToSchema for Decimal<N> {
     fn name() -> Cow<'static, str> {
-        Cow::Borrowed(Self::type_name())
+        Cow::Owned(Self::type_name())
     }
 }

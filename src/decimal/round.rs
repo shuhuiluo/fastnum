@@ -21,7 +21,7 @@ impl<const N: usize> RoundConsts<N> {
 }
 
 #[inline]
-pub(crate) const fn round<const N: usize>(
+pub(crate) const fn scale_round<const N: usize>(
     mut value: UInt<N>,
     rounding_mode: RoundingMode,
 ) -> (UInt<N>, bool) {
@@ -30,35 +30,45 @@ pub(crate) const fn round<const N: usize>(
     (value, remainder) = div_rem(value, UInt::<N>::TEN);
 
     if !remainder.is_zero() {
-        // TODO: performance optimization
-        match (rounding_mode, remainder.cmp(&UInt::FIVE)) {
-            (Up, _) | (Ceiling, _) => {
-                value = value.strict_add(UInt::ONE);
-            }
-            (Down, _) | (Floor, _) => {
-                // Do nothing
-            }
-            (_, Greater) | (HalfUp, Equal) => {
-                value = value.strict_add(UInt::ONE);
-            }
-            (_, Less) | (HalfDown, Equal) => {
-                // Do nothing
-            }
-            (HalfEven, Equal) => {
-                // TODO: performance optimization
-                if value.strict_rem(UInt::TWO).is_zero() {
-                    // Do nothing
-                } else {
-                    value = value.strict_add(UInt::ONE);
-                }
-            }
-        }
-        (value, true)
+        (round(value, remainder, rounding_mode), true)
     } else {
-        (value, false)   
+        (value, false)
     }
 }
 
+#[inline]
+pub(crate) const fn round<const N: usize>(
+    mut value: UInt<N>,
+    remainder: UInt<N>,
+    rounding_mode: RoundingMode,
+) -> UInt<N> {
+    // TODO: performance optimization
+    match (rounding_mode, remainder.cmp(&UInt::FIVE)) {
+        (Up, _) | (Ceiling, _) => {
+            value = value.strict_add(UInt::ONE);
+        }
+        (Down, _) | (Floor, _) => {
+            // Do nothing
+        }
+        (_, Greater) | (HalfUp, Equal) => {
+            value = value.strict_add(UInt::ONE);
+        }
+        (_, Less) | (HalfDown, Equal) => {
+            // Do nothing
+        }
+        (HalfEven, Equal) => {
+            // TODO: performance optimization
+            if value.strict_rem(UInt::TWO).is_zero() {
+                // Do nothing
+            } else {
+                value = value.strict_add(UInt::ONE);
+            }
+        }
+    }
+    value
+}
+
+// TODO: refactor
 pub(crate) fn round_pair_digits(
     pair: (u8, u8),
     sign: Sign,

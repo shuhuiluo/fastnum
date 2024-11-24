@@ -1,6 +1,6 @@
 use core::fmt::{self, Debug, Display, Formatter, LowerExp, UpperExp};
 
-use crate::decimal::{format, signed::Decimal, utils::name::TypeName};
+use crate::decimal::{format, signed::Decimal};
 
 impl<const N: usize> Display for Decimal<N> {
     #[inline]
@@ -29,10 +29,7 @@ impl<const N: usize> UpperExp for Decimal<N> {
     }
 }
 
-impl<const N: usize> Debug for Decimal<N>
-where
-    Self: TypeName,
-{
+impl<const N: usize> Debug for Decimal<N> {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if f.alternate() {

@@ -1,7 +1,7 @@
 use crate::{
     decimal::{
         math::{result, DecimalResult, Flags},
-        round::{round, RoundConsts},
+        round::{scale_round, RoundConsts},
         unsigned::UnsignedDecimal,
         RoundingMode,
     },
@@ -39,7 +39,7 @@ pub(crate) const fn with_scale<const N: usize>(
         let mut flags = Flags::empty();
         let mut is_rounded;
         while new_scale < dec.scale {
-            (dec.value, is_rounded) = round(dec.value, rounding_mode);
+            (dec.value, is_rounded) = scale_round(dec.value, rounding_mode);
             dec.scale -= 1;
 
             if is_rounded {

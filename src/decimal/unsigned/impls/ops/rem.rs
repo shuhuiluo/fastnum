@@ -1,76 +1,77 @@
-use core::ops::{Mul, MulAssign};
+use core::ops::{Rem, RemAssign};
 
 use crate::decimal::{unsigned::UnsignedDecimal, RoundingMode};
 
-impl<const N: usize> Mul for UnsignedDecimal<N> {
+impl<const N: usize> Rem for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
-    fn mul(self, rhs: Self) -> Self::Output {
-        self.mul(rhs, RoundingMode::default()).unwrap()
+    fn rem(self, rhs: Self) -> UnsignedDecimal<N> {
+        self.rem(rhs, RoundingMode::default()).unwrap()
     }
 }
 
-impl<const N: usize> MulAssign for UnsignedDecimal<N> {
+impl<const N: usize> RemAssign for UnsignedDecimal<N> {
     #[inline]
-    fn mul_assign(&mut self, rhs: Self) {
-        *self = Mul::<UnsignedDecimal<N>>::mul(*self, rhs)
+    fn rem_assign(&mut self, rhs: Self) {
+        let res = Rem::<UnsignedDecimal<N>>::rem(*self, rhs);
+        *self = res;
     }
 }
 
 macro_rules! macro_impl {
     (FROM $($ty: tt),*) => {
         $(
-            impl<const N: usize> Mul<$ty> for UnsignedDecimal<N> {
+            impl<const N: usize> Rem<$ty> for UnsignedDecimal<N> {
                 type Output = UnsignedDecimal<N>;
 
                 #[inline]
-                fn mul(self, rhs: $ty) -> Self::Output {
+                fn rem(self, rhs: $ty) -> UnsignedDecimal<N> {
                     let rhs = UnsignedDecimal::from(rhs);
-                    Mul::<UnsignedDecimal<N>>::mul(self, rhs)
+                    Rem::<UnsignedDecimal<N>>::rem(self, rhs)
                 }
             }
 
-            impl<const N: usize> MulAssign<$ty> for UnsignedDecimal<N> {
+            impl<const N: usize> RemAssign<$ty> for UnsignedDecimal<N> {
                 #[inline]
-                fn mul_assign(&mut self, rhs: $ty) {
+                fn rem_assign(&mut self, rhs: $ty) {
                     let rhs = UnsignedDecimal::from(rhs);
-                    self.mul_assign(rhs);
+                    self.rem_assign(rhs);
                 }
             }
         )*
     };
     (TRY_FROM $($ty: tt),*) => {
         $(
-            impl<const N: usize> Mul<$ty> for UnsignedDecimal<N> {
+            impl<const N: usize> Rem<$ty> for UnsignedDecimal<N> {
                 type Output = UnsignedDecimal<N>;
 
                 #[inline]
-                fn mul(self, rhs: $ty) -> Self::Output {
+                fn rem(self, rhs: $ty) -> UnsignedDecimal<N> {
                     let Ok(rhs) = UnsignedDecimal::try_from(rhs) else {
                         #[cfg(debug_assertions)]
-                        panic!(crate::utils::err_msg!(concat!("attempt to multiply with invalid ", stringify!($ty))));
+                        panic!(crate::utils::err_msg!(concat!("attempt to rem with invalid ", stringify!($ty))));
 
                         #[cfg(not(debug_assertions))]
                         return self;
                     };
 
-                    Mul::<UnsignedDecimal<N>>::mul(self, rhs)
+                    Rem::<UnsignedDecimal<N>>::rem(self, rhs)
                 }
             }
 
-            impl<const N: usize> MulAssign<$ty> for UnsignedDecimal<N> {
+            impl<const N: usize> RemAssign<$ty> for UnsignedDecimal<N> {
                 #[inline]
-                fn mul_assign(&mut self, rhs: $ty) {
+                fn rem_assign(&mut self, rhs: $ty) {
                     let Ok(rhs) = UnsignedDecimal::try_from(rhs) else {
                         #[cfg(debug_assertions)]
-                        panic!(crate::utils::err_msg!(concat!("attempt to multiply with invalid ", stringify!($ty))));
+                        panic!(crate::utils::err_msg!(concat!("attempt to rem with invalid ", stringify!($ty))));
 
                         #[cfg(not(debug_assertions))]
                         return;
                     };
 
-                    self.mul_assign(rhs);
+                    self.rem_assign(rhs);
                 }
             }
         )*

@@ -2,20 +2,21 @@
 pub(super) mod decimal;
 
 // Trait implementations
-mod name;
 mod cmp;
+mod default;
 mod fmt;
 mod from;
 mod from_str;
 mod hash;
-mod ord;
-mod ops;
-mod default;
 mod iter;
+mod ops;
+mod ord;
 
-#[cfg(feature = "numtraits")] 
+#[cfg(feature = "numtraits")]
 mod numtraits;
+
+#[cfg(feature = "rand")]
+mod rand;
 
 #[cfg(feature = "zeroize")]
 mod zeroize;
-

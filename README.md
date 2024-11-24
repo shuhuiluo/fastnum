@@ -89,13 +89,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.0.12"
+fastnum = "0.0.13"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.0.12", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.0.13", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -115,14 +115,12 @@ fn main() {
 
 ## Features
 
-### Generic numeric `num_traits` and `num_integer` trait implementations
+### Generic numeric `num_traits` trait implementations
 
 The `numtraits` feature includes implementations of traits from the [
-`num_traits`](https://docs.rs/num-traits/latest/num_traits/) and [
-`num_integer`](https://docs.rs/num-integer/latest/num_integer/) crates, e.g. [
+`num_traits`](https://docs.rs/num-traits/latest/num_traits/) crate, e.g. [
 `AsPrimitive`](https://docs.rs/num-traits/latest/num_traits/cast/trait.AsPrimitive.html), [
-`Signed`](https://docs.rs/num-traits/latest/num_traits/sign/trait.Signed.html), [
-`Integer`](https://docs.rs/num-integer/latest/num_integer/trait.Integer.html), etc.
+`Signed`](https://docs.rs/num-traits/latest/num_traits/sign/trait.Signed.html), etc.
 
 ### Random Number Generation
 

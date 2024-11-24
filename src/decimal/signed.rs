@@ -15,11 +15,10 @@ mod extras;
 mod impls;
 mod parse;
 mod sign;
-// mod round;
 
 pub use sign::Sign;
 
-use impls::decimal::{consts::consts_impl, ops::ops_impl};
+use impls::decimal::consts::consts_impl;
 
 use core::{cmp::Ordering, fmt};
 
@@ -39,7 +38,7 @@ use crate::{
 /// Consists of N-bit unsigned [UnsignedDecimal], paired with a [Sign].
 #[derive(Copy, Clone)]
 pub struct Decimal<const N: usize> {
-    /// A 256-bit decimal.
+    /// An N-bit unsigned decimal.
     value: UnsignedDecimal<N>,
 
     /// Sign
@@ -47,7 +46,6 @@ pub struct Decimal<const N: usize> {
 }
 
 consts_impl!();
-ops_impl!();
 
 impl<const N: usize> Decimal<N> {
     #[inline]
@@ -420,8 +418,8 @@ impl<const N: usize> Decimal<N> {
     /// let c = a + b;
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn add(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
@@ -468,8 +466,8 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(c, dec256!(-1));
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn sub(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
@@ -491,6 +489,48 @@ impl<const N: usize> Decimal<N> {
             // opposite signs => keep the sign of the left with the sum of magnitudes
             (_, _) => signify_result(self.value.add(rhs.value, rounding_mode), self.sign),
         }
+    }
+
+    /// Calculates `self` × `rhs`.
+    ///
+    /// Returns [DecimalResult] with result of multiplication and [emergency
+    /// flags](crate#arithmetic-result). Is internally used by the `*`
+    /// operator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::{dec256, D256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = D256::FIVE;
+    /// let b = D256::TWO;
+    ///
+    /// let c = a.mul(b, RoundingMode::default()).unwrap();
+    /// assert_eq!(c, dec256!(10));
+    /// ```
+    ///
+    /// ```should_panic
+    /// use fastnum::{dec256, D256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = D256::MAX;
+    /// let b = D256::MAX;
+    ///
+    /// let c = a * b;
+    /// ```
+    ///
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn mul(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
+        signify_result(
+            self.value.mul(rhs.value, rounding_mode),
+            self.sign.mul(rhs.sign),
+        )
     }
 
     /// Calculates `self` ÷ `rhs`.
@@ -524,8 +564,8 @@ impl<const N: usize> Decimal<N> {
     /// let c = a / b;
     /// ```
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn div(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
@@ -535,6 +575,35 @@ impl<const N: usize> Decimal<N> {
         )
     }
 
+    /// Calculates `self` % `rhs`.
+    ///
+    /// Returns [DecimalResult] with result of division reminder and [emergency
+    /// flags](crate#arithmetic-result). Is internally used by the `%`
+    /// operator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::{dec256, D256};
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = D256::FIVE;
+    /// let b = D256::TWO;
+    ///
+    /// let c = a.rem(b.neg(), RoundingMode::default()).unwrap();
+    /// assert_eq!(c, dec256!(1));
+    /// ```
+    ///
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn rem(self, rhs: Self, rounding_mode: RoundingMode) -> DecimalResult<Self> {
+        signify_result(self.value.rem(rhs.value, rounding_mode), self.sign)
+    }
+
     /// Return given decimal number rounded to 'digits' precision after the
     /// decimal point, using given [RoundingMode] unwrapped with default
     /// rounding and overflow policy.
@@ -542,11 +611,12 @@ impl<const N: usize> Decimal<N> {
     /// # Panics:
     ///
     /// This method will panic if round operation (up-scale or down-scale)
-    /// performs with some emergency flags and specified [crate::decimal::ArithmeticPolicy]
-    /// enjoin to panic when the corresponding flag occurs.
+    /// performs with some emergency flags and specified
+    /// [crate::decimal::ArithmeticPolicy] enjoin to panic when the
+    /// corresponding flag occurs.
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     ///
     ///
     /// # Examples
@@ -570,8 +640,8 @@ impl<const N: usize> Decimal<N> {
     /// to 'digits' precision after the decimal point using given
     /// [RoundingMode].
     ///
-    /// For more information about flags and [crate::decimal::ArithmeticPolicy] see:
-    /// [section](crate#arithmetic-result).
+    /// For more information about flags and [crate::decimal::ArithmeticPolicy]
+    /// see: [section](crate#arithmetic-result).
     ///
     /// # Examples
     ///
@@ -651,6 +721,11 @@ impl<const N: usize> Decimal<N> {
 
 #[doc(hidden)]
 impl<const N: usize> Decimal<N> {
+    #[inline]
+    pub(crate) fn type_name() -> String {
+        format!("D{}", N * 64)
+    }
+
     #[inline]
     pub(crate) fn write_scientific_notation<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {
         write!(w, "{}", self.sign)?;
