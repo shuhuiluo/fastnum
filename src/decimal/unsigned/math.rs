@@ -40,8 +40,8 @@ pub(crate) const fn add<const N: usize>(
 
 #[inline]
 pub(crate) const fn sub<const N: usize>(
-    lhs: UD<N>,
-    rhs: UD<N>,
+    mut lhs: UD<N>,
+    mut rhs: UD<N>,
     rounding_mode: RoundingMode,
 ) -> DecimalResult<UD<N>> {
     if rhs.is_zero() {
@@ -55,11 +55,27 @@ pub(crate) const fn sub<const N: usize>(
     if lhs.scale == rhs.scale {
         sub_aligned(lhs, rhs)
     } else if lhs.scale < rhs.scale {
-        let (lhs, flags) = with_scale(lhs, rhs.scale, rounding_mode).split();
-        sub_aligned(lhs, rhs).add_flags(flags)
+        let flags_ov;
+        (lhs, flags_ov) = with_scale(lhs, rhs.scale, rounding_mode).split();
+        
+        if flags_ov.contains(Flags::OVERFLOW) {
+            let flags;
+            (rhs, flags) = with_scale(rhs, lhs.scale, rounding_mode).split();
+            sub_aligned(lhs, rhs).add_flags(flags_ov.overflow_to_inexact()).add_flags(flags)
+        } else {
+            sub_aligned(lhs, rhs).add_flags(flags_ov)
+        }
     } else {
-        let (rhs, flags) = with_scale(rhs, lhs.scale, rounding_mode).split();
-        sub_aligned(lhs, rhs).add_flags(flags)
+        let flags_ov;
+        (rhs, flags_ov) = with_scale(rhs, lhs.scale, rounding_mode).split();
+
+        if flags_ov.contains(Flags::OVERFLOW) {
+            let flags;
+            (lhs, flags) = with_scale(lhs, rhs.scale, rounding_mode).split();
+            sub_aligned(lhs, rhs).add_flags(flags_ov.overflow_to_inexact()).add_flags(flags)
+        } else {
+            sub_aligned(lhs, rhs).add_flags(flags_ov)
+        }
     }
 }
 
@@ -242,6 +258,8 @@ const fn add_aligned<const N: usize>(
     mut rhs: UD<N>,
     rounding_mode: RoundingMode,
 ) -> DecimalResult<UD<N>> {
+    debug_assert!(lhs.scale == rhs.scale);
+    
     let mut overflow;
 
     (lhs.value, overflow) = lhs.value.overflowing_add(rhs.value);
@@ -275,6 +293,8 @@ const fn add_aligned<const N: usize>(
 
 #[inline]
 const fn sub_aligned<const N: usize>(lhs: UD<N>, rhs: UD<N>) -> DecimalResult<UD<N>> {
+    debug_assert!(lhs.scale == rhs.scale);
+    
     match lhs.value.cmp(&rhs.value) {
         Ordering::Less => result!(lhs).negative(),
         Ordering::Equal => {

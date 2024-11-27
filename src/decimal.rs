@@ -13,6 +13,8 @@ pub(crate) mod math;
 pub(crate) mod round;
 pub(crate) mod signed;
 pub(crate) mod unsigned;
+
+#[allow(dead_code)]
 pub(crate) mod utils;
 
 mod error;

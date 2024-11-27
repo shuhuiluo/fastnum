@@ -64,6 +64,7 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 
 ## Why fastnum?
 
+- **Strictly exact precision**: no round-off errors (such as 0.1 + 0.2 ≠ 0.3).
 - **Blazing fast**: `fastnum` numerics are as fast as native types, well almost :).
 - **Trivially copyable types**: all `fastnum` numerics are trivially copyable (both integer and decimal, ether signed
   and unsigned) and can be stored on the stack, as they are fixed size.
@@ -89,13 +90,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.0.13"
+fastnum = "0.0.14"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.0.13", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.0.14", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -178,7 +179,7 @@ cargo criterion
 This crate is tested with the [`rstest`](https://docs.rs/rstest/latest/rstest/) crate as well as with specific edge
 cases.
 
-We have more than `4500` tests, so we recommend run it using [`nextest`](https://nexte.st/):
+We have more than `6000` tests, so we recommend run it using [`nextest`](https://nexte.st/):
 
 ```shell
 cargo nextest run --all-features

@@ -49,20 +49,20 @@ impl Sign {
     ///
     /// let sign = Sign::Plus;
     /// assert_eq!(sign.not(), Sign::Minus);
-    /// assert_eq!(sign.not().not(), sign);
+    /// assert_eq!(sign.not().not(), Sign::NoSign);
     ///
     /// let sign = Sign::Minus;
-    /// assert_eq!(sign.not(), Sign::Plus);
+    /// assert_eq!(sign.not(), Sign::NoSign);
     /// assert_eq!(sign.not().not(), sign);
     ///
     /// let sign = Sign::NoSign;
     /// assert_eq!(sign.not(), Sign::Minus);
-    /// assert_ne!(sign.not().not(), sign);
+    /// assert_eq!(sign.not().not(), sign);
     /// ```
     #[inline]
     pub const fn not(self) -> Self {
         match self {
-            Sign::Minus => Sign::Plus,
+            Sign::Minus => Sign::NoSign,
             Sign::NoSign => Sign::Minus,
             Sign::Plus => Sign::Minus,
         }

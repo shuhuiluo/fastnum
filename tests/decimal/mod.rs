@@ -10,6 +10,9 @@ mod smoke;
 mod parse;
 mod extras;
 
+#[cfg(feature = "numtraits")]
+pub(crate) mod numtraits;
+
 mod d128;
 mod d256;
 mod d512;

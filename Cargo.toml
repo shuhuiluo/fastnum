@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.0.13"
+version = "0.0.14"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast numbers library"
@@ -11,8 +11,8 @@ keywords = [
     "numeric",
     "decimal",
     "const",
-    "no-std",
     "fixed-point",
+    "crypto"
 ]
 categories = ["mathematics", "science", "no-std"]
 license = "MIT"
@@ -35,6 +35,7 @@ serde = { version = ">= 1.0.0", default-features = false, optional = true }
 diesel = { version = ">=2.2.4", default-features = false, features = ["numeric"], optional = true }
 sqlx = { version = ">=0.8.0", default-features = false, optional = true }
 utoipa = { version = ">= 5.0.0", default-features = false, optional = true }
+libm = { version = "0.2", default-features = false, optional = true}
 
 [dev-dependencies]
 rstest = { version = "0.23.0" }
@@ -48,6 +49,7 @@ autocfg = "1"
 [features]
 default = ["std"]
 std = []
+libm = ["dep:libm"]
 
 numtraits = ["num-traits", "bnum/numtraits"]
 

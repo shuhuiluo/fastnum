@@ -5,7 +5,7 @@ use fastnum::{
     decimal::{ArithmeticError, RoundingMode},
     D128,
 };
-
+use fastnum::decimal::{ArithmeticPolicy, OverflowPolicy, RoundingPolicy};
 use crate::decimal::common::math::add::test_impl;
 
 test_impl!(D, 128);
@@ -24,10 +24,6 @@ test_impl!(UD, 512);
 #[case(dec128!(184467440737e3380), dec128!(0), dec128!(184467440737000000000000000000000000000e3353))]
 #[case(dec128!(340282366920938463463374607431768211455), dec128!(340282366920938463463374607431768211455), dec128!(68056473384187692692674921486353642291e1))]
 #[case(dec128!(0.340282366920938463463374607431768211455), dec128!(0.340282366920938463463374607431768211455), dec128!(0.68056473384187692692674921486353642291))]
-// #[case(dec128!(), dec128!(), dec128!())]
-// #[case(dec128!(), dec128!(), dec128!())]
-// #[case(dec128!(), dec128!(), dec128!())]
-// #[case(dec128!(), dec128!(), dec128!())]
 fn test_add_inexact(#[case] a: D128, #[case] b: D128, #[case] expected: D128) {
     let res = a + b;
 
@@ -36,7 +32,9 @@ fn test_add_inexact(#[case] a: D128, #[case] b: D128, #[case] expected: D128) {
         res.fractional_digits_count(),
         expected.fractional_digits_count()
     );
+    
+    let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
 
     let res = a.add(b, RoundingMode::HalfUp);
-    assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+    assert_eq!(res.ok_or_err_with_policy(&policy).unwrap_err(), ArithmeticError::Inexact);
 }

@@ -58,7 +58,7 @@ impl<'a, const N: usize> TryFrom<&'a Decimal<N>> for PgNumeric {
 
     fn try_from(decimal: &'a Decimal<N>) -> deserialize::Result<Self> {
         let sign = decimal.sign();
-        let udec = decimal.abs();
+        let udec = decimal.unsigned_abs();
 
         let (weight, scale, digits) = postgres::to_nbase(&udec)
             .map_err(|e| pretty_error_msg(Decimal::<N>::type_name().as_str(), e))?;

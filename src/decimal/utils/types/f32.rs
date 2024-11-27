@@ -40,3 +40,16 @@ impl<const N: usize> Subnormal<N> {
 pub const fn uint<const N: usize>(digit: u32) -> UInt<N> {
     UInt::from_digit(digit as u64)
 }
+
+#[cfg(not(any(feature = "std", feature = "libm")))]
+core::compile_error!("Either feature \"std\" or \"libm\" must be enabled for this crate.");
+
+#[cfg(all(not(feature = "std"), feature = "libm"))]
+pub fn powi(x: f32, n: i32) -> f32 {
+    libm::pow(x as f64, n as f64) as f32
+}
+
+#[cfg(feature = "std")]
+pub fn powi(x: f32, n: i32) -> f32 {
+    x.powi(n)
+}

@@ -18,7 +18,7 @@ impl ArithmeticPolicy {
     /// Creates new [`ArithmeticPolicy`](crate#arithmetic-policy) with given
     /// [OverflowPolicy] and [RoundingPolicy].
     #[inline]
-    pub fn new(overflow_policy: OverflowPolicy, rounding_policy: RoundingPolicy) -> Self {
+    pub const fn new(overflow_policy: OverflowPolicy, rounding_policy: RoundingPolicy) -> Self {
         Self {
             overflow_policy,
             rounding_policy,
@@ -45,6 +45,18 @@ bitflags! {
         const INEXACT = 0b00000010;
         const DIVIDE_BY_ZERO = 0b00000100;
         const NEGATIVE = 0b00001000;
+    }
+}
+
+impl Flags {
+    #[inline]
+    pub const fn overflow_to_inexact(mut self) -> Self {
+        if self.contains(Flags::OVERFLOW) {
+            self = self
+                .intersection(Flags::all().difference(Flags::OVERFLOW))
+                .union(Flags::INEXACT);
+        }
+        self
     }
 }
 
@@ -94,13 +106,7 @@ impl<T: Copy> DecimalResult<T> {
 
     #[inline]
     pub(crate) const fn overflow_to_inexact(mut self) -> Self {
-        if self.flags.contains(Flags::OVERFLOW) {
-            self.flags = self
-                .flags
-                .intersection(Flags::all().difference(Flags::OVERFLOW))
-                .union(Flags::INEXACT);
-        }
-
+        self.flags = self.flags.overflow_to_inexact();
         self
     }
 
@@ -126,6 +132,102 @@ impl<T: Copy> DecimalResult<T> {
     pub(crate) const fn div_by_zero(mut self) -> Self {
         self.flags = self.flags.union(Flags::DIVIDE_BY_ZERO);
         self
+    }
+
+    /// Returns `true` if the result is negative for unsigned target type.
+    ///
+    /// # Examples:
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::udec256;
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = udec256!(1);
+    /// let b = udec256!(2);
+    ///
+    /// let res = a.sub(b, RoundingMode::default());
+    /// assert!(res.is_negative());
+    /// ```
+    ///
+    /// /// For more information about flags and [ArithmeticPolicy] see:
+    /// [section](crate#arithmetic-result).
+    #[inline]
+    pub const fn is_negative(&self) -> bool {
+        self.flags.contains(Flags::NEGATIVE)
+    }
+
+    /// Returns `true` if overflow occurred during operation perform.
+    ///
+    /// # Examples:
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::UD256;
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = UD256::MAX;
+    /// let b = UD256::MAX;
+    ///
+    /// let res = a.mul(b, RoundingMode::default());
+    /// assert!(res.is_overflow());
+    /// ```
+    ///
+    /// /// For more information about flags and [ArithmeticPolicy] see:
+    /// [section](crate#arithmetic-result).
+    #[inline]
+    pub const fn is_overflow(&self) -> bool {
+        self.flags.contains(Flags::OVERFLOW)
+    }
+
+    /// Returns `true` if the result may be inexact.
+    ///
+    /// # Examples:
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::udec256;
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = udec256!(1);
+    /// let b = udec256!(3);
+    ///
+    /// let res = a.div(b, RoundingMode::default());
+    /// assert!(res.is_inexact());
+    /// ```
+    ///
+    /// /// For more information about flags and [ArithmeticPolicy] see:
+    /// [section](crate#arithmetic-result).
+    #[inline]
+    pub const fn is_inexact(&self) -> bool {
+        self.flags.contains(Flags::INEXACT)
+    }
+
+    /// Returns `true` if division by zero occurred during operation perform.
+    ///
+    /// # Examples:
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::udec256;
+    /// use fastnum::decimal::RoundingMode;
+    ///
+    /// let a = udec256!(1);
+    /// let b = udec256!(0);
+    ///
+    /// let res = a.div(b, RoundingMode::default());
+    /// assert!(res.is_div_by_zero());
+    /// ```
+    ///
+    /// /// For more information about flags and [ArithmeticPolicy] see:
+    /// [section](crate#arithmetic-result).
+    #[inline]
+    pub const fn is_div_by_zero(&self) -> bool {
+        self.flags.contains(Flags::DIVIDE_BY_ZERO)
     }
 
     /// Unwrap the `DecimalResult` into target type `T` using default
@@ -236,35 +338,25 @@ impl<T: Copy> DecimalResult<T> {
     #[track_caller]
     #[inline]
     pub const fn unwrap_with_policy(self, policy: &ArithmeticPolicy) -> T {
-        if self.flags.contains(Flags::DIVIDE_BY_ZERO) {
-            panic!(err_msg!("division by zero"));
-        }
-
-        if self.flags.contains(Flags::NEGATIVE) {
-            panic!(err_msg!("operation has negative result for unsigned type"));
-        }
-
-        if self.flags.contains(Flags::OVERFLOW) {
-            match policy.overflow_policy {
-                OverflowPolicy::Strict => {
+        match self.ok_or_err_with_policy(policy) {
+            Ok(value) => value,
+            Err(e) => match e {
+                ArithmeticError::DivideByZero => {
+                    panic!(err_msg!("division by zero"));
+                }
+                ArithmeticError::Overflow => {
                     panic!(err_msg!("attempt to perform the operation with overflow"));
                 }
-                OverflowPolicy::Saturating => {}
-            }
-        }
-
-        if self.flags.contains(Flags::INEXACT) {
-            match policy.rounding_policy {
-                RoundingPolicy::Strict => {
+                ArithmeticError::Inexact => {
                     panic!(err_msg!(
                         "not precise rounding is denied by default arithmetic policy"
                     ));
                 }
-                RoundingPolicy::Round => {}
-            }
+                ArithmeticError::Signed => {
+                    panic!(err_msg!("operation has negative result for unsigned type"));
+                }
+            },
         }
-
-        self.result
     }
 
     /// Converts the `DecimalResult` into [`Option<T>`].
@@ -273,10 +365,22 @@ impl<T: Copy> DecimalResult<T> {
     /// - `None` if at least one emergency flag is set.
     #[inline]
     pub const fn ok(self) -> Option<T> {
-        if self.flags.is_empty() {
-            Some(self.result)
-        } else {
-            None
+        const POLICY: ArithmeticPolicy = ArithmeticPolicy::default();
+        self.ok_with_policy(&POLICY)
+    }
+
+    /// Converts the `DecimalResult` into [`Option<T>`] using specified
+    /// [ArithmeticPolicy].
+    ///
+    /// Returns:
+    ///
+    /// - `Some(T)` if result .
+    /// - `None` if at least one emergency flag is set.
+    #[inline]
+    pub const fn ok_with_policy(self, policy: &ArithmeticPolicy) -> Option<T> {
+        match self.ok_or_err_with_policy(policy) {
+            Ok(value) => Some(value),
+            Err(_) => None,
         }
     }
 
@@ -286,6 +390,19 @@ impl<T: Copy> DecimalResult<T> {
     /// - `Err(ArithmeticError)` if at least one emergency flag is set.
     #[inline]
     pub const fn ok_or_err(self) -> Result<T, ArithmeticError> {
+        const POLICY: ArithmeticPolicy = ArithmeticPolicy::default();
+        self.ok_or_err_with_policy(&POLICY)
+    }
+
+    /// Converts the `DecimalResult` into [Result<T, ArithmeticError>].
+    /// Returns
+    /// - `Ok(T)` if none of the emergency flags are set.
+    /// - `Err(ArithmeticError)` if at least one emergency flag is set.
+    #[inline]
+    pub const fn ok_or_err_with_policy(
+        self,
+        policy: &ArithmeticPolicy,
+    ) -> Result<T, ArithmeticError> {
         if self.flags.contains(Flags::DIVIDE_BY_ZERO) {
             return Err(ArithmeticError::DivideByZero);
         }
@@ -295,11 +412,21 @@ impl<T: Copy> DecimalResult<T> {
         }
 
         if self.flags.contains(Flags::OVERFLOW) {
-            return Err(ArithmeticError::Overflow);
+            match policy.overflow_policy {
+                OverflowPolicy::Strict => {
+                    return Err(ArithmeticError::Overflow);
+                }
+                OverflowPolicy::Saturating => {}
+            }
         }
 
         if self.flags.contains(Flags::INEXACT) {
-            return Err(ArithmeticError::Inexact);
+            match policy.rounding_policy {
+                RoundingPolicy::Strict => {
+                    return Err(ArithmeticError::Inexact);
+                }
+                RoundingPolicy::Round => {}
+            }
         }
 
         Ok(self.result)

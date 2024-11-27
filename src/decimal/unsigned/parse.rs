@@ -158,7 +158,7 @@ macro_rules! from_float_impl {
                 let Some(subnormal_base) = Subnormal::<N>::SUBNORMAL_BASE else {
                     return Err(ParseError::PosOverflow);
                 };
-                
+
                 let result = match subnormal_base.overflowing_mul(uint(frac)) {
                     (r, false) => r,
                     _ => {

@@ -138,15 +138,102 @@ impl<const N: usize> Decimal<N> {
     }
 
     /// Invert sign of given decimal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(+1.0).neg(), dec256!(-1.0));
+    /// assert_eq!(dec256!(1.0).neg(), dec256!(-1.0));
+    /// assert_eq!(dec256!(-1.0).neg(), dec256!(1.0));
+    /// ```
     #[inline]
     pub const fn neg(self) -> Self {
         Self::new(self.value, self.sign.not())
     }
 
     /// Get the absolute value of the decimal (non-negative sign).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(1.0).abs(), dec256!(1.0));
+    /// assert_eq!(dec256!(-1.0).abs(), dec256!(1.0));
+    /// ```
     #[inline]
-    pub const fn abs(&self) -> UnsignedDecimal<N> {
+    pub const fn abs(mut self) -> Self {
+        if matches!(self.sign, Sign::Minus) {
+            self.sign = Sign::NoSign;
+        }
+        
+        self
+    }
+
+    /// Get the absolute value of the decimal (non-negative sign) as [UnsignedDecimal].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{dec256, udec256};
+    ///
+    /// assert_eq!(dec256!(1.0).unsigned_abs(), udec256!(1.0));
+    /// assert_eq!(dec256!(-1.0).unsigned_abs(), udec256!(1.0));
+    /// ```
+    #[inline]
+    pub const fn unsigned_abs(self) -> UnsignedDecimal<N> {
         self.value
+    }
+
+    /// Returns true if the decimal is positive and false if the decimal is zero
+    /// or negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// // Positive
+    /// assert!(dec256!(+1.0).is_positive());
+    /// assert!(dec256!(1.0).is_positive());
+    /// assert!(dec256!(+0).is_positive());
+    ///
+    /// // Not positive
+    /// assert!(!dec256!(0).is_positive());
+    /// assert!(!dec256!(-0).is_positive());
+    /// assert!(!dec256!(-1.0).is_positive());
+    /// ```
+    #[inline]
+    pub const fn is_positive(&self) -> bool {
+        if self.is_zero() {
+            matches!(self.sign, Sign::Plus)
+        } else {
+            !matches!(self.sign, Sign::Minus)
+        }
+    }
+
+    /// Returns true if the decimal is strictly negative and false otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// // Negative
+    /// assert!(dec256!(-0).is_negative());
+    /// assert!(dec256!(-1.0).is_negative());
+    ///
+    /// // Not negative
+    /// assert!(!dec256!(0).is_negative());
+    /// assert!(!dec256!(+0).is_negative());
+    /// assert!(!dec256!(1.0).is_negative());
+    /// assert!(!dec256!(+1.0).is_negative());
+    /// ```
+    #[inline]
+    pub const fn is_negative(&self) -> bool {
+        matches!(self.sign, Sign::Minus)
     }
 
     /// Initialize decimal with `1 * 10`<sup>exp</sup> value.
@@ -675,6 +762,12 @@ impl<const N: usize> Decimal<N> {
                 self.sign,
             ),
         }
+    }
+
+    #[allow(dead_code)]
+    #[inline]
+    const fn from_unsigned(ud: UnsignedDecimal<N>) -> Self {
+        Self::new(ud, Sign::NoSign)
     }
 
     /// Create string of this decimal in scientific notation.

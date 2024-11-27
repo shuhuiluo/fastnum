@@ -1,11 +1,10 @@
+use crate::decimal::common::math::mul::test_impl;
 use fastnum::{
     dec128,
-    decimal::{ArithmeticError, RoundingMode},
+    decimal::{ArithmeticError, ArithmeticPolicy, OverflowPolicy, RoundingMode, RoundingPolicy},
     D128,
 };
 use rstest::rstest;
-
-use crate::decimal::common::math::mul::test_impl;
 
 test_impl!(D, 128);
 test_impl!(D, 256);
@@ -28,6 +27,11 @@ fn test_mul_inexact(#[case] a: D128, #[case] b: D128, #[case] expected: D128) {
         expected.fractional_digits_count()
     );
 
+    let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+
     let res = a.mul(b, RoundingMode::HalfUp);
-    assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+    assert_eq!(
+        res.ok_or_err_with_policy(&policy).unwrap_err(),
+        ArithmeticError::Inexact
+    );
 }

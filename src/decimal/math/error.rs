@@ -24,10 +24,13 @@ use crate::utils::err_prefix;
 pub enum ArithmeticError {
     /// Division by zero.
     DivideByZero,
+    
     /// Indicates that the decimal result of an operation is too large to fit the target type. 
     Overflow,
+    
     /// Rounding was performed during the operation. The result may not be exact.
     Inexact,
+    
     /// The negative result cannot be represented by an unsigned type.
     Signed,
 }

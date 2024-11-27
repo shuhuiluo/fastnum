@@ -9,7 +9,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::{ArithmeticError, RoundingMode},};
+            use fastnum::{$dec, $D, decimal::{ArithmeticError, ArithmeticPolicy, RoundingMode, RoundingPolicy, OverflowPolicy}};
             
             super::test_impl!(UNSIGNED:: $bits, $dec, $D);
         }
@@ -18,7 +18,7 @@ macro_rules! test_impl {
         paste::paste! {
             mod [< $dec _signed >]{
                 use rstest::*;
-                use fastnum::{$dec, $D, decimal::{ArithmeticError, RoundingMode},};
+                use fastnum::{$dec, $D, decimal::{ArithmeticError, RoundingMode, ArithmeticPolicy, OverflowPolicy, RoundingPolicy}};
                 
                 super::test_impl!(SIGNED:: $bits, $dec, $D);
             }
@@ -115,7 +115,8 @@ macro_rules! test_impl {
         fn test_mul_inexact(#[case] a: $D, #[case] b: $D) {
             let _ = a * b;
             let res = a.mul(b, RoundingMode::HalfUp);
-            assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+            let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+            assert_eq!(res.ok_or_err_with_policy(&policy).unwrap_err(), ArithmeticError::Inexact);
         }
     };
     (SIGNED:: 128, $dec: ident, $D: ident) => {
@@ -161,7 +162,8 @@ macro_rules! test_impl {
         fn test_mul_inexact(#[case] a: $D, #[case] b: $D) {
             let _ = a * b;
             let res = a.mul(b, RoundingMode::HalfUp);
-            assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+            let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+            assert_eq!(res.ok_or_err_with_policy(&policy).unwrap_err(), ArithmeticError::Inexact);
         }
     };
 }

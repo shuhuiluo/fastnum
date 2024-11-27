@@ -4,6 +4,12 @@ All user visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.0.14] - 2024-11-27
+
+* Fix rounding subtraction.
+* Extend test coverage for `numtraits` feature.
+* Documentation improvements.
+
 ## [0.0.13] - 2024-11-24
 
 * Stabilize API

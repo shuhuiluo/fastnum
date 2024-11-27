@@ -65,3 +65,11 @@ impl<const N: usize> TryFrom<f64> for Decimal<N> {
         parse::from_f64(n)
     }
 }
+
+impl<const N: usize> From<UnsignedDecimal<N>> for Decimal<N>
+{
+    #[inline]
+    fn from(ud: UnsignedDecimal<N>) -> Self {
+        Self::from_unsigned(ud)
+    }
+}

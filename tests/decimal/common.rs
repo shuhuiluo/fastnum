@@ -8,3 +8,6 @@ pub(crate) mod scale;
 pub(crate) mod math;
 pub(crate) mod smoke;
 pub(crate) mod round;
+
+#[cfg(feature = "numtraits")]
+pub(crate) mod numtraits;

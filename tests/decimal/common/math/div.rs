@@ -9,7 +9,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::{ArithmeticError, RoundingMode}};
+            use fastnum::{$dec, $D, decimal::{ArithmeticError, RoundingMode, ArithmeticPolicy, OverflowPolicy, RoundingPolicy}};
 
             super::test_impl!(UNSIGNED:: $bits, $dec, $D);
         }
@@ -35,14 +35,6 @@ macro_rules! test_impl {
     };
     (SIGNED:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(SIGNED:: 128, $dec, $D);
-
-        // #[rstest(::trace)]
-        // #[case($dec!(-995052931372975485719.533153137), $dec!(4.523087321), $dec!(-4500711297616988541501.836966993116075977))]
-        // #[case($dec!(995052931372975485719.533153137), $dec!(-4.523087321), $dec!(-4500711297616988541501.836966993116075977))]
-        // #[case($dec!(-8.37664968), $dec!(-1.9086963714056968482094712882596748), $dec!(15.988480848752691653730876239769592670324064))]
-        // fn test_mul_256(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
-        //
-        // }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
@@ -106,7 +98,8 @@ macro_rules! test_impl {
         fn test_div_inexact(#[case] a: $D, #[case] b: $D) {
             let _ = a / b;
             let res = a.div(b, RoundingMode::HalfUp);
-            assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+            let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+            assert_eq!(res.ok_or_err_with_policy(&policy).unwrap_err(), ArithmeticError::Inexact);
         }
         
         #[rstest(::trace)]

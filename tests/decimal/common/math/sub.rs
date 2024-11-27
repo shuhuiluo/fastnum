@@ -46,12 +46,48 @@ macro_rules! test_impl {
     };
     (UNSIGNED:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(UNSIGNED:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(340282366920938463463374607431768211455), $dec!(0.1), $dec!(340282366920938463463374607431768211454.9))]
+        #[case($dec!(340282366920938463463374607431768211455), $dec!(0.5), $dec!(340282366920938463463374607431768211454.5))]
+        #[case($dec!(170141183460469231731687303715884105727), $dec!(0.1), $dec!(170141183460469231731687303715884105726.9))]
+        #[case($dec!(170141183460469231731687303715884105727), $dec!(0.5), $dec!(170141183460469231731687303715884105726.5))]
+        fn test_sub_256(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
+            let res = a - b;
+
+            assert_eq!(res, expected);
+            assert_eq!(res.fractional_digits_count(), expected.fractional_digits_count());
+
+            let mut a = a;
+
+            a -= b;
+            assert_eq!(a, expected);
+            assert_eq!(a.fractional_digits_count(), expected.fractional_digits_count());
+        }
     };
     (UNSIGNED ONLY:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(UNSIGNED ONLY:: 128, $dec, $D);
     };
     (SIGNED:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(SIGNED:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(-340282366920938463463374607431768211455), $dec!(-0.1), $dec!(-340282366920938463463374607431768211454.9))]
+        #[case($dec!(-340282366920938463463374607431768211455), $dec!(-0.5), $dec!(-340282366920938463463374607431768211454.5))]
+        #[case($dec!(-170141183460469231731687303715884105727), $dec!(-0.1), $dec!(-170141183460469231731687303715884105726.9))]
+        #[case($dec!(-170141183460469231731687303715884105727), $dec!(-0.5), $dec!(-170141183460469231731687303715884105726.5))]
+        fn test_sub_256(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
+            let res = a - b;
+
+            assert_eq!(res, expected);
+            assert_eq!(res.fractional_digits_count(), expected.fractional_digits_count());
+
+            let mut a = a;
+
+            a -= b;
+            assert_eq!(a, expected);
+            assert_eq!(a.fractional_digits_count(), expected.fractional_digits_count());
+        }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]

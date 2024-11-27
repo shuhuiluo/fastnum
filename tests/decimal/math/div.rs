@@ -2,8 +2,11 @@ use rstest::*;
 
 use fastnum::{
     dec128, dec256, dec512,
-    decimal::{ArithmeticError, RoundingMode, RoundingMode::*},
-    D128, D256, D512
+    decimal::{
+        ArithmeticError, ArithmeticPolicy, OverflowPolicy, RoundingMode, RoundingMode::*,
+        RoundingPolicy,
+    },
+    D128, D256, D512,
 };
 
 use crate::decimal::common::math::div::test_impl;
@@ -25,9 +28,6 @@ test_impl!(UD, 512);
 #[case(dec128!(2), dec128!(3), dec128!(0.66666666666666666666666666666666666667), Up)]
 #[case(dec128!(8), dec128!(9), dec128!(0.88888888888888888888888888888888888889), HalfUp)]
 #[case(dec128!(8), dec128!(9), dec128!(0.88888888888888888888888888888888888888), Down)]
-// #[case(dec128!(), dec128!(), dec128!())]
-// #[case(dec128!(), dec128!(), dec128!())]
-// #[case(dec128!(), dec128!(), dec128!())]
 fn test_div_inexact(
     #[case] a: D128,
     #[case] b: D128,
@@ -42,8 +42,13 @@ fn test_div_inexact(
         expected.fractional_digits_count()
     );
 
+    let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+
     let res = a.div(b, mode);
-    assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+    assert_eq!(
+        res.ok_or_err_with_policy(&policy).unwrap_err(),
+        ArithmeticError::Inexact
+    );
 }
 
 #[rstest(::trace)]
@@ -57,9 +62,6 @@ fn test_div_inexact(
 #[case(dec256!(8), dec256!(9), dec256!(0.88888888888888888888888888888888888888888888888888888888888888888888888888888), Down)]
 #[case(dec256!(12.34), dec256!(1.233), dec256!(10.0081103000811030008110300081103000811030008110300081103000811030008110300081), HalfUp)]
 #[case(dec256!(125348), dec256!(352.2283), dec256!(355.87146177635357522379661145910195177389210350218877926617480764606364678818), HalfUp)]
-// #[case(dec256!(), dec256!(), dec256!())]
-// #[case(dec256!(), dec256!(), dec256!())]
-// #[case(dec256!(), dec256!(), dec256!())]
 fn test_div_inexact_256(
     #[case] a: D256,
     #[case] b: D256,
@@ -74,8 +76,13 @@ fn test_div_inexact_256(
         expected.fractional_digits_count()
     );
 
+    let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
+
     let res = a.div(b, mode);
-    assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
+    assert_eq!(
+        res.ok_or_err_with_policy(&policy).unwrap_err(),
+        ArithmeticError::Inexact
+    );
 }
 
 #[rstest(::trace)]
@@ -89,9 +96,6 @@ fn test_div_inexact_256(
 #[case(dec512!(8), dec512!(9), dec512!(0.8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888), Down)]
 #[case(dec512!(12.34), dec512!(1.233), dec512!(10.008110300081103000811030008110300081103000811030008110300081103000811030008110300081103000811030008110300081103000811030008110300081103000811030008110300), HalfUp)]
 #[case(dec512!(125348), dec512!(352.2283), dec512!(355.8714617763535752237966114591019517738921035021887792661748076460636467881768727839301952739175131583691600021917602872909416988924512879856615723381682), HalfUp)]
-// #[case(dec512!(), dec512!(), dec512!())]
-// #[case(dec512!(), dec512!(), dec512!())]
-// #[case(dec512!(), dec512!(), dec512!())]
 fn test_div_inexact_512(
     #[case] a: D512,
     #[case] b: D512,
@@ -106,38 +110,11 @@ fn test_div_inexact_512(
         expected.fractional_digits_count()
     );
 
-    let res = a.div(b, mode);
-    assert_eq!(res.ok_or_err().unwrap_err(), ArithmeticError::Inexact);
-}
+    let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
 
-// mod test_div {
-//     use fastnum::{
-//         decimal::{DecimalResult, RoundingMode},
-//         udec128, UD128,
-//     };
-//     use rstest::*;
-//
-//     // MAX: 340282366920938463463374607431768211455
-//     // V:   333333333333333333333333333333333333333
-//     // R:   33333333333333333333333333333333333333(3) ->
-//     // 333333333333333333333333333333333333330
-//
-//     // MAX: 340282366920938463463374607431768211455
-//     // MAX: 34028236692093846346337460743176821145
-//     // V:   66666666666666666666666666666666666666
-//
-//     #[rstest(::trace)]
-//     fn test_div() {
-//         // let a = UD128::MIN;
-//         // let b = UD128::MIN;
-//         // let expected = udec128!(1);
-//         //
-//         // let res = a / b;
-//         //
-//         // assert_eq!(res, expected);
-//         // assert_eq!(
-//         //     res.fractional_digits_count(),
-//         //     expected.fractional_digits_count()
-//         // );
-//     }
-// }
+    let res = a.div(b, mode);
+    assert_eq!(
+        res.ok_or_err_with_policy(&policy).unwrap_err(),
+        ArithmeticError::Inexact
+    );
+}
