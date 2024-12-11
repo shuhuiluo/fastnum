@@ -163,7 +163,7 @@ const fn basecase_div_rem<const N: usize>(
             let (mut q_hat, r_hat) = div_rem_wide(u.digit(j + n - 1), u_jn, v_n_m1); // D3
 
             if tuple_gt(
-                widening_mul::<N>(q_hat, v_n_m2),
+                widening_mul(q_hat, v_n_m2),
                 (u.digit(j + n - 2), r_hat as Digit),
             ) {
                 q_hat -= 1;
@@ -171,7 +171,7 @@ const fn basecase_div_rem<const N: usize>(
                 if let Some(r_hat) = r_hat.checked_add(v_n_m1) {
                     // this checks if `r_hat <= b`, where `b` is the digit base
                     if tuple_gt(
-                        widening_mul::<N>(q_hat, v_n_m2),
+                        widening_mul(q_hat, v_n_m2),
                         (u.digit(j + n - 2), r_hat as Digit),
                     ) {
                         q_hat -= 1;
@@ -234,7 +234,7 @@ const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
 }
 
 #[inline]
-const fn widening_mul<const N: usize>(a: Digit, b: Digit) -> (Digit, Digit) {
+const fn widening_mul(a: Digit, b: Digit) -> (Digit, Digit) {
     let prod = a as DoubleDigit * b as DoubleDigit;
     (prod as Digit, (prod >> BITS) as Digit)
 }
