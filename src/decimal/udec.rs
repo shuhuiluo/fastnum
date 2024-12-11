@@ -8,8 +8,10 @@ use core::cmp::Ordering;
 use crate::{
     decimal::{doc, Category, Context, Decimal, Flags, ParseError, RoundingMode},
     int::UInt,
-    utils::err_msg,
 };
+
+#[allow(unused_imports)]
+use crate::decimal::Signal;
 
 /// # Unsigned Decimal
 ///
@@ -154,6 +156,26 @@ impl<const N: usize> UnsignedDecimal<N> {
         self.0.is_one()
     }
 
+    /// Returns `true` if the given decimal number is the result of division by
+    /// zero.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{udec256, decimal::{Context, SignalsTraps}};
+    ///
+    /// let traps = SignalsTraps::empty();
+    /// let ctx = Context::default().with_signal_traps(traps);
+    ///
+    /// let res = udec256!(1.0).div(udec256!(0), ctx);
+    /// assert!(res.is_op_div_by_zero());
+    ///
+    /// let res = udec256!(1.0).div(udec256!(2.0), ctx);
+    /// assert!(!res.is_op_div_by_zero());
+    /// ```
+    ///
+    /// More about [`OP_DIV_BY_ZERO`](Signal::OP_DIV_BY_ZERO) signal.
     #[inline]
     pub const fn is_op_div_by_zero(&self) -> bool {
         self.0.is_op_div_by_zero()
@@ -729,7 +751,9 @@ impl<const N: usize> UnsignedDecimal<N> {
     pub(crate) const fn from_signed(dec: Decimal<N>, _ctx: Context) -> Self {
         if dec.is_negative() {
             #[cfg(debug_assertions)]
-            panic!(err_msg!("operation has negative result for unsigned type"));
+            panic!(crate::utils::err_msg!(
+                "operation has negative result for unsigned type"
+            ));
             #[cfg(not(debug_assertions))]
             Self::new(Decimal::NAN.with_signals_from_and(&dec, Signal::OP_INVALID))
         } else {

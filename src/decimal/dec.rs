@@ -1045,9 +1045,9 @@ impl<const N: usize> Decimal<N> {
     }
 
     #[inline]
-    pub(crate) const fn unwrap_signals(self, ctx: Context) -> Self {
+    pub(crate) const fn unwrap_signals(self, _ctx: Context) -> Self {
         #[cfg(debug_assertions)]
-        ctx.trap_signals(self.flags.signals());
+        _ctx.trap_signals(self.flags.signals());
         self
     }
 

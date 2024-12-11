@@ -7,6 +7,16 @@ pub use signal_traps::SignalsTraps;
 use crate::decimal::{doc, Signal};
 
 /// # Decimal Context
+///
+/// The context represents the user-selectable parameters and rules which govern
+/// the results of arithmetic operations (for example, the rounding mode when
+/// rounding occurs).
+/// The context is defined by the following parameters:
+/// - `rounding_mode`: a named value which indicates the algorithm to be used
+///   when rounding is necessary, see more about [RoundingMode];
+/// - `signal_traps`: For each of the signals, the corresponding trap-enabler
+///   indicates which action is to be taken when the signal occurs (see IEEE 754
+///   §7). See more about [SignalsTraps].
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Context {
     rounding_mode: RoundingMode,
@@ -29,8 +39,7 @@ impl Context {
         self.rounding_mode = rounding_mode;
         self
     }
-    
-    ///
+
     /// Method applies [SignalsTraps] to the given context.
     /// # Examples
     ///
@@ -54,13 +63,15 @@ impl Context {
         self
     }
 
+    #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn rounding_mode(&self) -> RoundingMode {
         self.rounding_mode
     }
 
+    #[allow(dead_code)]
     #[inline]
-    pub const fn trap_signals(&self, signals: Signal) {
+    pub(crate) const fn trap_signals(&self, signals: Signal) {
         self.signal_traps.trap(signals);
     }
 }

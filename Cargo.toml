@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast numbers library"
@@ -26,7 +26,6 @@ bench = false
 
 bnum = { version = "0.12.0", default-features = false}
 const-str = { version = "0.5", default-features = false }
-bitflags = { version = "2.6.0", default-features = false }
 
 num-traits = { version = "0.2", default-features = false, optional = true }
 zeroize = { version = "1.6", default-features = false, optional = true }
