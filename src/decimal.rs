@@ -7,44 +7,55 @@ pub mod extras;
 #[cfg(not(feature = "test-util"))]
 pub(crate) mod extras;
 
+pub(crate) mod dec;
 pub(crate) mod doc;
-pub(crate) mod format;
-pub(crate) mod math;
 pub(crate) mod round;
-pub(crate) mod signed;
-pub(crate) mod unsigned;
+pub(crate) mod udec;
+
+mod category;
+mod context;
+mod flags;
+mod sign;
+mod signals;
 
 #[allow(dead_code)]
 pub(crate) mod utils;
 
-mod error;
-mod overflow;
+pub(crate) mod errors;
 
 #[macro_use]
 mod macros;
 
-pub use error::ParseError;
-pub use math::{ArithmeticError, ArithmeticPolicy, DecimalResult};
-pub use overflow::OverflowPolicy;
-pub use round::{RoundingMode, RoundingPolicy};
-pub use signed::{Decimal, Sign};
-pub use unsigned::UnsignedDecimal;
+#[cfg(feature = "test-util")]
+#[doc(hidden)]
+pub use flags::Flags;
+
+#[cfg(not(feature = "test-util"))]
+pub(crate) use flags::Flags;
+
+pub use category::Category;
+pub use context::{Context, RoundingMode, SignalsTraps};
+pub use dec::Decimal;
+pub use errors::ParseError;
+pub use sign::Sign;
+pub use signals::Signal;
+pub use udec::UnsignedDecimal;
 
 use crate::decimal::doc::decimal_type_doc;
 
-macro_rules! uint_types {
+macro_rules! decimal_types {
     ( $($bits: literal $u: ident $s: ident; ) *)  => {
         $(
             #[doc = decimal_type_doc!($bits, "unsigned")]
-            pub type $u = unsigned::UnsignedDecimal::<{$bits / 64}>;
+            pub type $u = UnsignedDecimal::<{$bits / 64}>;
 
             #[doc = decimal_type_doc!($bits, "signed")]
-            pub type $s = signed::Decimal::<{$bits / 64}>;
+            pub type $s = Decimal::<{$bits / 64}>;
         )*
     };
 }
 
-uint_types!(
+decimal_types!(
     128 UD128 D128;
     256 UD256 D256;
     512 UD512 D512;

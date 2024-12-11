@@ -8,10 +8,9 @@ financial, crypto and any other fixed-precision calculations.
 `fastnum` provides signed and unsigned exact precision decimal numbers suitable for financial calculations that
 require significant integral and fractional digits with no round-off errors (such as 0.1 + 0.2 ≠ 0.3).
 
-Under the hood any decimal type consists of a N-bit big unsigned integer, paired with a 64-bit signed integer
-scaling factor which determines the position of the decimal point and sign (for signed types only). Trailing zeros are
-preserved and may be exposed when in string form. These can be truncated using the normalize or
-round functions.
+Any `fastnum` decimal type consists of an N-bit big unsigned integer, paired with a 64-bit signaling block which
+contains a 16-bit scaling factor determines the position of the decimal point, sign, special and signaling flags.
+Trailing zeros are preserved and may be exposed when in string form.
 
 Thus, `fastnum` decimal numbers are trivially copyable and do not require any dynamic allocation. This allows you to get
 additional performance gains by eliminating not only dynamic allocation, like such, but also will get rid of one
@@ -20,6 +19,7 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 ### Why fastnum?
 
 - **Strictly exact precision**: no round-off errors (such as 0.1 + 0.2 ≠ 0.3).
+- **Special values**: `fastnum` support `±0`, `±Infinity` and `NaN` special values.
 - **Blazing fast**: `fastnum` numerics are as fast as native types, well almost :).
 - **Trivially copyable types**: all `fastnum` numerics are trivially copyable (both integer and decimal, ether signed
   and unsigned) and can be stored on the stack, as they are fixed size.
@@ -45,13 +45,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.0.14"
+fastnum = "0.1"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.0.14", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.1", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -99,10 +99,10 @@ const PI: UD256 = udec256!(3.141592653589793115997963468544185161590576171875);
 Compile-time calculations:
 
 ```
-use fastnum::{udec256, UD256, decimal::RoundingMode};
+use fastnum::{udec256, UD256, decimal::Context};
 
 // This value will be evaluated at compile-time and inlined directly into the relevant context when used. 
-const PI_X_2: UD256 = udec256!(2).mul(udec256!(3.141592653589793115997963468544185161590576171875), RoundingMode::default()).unwrap();
+const PI_X_2: UD256 = udec256!(2).mul(udec256!(3.141592653589793115997963468544185161590576171875), Context::default());
 ```
 
 Compile-time checks
@@ -115,10 +115,10 @@ const E: UD256 = udec256!(A3.5);
 ```
 
 ```compile_fail
-use fastnum::{udec256, UD256, decimal::RoundingMode};
+use fastnum::{udec256, UD256, decimal::Context};
 
 // Arithmetic error during calculation.
-const E: UD256 = udec256!(1.5).div(udec256!(0), RoundingMode::default()).unwrap();
+const E: UD256 = udec256!(1.5).div(udec256!(0), Context::default());
 ```
 
 ## Representation
@@ -146,9 +146,16 @@ sign × UD\[coefficient × 10<sup>-exp</sup>\], where
 A number with a coefficient of `0` is permitted to have both `+` and `minus` sign. Negative zero is accepted as an
 operand for all operations (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)).
 
+The value of an encoding is either a special value (a `NaN` or an `±Infinity`) or it is a finite number whose numerical value
+is given exactly by: (–1)sign × coefficient × 10<sup>exponent</sup>.
+For example, if the sign had the value 1, the exponent had the value –1, and the coefficient had the value 25, then the
+numerical value of the number is exactly –2.5.
+
+## Special values
+
 ## Precision
 
-Precision is integral number of decimal digits. It is limited by maximum decimal digits that N-bit unsigned coefficient
+Precision is an integral number of decimal digits. It is limited by maximum decimal digits that N-bit unsigned coefficient
 can hold.
 
 ## Arithmetic
@@ -197,7 +204,7 @@ Decimals:
 use fastnum::udec256;
 
 let n = udec256!(0.1) + udec256!(0.1) + udec256!(0.1) - udec256!(0.3);
-assert_eq!(n.to_string(), "0");
+assert_eq!(n.to_string(), "0.0");
 assert!(n.is_zero());
 ```
 
@@ -324,14 +331,51 @@ assert_eq!(udec256!(1.3) - udec256!(1.30), udec256!(0.00));
 assert_eq!(dec256!(1.3) - dec256!(2.07), dec256!(-0.77));
 ```
 
-### Arithmetic result
-
-[ArithmeticResult]: #arithmetic-result
-
-The result of any arithmetic operation over decimal `T` type is [`DecimalResult<T>`](crate::decimal::DecimalResult) -
-special type wrapper extends the original decimal type with set of emergency bit flags:
-
 #### Emergency flags
+
+flags and trap-enablers
+The exceptional conditions are grouped into signals, which can be controlled individually. The context contains a flag (
+which is either 0 or 1) and a trap-enabler (which also is either 0 or 1) for each signal.
+
+For each of the signals, the corresponding flag is set to 1 when the signal occurs. It is only reset to 0 by explicit
+user action.
+
+For each of the signals, the corresponding trap-enabler indicates which action is to be taken when the signal occurs (
+see IEEE 754 §7). If 0, a defined result is supplied, and execution continues (for example, an overflow is perhaps
+converted to a positive or negative infinity). If 1, then execution of the operation is ended or paused and control
+passes to a ‘trap handler’, which will have access to the defined result.
+
+The signals are:
+
+clamped
+raised when the exponent of a result has been altered or constrained in order to fit the constraints of a specific
+concrete representation
+
+division-by-zero
+raised when a non-zero dividend is divided by zero
+
+inexact
+raised when a result is not exact (one or more non-zero coefficient digits were discarded during rounding)
+
+invalid-operation
+raised when a result would be undefined or impossible
+
+overflow
+raised when the exponent of a result is too large to be represented
+
+rounded
+raised when a result has been rounded (that is, some zero or non-zero coefficient digits were discarded)
+
+subnormal
+raised when a result is subnormal (its adjusted exponent is less than Emin), before any rounding
+
+underflow
+raised when a result is both subnormal and inexact.
+
+This specification does not define the means by which flags and traps are reset or altered, respectively, or the means
+by which traps are effected.
+
+The context might also specify further variables, such as Emax where a variable exponent bound is required.
 
 | **Flag**         | Description                                                                            |
 |------------------|----------------------------------------------------------------------------------------|
@@ -389,149 +433,43 @@ represented by current unsigned type.
 `INVALID` flag indicates may be raised when an operand to an operation is invalid (for example, if it
 exceeds the bounds that an implementation can handle, or the operation is a logarithm and the operand is negative).
 
-[Arithmetic result](crate::decimal::DecimalResult) can be unwrapped into target type `T` with specific or
-default [ArithmeticPolicy] (see methods [crate::decimal::DecimalResult::unwrap] and
-[crate::decimal::DecimalResult::unwrap_with_policy]).
-
 ```
 use fastnum::udec128;
-use fastnum::decimal::RoundingMode;
+use fastnum::decimal::Context;
 
 let a = udec128!(1);
 let b = udec128!(3);
 
-let c = a.div(b, RoundingMode::default()).unwrap();
+let c = a.div(b, Context::default());
 
 assert_eq!(c, udec128!(0.333333333333333333333333333333333333333));
 ```
 
 ```should_panic
 use fastnum::udec256;
-use fastnum::decimal::RoundingMode;
+use fastnum::decimal::Context;
 
 let a = udec256!(1);
 let b = udec256!(0);
 
-let c = a.div(b, RoundingMode::default()).unwrap();
+let c = a.div(b, Context::default());
 ```
 
 Or can be converted into [Option] or [Result].
 
 ```
 use fastnum::udec128;
-use fastnum::decimal::RoundingMode;
+use fastnum::decimal::Context;
 
 let a = udec128!(1);
 let b = udec128!(3);
 
-let res = a.div(b, RoundingMode::default());
+let res = a.div(b, Context::default());
 
-assert!(res.is_inexact());
-assert_eq!(res.ok(), Some(udec128!(0.333333333333333333333333333333333333333)));
+assert_eq!(res, udec128!(0.333333333333333333333333333333333333333));
+assert!(res.is_op_inexact());
+assert_eq!(res.ok(), None);
 ```
-
-```
-use fastnum::udec128;
-use fastnum::decimal::{RoundingMode, ArithmeticError};
-
-let a = udec128!(1);
-let b = udec128!(3);
-
-let res = a.div(b, RoundingMode::default());
-
-assert!(res.is_inexact());
-assert_eq!(res.ok_or_err(), Ok(udec128!(0.333333333333333333333333333333333333333)));
-```
-
-### Arithmetic policy
-
-[ArithmeticPolicy]: #arithmetic-policy
-
-Arithmetic policy is an "environment" defines the rules for unwrapping the result of an arithmetic operation containing
-emergency flags to get the result:
-
-```
-use fastnum::{udec256, UD256};
-use fastnum::decimal::{ArithmeticPolicy, OverflowPolicy, RoundingMode, RoundingPolicy};
-
-let a = UD256::ONE;
-let b = UD256::TWO;
-
-let policy = ArithmeticPolicy::new(OverflowPolicy::Strict, RoundingPolicy::Strict);
-
-let c = a.add(b, RoundingMode::default()).unwrap_with_policy(&policy);
-assert_eq!(c, udec256!(3));
-```
-
-Saturate if overflowed:
-
-```
-use fastnum::{udec256, UD256};
-use fastnum::decimal::{ArithmeticPolicy, OverflowPolicy, RoundingMode, RoundingPolicy};
-
-let a = UD256::MAX;
-let b = UD256::MAX;
-
-let policy = ArithmeticPolicy::new(OverflowPolicy::Saturating, RoundingPolicy::Strict);
-
-let c = a.add(b, RoundingMode::default()).unwrap_with_policy(&policy);
-assert_eq!(c, udec256!(115792089237316195423570985008687907853269984665640564039457584007913129639934e9223372036854775808));
-```
-
-Should panic:
-
-```should_panic
-use fastnum::{udec256, UD256};
-use fastnum::decimal::{ArithmeticPolicy, OverflowPolicy, RoundingMode, RoundingPolicy};
-
-let a = udec256!(1);
-let b = udec256!(3);
-
-let policy = ArithmeticPolicy::new(OverflowPolicy::Saturating, RoundingPolicy::Strict);
-
-let c = a.div(b, RoundingMode::default()).unwrap_with_policy(&policy);
-```
-
-#### Overflow policy
-
-`Overflow policy` defines the rules for unwrapping the result of an arithmetic operation containing overflow emergency
-flag.
-
-| **Policy**   | Description                            | Default |
-|--------------|----------------------------------------|:-------:|
-| `Strict`     | Panic if overflow occurred.            |    ✅    |
-| `Saturating` | Saturating value if overflow occurred. |         |
-
-#### Rounding policy
-
-| **Policy** | Description                            | Default |
-|------------|----------------------------------------|:-------:|
-| `Strict`   | Panic if overflow occurred.            |         |
-| `Round`    | Saturating value if overflow occurred. |    ✅    |
-
-#### Default Arithmetic policy
-
-[DefaultArithmeticPolicy]: #default-arithmetic-policy
-
-The behaviour of the implementation of this method is the same as for Rust's primitive integers - i.e.
-in debug mode it panics on overflow, and in release mode it performs `Saturating` if possible.
-
-| **Policy**      | Debug mode | Release mode |
-|-----------------|------------|--------------|
-| Overflow policy | `Strict`   | `Saturating` |
-| Rounding policy | `Round`    | `Round`      |
-
-Summary unwrapping Decimal Result with flags has behavior:
-
-| **Flag**         | Debug mode | Release mode |
-|------------------|------------|--------------|
-| `OVERFLOW`       | ❗panic     | saturate     |
-| `INEXACT`        | saturate   | saturate     |
-| `DIVIDE_BY_ZERO` | ❗panic     | ❗panic       |
-| `NEGATIVE`       | ❗panic     | ❗panic       |
-
-So when needed, the programmer has full control over rounding, overflow and other emergency flags handling. This
-includes an option to enforce exact arithmetic by using `panic!` to block any inexact operations.
 
 ### Compare and ordering
 
@@ -556,7 +494,7 @@ The result of any compare operation is always exact and unrounded.
 use fastnum::udec256;
 
 let n = udec256!(0.1) + udec256!(0.1) + udec256!(0.1) - udec256!(0.3);
-assert_eq!(n.to_string(), "0");
+assert_eq!(n.to_string(), "0.0");
 assert!(n.is_zero());
 ```
 
@@ -592,19 +530,22 @@ In constant calculations and static contexts, until the [`feature`](https://gith
 stabilized, the following const methods should be used:
 
 ```
-use fastnum::{udec256, UD256};
-use fastnum::decimal::RoundingMode;
+use fastnum::{udec256, UD256, decimal::Context};
 
 const A: UD256 = udec256!(3.5);
 const B: UD256 = udec256!(2.5);
-const C: UD256 = A.add(B, RoundingMode::default()).unwrap();
+const C: UD256 = A.add(B, Context::default());
 
 assert_eq!(C, udec256!(6));
 ```
 
-**Note**: All Rust overloaded operators uses [`unwrap`](decimal::DecimalResult::unwrap) method of DecimalResult. So the
+**Note**: All Rust overloaded operators uses default [Decimal Context](#decimal-context). So the
 decision about whether to ignore the overflow and underflow flags and whether the rounded or wrapped result is used or
-not is decided based on [DefaultArithmeticPolicy].
+not is decided based on [Default Context](#default-context).
+
+## Decimal Context
+
+### Default Context
 
 ## Signed zero
 
@@ -846,7 +787,7 @@ the decimal as a string, bytes, or some custom structure.
 
 ```toml
 [dependencies]
-fastnum = { version = "0.0.6", features = ["serde"] } 
+fastnum = { version = "0.1", features = ["serde"] } 
 ```
 
 Basic usage:

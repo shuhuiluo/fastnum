@@ -1,6 +1,77 @@
-macro_rules! test_str_impl {
-    ($DEC: ident, $dec: ident) => {
-        #[rstest::rstest(::trace)]
+macro_rules! test_impl {
+    (D, $bits: literal) => {
+        paste::paste! { test_impl!(SIGNED: $bits, [< dec $bits >], [<D $bits>]); }
+    };
+    (UD, $bits: literal) => {
+        paste::paste! { test_impl!(UNSIGNED: $bits, [< udec $bits >], [<UD $bits>]); }
+    };
+    (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
+        mod $dec {
+            use rstest::*;
+            use fastnum::{$dec, $D};
+            
+            super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
+            super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
+        }
+    };
+    (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
+        mod $dec {
+            use rstest::*;
+            use fastnum::{$dec, $D};
+            
+            super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
+            super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
+        }
+    };
+    (COMMON:: 512, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 256, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(1.3407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095), "1.3407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095")]
+        fn test_serialize_deserialize_str_512(#[case] dec: $D, #[case] expected: &'static str) {
+            let expected = serde_test::Token::Str(expected);
+            serde_test::assert_tokens(&dec, &[expected]);
+        }
+    };
+    (UNSIGNED:: 512, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 256, $dec, $D);
+    };
+    (SIGNED:: 512, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 256, $dec, $D);
+    };
+    
+    
+    (COMMON:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 256, $dec, $D);
+    };
+    (COMMON:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(COMMON:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(115.792089237316195423570985008687907853269984665640564039457584007913129639935), "115.792089237316195423570985008687907853269984665640564039457584007913129639935")]
+        fn test_serialize_deserialize_str_256(#[case] dec: $D, #[case] expected: &'static str) {
+            let expected = serde_test::Token::Str(expected);
+            serde_test::assert_tokens(&dec, &[expected]);
+        }
+    };
+    (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 256, $dec, $D);
+    };
+    (UNSIGNED:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 256, $dec, $D);
+    };
+    (SIGNED:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(SIGNED:: 128, $dec, $D);
+    };
+    
+    (COMMON:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 128, $dec, $D);
+    };
+    (COMMON:: 128, $dec: ident, $D: ident) => {
+        #[rstest(::trace)]
         #[case($dec!(1.0), "1.0")]
         #[case($dec!(0.5), "0.5")]
         #[case($dec!(50.), "50")]
@@ -10,118 +81,12 @@ macro_rules! test_str_impl {
         #[case($dec!(0.25), "0.25")]
         #[case($dec!(12.34e1), "123.4")]
         #[case($dec!(40.0010), "40.0010")]
-        fn test_serialize_deserialize_str(#[case] dec: $DEC, #[case] expected: &'static str) {
+        fn test_serialize_deserialize_str(#[case] dec: $D, #[case] expected: &'static str) {
             let expected = serde_test::Token::Str(expected);
             serde_test::assert_tokens(&dec, &[expected]);
         }
-    };
-}
-
-macro_rules! test_from_int_impl {
-    ($DEC: ident, $name: ident, $($ttype:ident),+) => {
-        $( paste::paste! { test_from_int_impl!($DEC : [< $name _ $ttype:lower >] : $ttype : [<$ttype:lower>]); } )*
-    };
-    ($DEC: ident : $name:ident : $tt:ident : $t:ident) => {
-        #[rstest::rstest(::trace)]
-        #[case(0)]
-        #[case(1)]
-        #[case($t::MIN)]
-        #[case($t::MAX)]
-        fn $name(#[case] int: $t) {
-            use fastnum::decimal::extras::serde::DeserializeMode;
-            let tokens = [serde_test::Token::$tt(int)];
-
-            match DeserializeMode::default() {
-                DeserializeMode::Strict => {
-                    let err = format!("invalid type: integer `{}`, expected formatted decimal string in strict mode", int);
-                    serde_test::assert_de_tokens_error::<$DEC>(&tokens, &err);
-                }
-                DeserializeMode::Stringify | DeserializeMode::Any => {
-                    let expected = $DEC::from(int);
-                    serde_test::assert_de_tokens(&expected, &tokens);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! test_try_from_int_impl {
-    ($DEC: ident, $name: ident, $($ttype:ident),+) => {
-        $( paste::paste! { test_try_from_int_impl!($DEC : [< $name _ $ttype:lower >] : $ttype : [<$ttype:lower>]); } )*
-    };
-    ($DEC: ident : $name:ident : $tt:ident : $t:ident) => {
-        #[rstest::rstest(::trace)]
-        #[case(0)]
-        #[case(1)]
-        #[case(10)]
-        #[case(100)]
-        fn $name(#[case] int: $t) {
-            use fastnum::decimal::extras::serde::DeserializeMode;
-            let tokens = [serde_test::Token::$tt(int)];
-
-            match DeserializeMode::default() {
-                DeserializeMode::Strict => {
-                    let err = format!("invalid type: integer `{}`, expected formatted decimal string in strict mode", int);
-                    serde_test::assert_de_tokens_error::<$DEC>(&tokens, &err);
-                }
-                DeserializeMode::Stringify | DeserializeMode::Any => {
-                    let expected = $DEC::try_from(int).unwrap();
-                    serde_test::assert_de_tokens(&expected, &tokens);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! test_try_from_float_impl {
-    ($DEC: ident, $name: ident, $($ttype:ident),+) => {
-        $( paste::paste! {
-            #[rstest::rstest(::trace)]
-            #[case(0.)]
-            #[case(1.)]
-            #[case(10.)]
-            #[case(100.)]
-            #[case(1.2)]
-            fn [< $name _ $ttype:lower >](#[case] n: [<$ttype:lower>]) {
-                use fastnum::decimal::extras::serde::DeserializeMode;
-                use crate::decimal::common::extras::serde::WithDecimalPoint;
-
-                let tokens = [serde_test::Token::$ttype(n)];
-
-                match DeserializeMode::default() {
-                    DeserializeMode::Strict => {
-                        let err = format!("invalid type: floating point `{}`, expected formatted decimal string in strict mode", WithDecimalPoint(n as f64));
-                        serde_test::assert_de_tokens_error::<$DEC>(&tokens, &err);
-                    }
-                    DeserializeMode::Stringify | DeserializeMode::Any => {
-                        let expected = $DEC::try_from(n).unwrap();
-                        serde_test::assert_de_tokens(&expected, &tokens);
-                    }
-                }
-            }
-
-            #[rstest::rstest(::trace)]
-            fn [< $name _ $ttype:lower _ nan >]() {
-                use fastnum::decimal::extras::serde::DeserializeMode;
-                let tokens = [ serde_test::Token::$ttype([<$ttype:lower>]::NAN) ];
-
-                match DeserializeMode::default() {
-                    DeserializeMode::Strict => {
-                        let err = "invalid type: floating point `NaN`, expected formatted decimal string in strict mode";
-                        serde_test::assert_de_tokens_error::<$DEC>(&tokens, err);
-                    }
-                    DeserializeMode::Stringify | DeserializeMode::Any => {
-                        serde_test::assert_de_tokens_error::<$DEC>(&tokens, "(fastnum) number is NaN");
-                    }
-                }
-            }
-        } )*
-    };
-}
-
-macro_rules! test_json_impl {
-    ($DEC: ident) => {
-        #[rstest::rstest(::trace)]
+        
+        #[rstest(::trace)]
         #[case("1")]
         #[case("2")]
         #[case("3")]
@@ -139,10 +104,10 @@ macro_rules! test_json_impl {
             #[derive(Serialize, Deserialize)]
             struct TestStruct {
                 name: String,
-                value: $DEC,
+                value: $D,
             }
 
-            let d: $DEC = num.parse().unwrap();
+            let d: $D = num.parse().unwrap();
 
             let json_src = format!("{{\"name\":\"foo\",\"value\":\"{}\"}}", num);
 
@@ -157,7 +122,7 @@ macro_rules! test_json_impl {
 
             match DeserializeMode::default() {
                 DeserializeMode::Strict => {
-                    assert!(serde_json::from_str::<$DEC>(&json).is_err());
+                    assert!(serde_json::from_str::<$D>(&json).is_err());
                 }
                 DeserializeMode::Stringify | DeserializeMode::Any => {
                     let my_struct: TestStruct = serde_json::from_str(&json).unwrap();
@@ -169,14 +134,122 @@ macro_rules! test_json_impl {
                 }
             }
         }
+        
+        super::test_impl!(FROM INT:: $dec, $D, U8, U16, U32, U64); 
+        super::test_impl!(TRY FROM FLOAT:: $dec, $D, F32, F64);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(TRY FROM INT:: $dec, $D, I8, I16, I32, I64); 
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(FROM INT:: $dec, $D, I8, I16, I32, I64); 
+    };
+    (FROM INT:: $dec: ident, $D: ident, $($tt: ident),*) => {
+        $( 
+            paste::paste! { 
+                #[rstest(::trace)]
+                #[case(0)]
+                #[case(1)]
+                #[case([<$tt:lower>]::MIN)]
+                #[case([<$tt:lower>]::MAX)]
+                fn [< test_deserialize_from_ $tt:lower >](#[case] int: [<$tt:lower>]) {
+                    use fastnum::decimal::extras::serde::DeserializeMode;
+                    let tokens = [serde_test::Token::$tt(int)];
+        
+                    match DeserializeMode::default() {
+                        DeserializeMode::Strict => {
+                            let err = format!("invalid type: integer `{}`, expected formatted decimal string in strict mode", int);
+                            serde_test::assert_de_tokens_error::<$D>(&tokens, &err);
+                        }
+                        DeserializeMode::Stringify | DeserializeMode::Any => {
+                            let expected = $D::from(int);
+                            serde_test::assert_de_tokens(&expected, &tokens);
+                        }
+                    }
+                }
+            }
+        )*
+    };
+    (TRY FROM INT:: $dec: ident, $D: ident, $($tt: ident),*) => {
+        $( 
+            paste::paste! { 
+                #[rstest::rstest(::trace)]
+                #[case(0)]
+                #[case(1)]
+                #[case(10)]
+                #[case(100)]
+                fn [< test_deserialize_from_ $tt:lower >](#[case] int: [<$tt:lower>]) {
+                    use fastnum::decimal::extras::serde::DeserializeMode;
+                    let tokens = [serde_test::Token::$tt(int)];
+        
+                    match DeserializeMode::default() {
+                        DeserializeMode::Strict => {
+                            let err = format!("invalid type: integer `{}`, expected formatted decimal string in strict mode", int);
+                            serde_test::assert_de_tokens_error::<$D>(&tokens, &err);
+                        }
+                        DeserializeMode::Stringify | DeserializeMode::Any => {
+                            let expected = $D::try_from(int).unwrap();
+                            serde_test::assert_de_tokens(&expected, &tokens);
+                        }
+                    }
+                }
+            }
+        )*
+    };
+    (TRY FROM FLOAT:: $dec: ident, $D: ident, $($tt: ident),*) => {
+        $( 
+            paste::paste! { 
+                #[rstest(::trace)]
+                #[case(0.)]
+                #[case(1.)]
+                #[case(10.)]
+                #[case(100.)]
+                #[case(1.2)]
+                fn [< test_deserialize_from_ $tt:lower >](#[case] n: [<$tt:lower>]) {
+                    use fastnum::decimal::extras::serde::DeserializeMode;
+                    use crate::decimal::common::extras::serde::WithDecimalPoint;
+    
+                    let tokens = [serde_test::Token::$tt(n)];
+    
+                    match DeserializeMode::default() {
+                        DeserializeMode::Strict => {
+                            let err = format!("invalid type: floating point `{}`, expected formatted decimal string in strict mode", WithDecimalPoint(n as f64));
+                            serde_test::assert_de_tokens_error::<$D>(&tokens, &err);
+                        }
+                        DeserializeMode::Stringify | DeserializeMode::Any => {
+                            let expected = $D::try_from(n).unwrap();
+                            serde_test::assert_de_tokens(&expected, &tokens);
+                        }
+                    }
+                }
+    
+                // #[rstest(::trace)]
+                // fn [< $name _ $ttype:lower _ nan >]() {
+                //     use fastnum::decimal::extras::serde::DeserializeMode;
+                //     let tokens = [ serde_test::Token::$ttype([<$ttype:lower>]::NAN) ];
+                // 
+                //     match DeserializeMode::default() {
+                //         DeserializeMode::Strict => {
+                //             let err = "invalid type: floating point `NaN`, expected formatted decimal string in strict mode";
+                //             serde_test::assert_de_tokens_error::<$DEC>(&tokens, err);
+                //         }
+                //         DeserializeMode::Stringify | DeserializeMode::Any => {
+                //             serde_test::assert_de_tokens_error::<$DEC>(&tokens, "(fastnum) number is NaN");
+                //         }
+                //     }
+                // }
+            }
+        )*
     };
 }
 
-pub(crate) use test_from_int_impl;
-pub(crate) use test_json_impl;
-pub(crate) use test_str_impl;
-pub(crate) use test_try_from_float_impl;
-pub(crate) use test_try_from_int_impl;
+pub(crate) use test_impl;
 
 use core::fmt;
 use core::fmt::{Display, Write};

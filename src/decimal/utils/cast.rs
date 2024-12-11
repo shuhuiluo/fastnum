@@ -9,7 +9,7 @@ pub trait ToPrimitive {
     fn to_u64(&self) -> Option<u64>;
 }
 
-impl ToPrimitive for i64 {
+impl ToPrimitive for i16 {
     #[inline]
     fn to_usize(&self) -> Option<usize> {
         if 0 <= *self {

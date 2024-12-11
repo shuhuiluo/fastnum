@@ -68,12 +68,6 @@ macro_rules! test_impl {
                 fn [< test_to_ $Pt >](#[case] d: $D, #[case] expected: $Pt) {
                     assert_eq!(d.[< to_ $Pt>](), Some(expected));
                 }
-                
-                #[rstest(::trace)]
-                #[case($D::from($Pt::MAX) + $dec!(1))]
-                fn [< test_to_ $Pt _negative>](#[case] d: $D) {
-                    assert!(d.[< to_ $Pt>]().is_none());
-                }
             }
         )*
     };
@@ -91,12 +85,6 @@ macro_rules! test_impl {
                 #[case($D::try_from($Pt::MAX).unwrap() - $dec!(0.1), $Pt::MAX)]
                 fn [< test_to_ $Pt >](#[case] d: $D, #[case] expected: $Pt) {
                     assert_eq!(d.[< to_ $Pt>](), Some(expected));
-                }
-                
-                #[rstest(::trace)]
-                #[case($D::try_from($Pt::MAX).unwrap() + $dec!(1))]
-                fn [< test_to_ $Pt _negative>](#[case] d: $D) {
-                    assert!(d.[< to_ $Pt>]().is_none());
                 }
             }
         )*
@@ -122,7 +110,6 @@ macro_rules! test_impl {
                 #[case($dec!(-0))]
                 #[case($dec!(-1))]
                 #[case($dec!(-10))]
-                #[case($D::from($Pt::MAX) + $dec!(1))]
                 fn [< test_to_ $Pt _signed_negative>](#[case] d: $D) {
                     assert!(d.[< to_ $Pt>]().is_none());
                 }

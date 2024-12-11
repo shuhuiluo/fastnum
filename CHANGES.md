@@ -1,8 +1,41 @@
 # Changelog
 
-All user visible changes to this library will be documented in this file.
+All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
+
+## [0.1.1] - 2024-12-
+
+* Documentation improvements.
+
+## [0.1.0] - 2024-12-11
+
+This release introduces performance improvements (thanks to poll_recv_many #1189), improves resilience of
+ordered consumers by recreating them in more cases while having less server calls. It also adds some new features.
+
+### Breaking changes
+
+* Internal decimal representation for signed and unsigned decimal types.
+* Reduce exponent from `64` bit to `16` bit.
+* Remove `DecimalResult` and unwrap methods.
+* Replace `ArithmeticPolicy`, `OverflowPolicy`, `RoundingPolicy` with `Context`.
+
+### Added
+
+* Add `NaN` and `±Infinity` special values.
+* Add `Flags` and `Signal`.
+* Add `Context` and `SignalingTraps`.
+* Add `with_context!` macro.
+
+### Fixed
+
+* Fix panic shift with overflow.
+
+### Changed
+
+* Stabilize API.
+* Re-implement most methods.
+* Documentation improvements.
 
 ## [0.0.14] - 2024-11-27
 
@@ -15,8 +48,11 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 * Stabilize API
 
 ## [0.0.12] - 2024-11-23
+
 ## [0.0.11] - 2024-11-23
+
 ## [0.0.10] - 2024-11-23
+
 ## [0.0.9] - 2024-11-23
 
 * Stabilize API
@@ -35,8 +71,11 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 * Stabilize API
 
 ## [0.0.6]
+
 ## [0.0.5]
+
 ## [0.0.4]
+
 ## [0.0.3]
 
 * Technical releases

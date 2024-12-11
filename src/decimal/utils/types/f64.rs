@@ -13,7 +13,7 @@ pub const MAN_MASK_NORMAL: u64 = 0x0010_0000_0000_0000;
 
 pub const MANTISSA_DIGITS: u32 = f64::MANTISSA_DIGITS;
 
-pub const MAX_EXP: i64 = f64::MAX_EXP as i64;
+pub const MAX_EXP: i32 = f64::MAX_EXP;
 
 #[inline]
 pub const fn to_bits(n: f64) -> u64 {

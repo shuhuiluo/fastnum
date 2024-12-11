@@ -236,7 +236,7 @@ const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
 #[inline]
 const fn widening_mul<const N: usize>(a: Digit, b: Digit) -> (Digit, Digit) {
     let prod = a as DoubleDigit * b as DoubleDigit;
-    (prod as Digit, (prod >> BUint::<N>::BITS) as Digit)
+    (prod as Digit, (prod >> BITS) as Digit)
 }
 
 #[inline]

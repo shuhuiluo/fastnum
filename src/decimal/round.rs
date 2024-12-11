@@ -1,14 +1,9 @@
-mod mode;
-mod policy;
-
-pub use mode::RoundingMode;
-pub use policy::RoundingPolicy;
-
 use core::cmp::Ordering::{Equal, Greater, Less};
 
 use crate::{
     decimal::{
-        RoundingMode::{Ceiling, Down, Floor, HalfDown, HalfEven, HalfUp, Up},
+        Context,
+        RoundingMode::{self, Ceiling, Down, Floor, HalfDown, HalfEven, HalfUp, Up},
         Sign,
     },
     int::{math::div_rem, UInt},
@@ -23,14 +18,14 @@ impl<const N: usize> RoundConsts<N> {
 #[inline]
 pub(crate) const fn scale_round<const N: usize>(
     mut value: UInt<N>,
-    rounding_mode: RoundingMode,
+    ctx: Context,
 ) -> (UInt<N>, bool) {
     let remainder;
 
     (value, remainder) = div_rem(value, UInt::<N>::TEN);
 
     if !remainder.is_zero() {
-        (round(value, remainder, rounding_mode), true)
+        (round(value, remainder, ctx), true)
     } else {
         (value, false)
     }
@@ -40,10 +35,10 @@ pub(crate) const fn scale_round<const N: usize>(
 pub(crate) const fn round<const N: usize>(
     mut value: UInt<N>,
     remainder: UInt<N>,
-    rounding_mode: RoundingMode,
+    ctx: Context,
 ) -> UInt<N> {
     // TODO: performance optimization
-    match (rounding_mode, remainder.cmp(&UInt::FIVE)) {
+    match (ctx.rounding_mode(), remainder.cmp(&UInt::FIVE)) {
         (Up, _) | (Ceiling, _) => {
             value = value.strict_add(UInt::ONE);
         }

@@ -1,6 +1,5 @@
 macro_rules! test_impl {
     (D, $bits: literal) => {
-        paste::paste! { test_impl!(UNSIGNED: $bits, [< dec $bits >], [<D $bits>]); }
         paste::paste! { test_impl!(SIGNED: $bits, [< dec $bits >], [<D $bits>]); }
     };
     (UD, $bits: literal) => {
@@ -10,46 +9,54 @@ macro_rules! test_impl {
         mod $dec {
             use rstest::*;
             use fastnum::{$dec, $D, decimal::RoundingMode};
-            
-            super::test_impl!(UNSIGNED:: $bits, $dec, $D);
+
+            super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
+            super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
         }
     };
     (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
-        paste::paste! {
-            mod [< $dec _signed >]{
-                use rstest::*;
-                use fastnum::{$dec, $D, decimal::RoundingMode};
-                
-                super::test_impl!(SIGNED:: $bits, $dec, $D);
-            }
+        mod $dec {
+            use rstest::*;
+            use fastnum::{$dec, $D, decimal::RoundingMode};
+
+            super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
+            super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
         }
     };
-    (UNSIGNED:: 512, $dec: ident, $D: ident) => {
-        super::test_impl!(UNSIGNED:: 256, $dec, $D);
-        
+    (COMMON:: 512, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 256, $dec, $D);
+
         #[rstest(::trace)]
         #[case($dec!(0.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333), 0, $dec!(0), $dec!(0))]
         #[case($dec!(44), 99, $dec!(44), $dec!(44))]
         #[case($dec!(1.555), 99, $dec!(1.555), $dec!(1.555))]
-        fn test_round_512(#[case] x: $D, #[case] digits: i64, #[case] y: $D, #[case] z: $D) {
+        fn test_round_512(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.round(digits, RoundingMode::HalfUp), y);
             assert_eq!(x.round(digits, RoundingMode::Down), z);
         }
     };
-    (SIGNED:: 512, $dec: ident, $D: ident) => {
+    (UNSIGNED:: 512, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 256, $dec, $D);
+    };
+    (SIGNED:: 512, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(SIGNED:: 256, $dec, $D);
-        
+
         #[rstest(::trace)]
         #[case($dec!(-44), - 99, $dec!(-0), $dec!(-0))]
         #[case($dec!(-1.555), 99, $dec!(-1.555), $dec!(-1.555))]
-        fn test_round_512(#[case] x: $D, #[case] digits: i64, #[case] y: $D, #[case] z: $D) {
+        fn test_round_512_signed(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.round(digits, RoundingMode::HalfUp), y);
             assert_eq!(x.round(digits, RoundingMode::Down), z);
         }
     };
-    (UNSIGNED:: 256, $dec: ident, $D: ident) => {
-        super::test_impl!(UNSIGNED:: 128, $dec, $D);
-        
+
+
+    (COMMON:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 256, $dec, $D);
+    };
+    (COMMON:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(COMMON:: 128, $dec, $D);
+
         #[rstest(::trace)]
         #[case($dec!(1.0000000000000000000000000000000000000000001), 10, $dec!(1.0000000000), $dec!(1.0000000000))]
         #[case($dec!(1.0000000000000000000000000000000000000000009), 10, $dec!(1.0000000000), $dec!(1.0000000000))]
@@ -57,15 +64,39 @@ macro_rules! test_impl {
         #[case($dec!(0.1165085714285714285714285714285714285714), 2, $dec!(0.12), $dec!(0.11))]
         #[case($dec!(0.1165085714285714285714285714285714285714), 5, $dec!(0.11651), $dec!(0.11650))]
         #[case($dec!(0.1165085714285714285714285714285714285714), 8, $dec!(0.11650857), $dec!(0.11650857))]
-        fn test_round_256(#[case] x: $D, #[case] digits: i64, #[case] y: $D, #[case] z: $D) {
+        fn test_round_256(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.round(digits, RoundingMode::HalfUp), y);
             assert_eq!(x.round(digits, RoundingMode::Down), z);
         }
     };
+    (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 256, $dec, $D);
+    };
+    (UNSIGNED:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 256, $dec, $D);
+    };
     (SIGNED:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(SIGNED:: 128, $dec, $D);
     };
-    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+
+    (COMMON:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 128, $dec, $D);
+    };
+    (COMMON:: 128, $dec: ident, $D: ident) => {
+        #[rstest(::trace)]
+        fn test_round_smoke() {
+            let n = $dec!(129.41675);
+
+            assert_eq!(n.round(2, RoundingMode::Up), $dec!(129.42));
+            assert_eq!(n.round(-1, RoundingMode::Down), $dec!(120));
+            assert_eq!(n.round(4, RoundingMode::HalfUp), $dec!(129.4168));
+            assert_eq!(n.round(4, RoundingMode::HalfEven), $dec!(129.4168));
+            assert_eq!(n.round(4, RoundingMode::HalfDown), $dec!(129.4167));
+        }
+
         #[rstest(::trace)]
         #[case($dec!(1.45), 1, $dec!(1.5), $dec!(1.4))]
         #[case($dec!(1.44444), 1, $dec!(1.4), $dec!(1.4))]
@@ -111,10 +142,19 @@ macro_rules! test_impl {
         #[case($dec!(0.68), 0, $dec!(1), $dec!(0))]
         #[case($dec!(0.5), 0, $dec!(1), $dec!(0))]
         #[case($dec!(0.49), 0, $dec!(1), $dec!(0))]
-        fn test_round(#[case] x: $D, #[case] digits: i64, #[case] y: $D, #[case] z: $D) {
+        fn test_round(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.round(digits, RoundingMode::HalfUp), y);
             assert_eq!(x.round(digits, RoundingMode::Down), z);
         }
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 128, $dec, $D);
     };
     (SIGNED:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
@@ -134,7 +174,7 @@ macro_rules! test_impl {
         #[case($dec!(-12345678987654321.123456789), 8, $dec!(-12345678987654321.12345679), $dec!(-12345678987654321.12345678))]
         #[case($dec!(-18.2697343863199184516), 18, $dec!(-18.269734386319918452), $dec!(-18.269734386319918451))]
         #[case($dec!(-0.0100000000000000000000000001), 18, $dec!(-0.010000000000000000), $dec!(-0.010000000000000000))]
-        fn test_round(#[case] x: $D, #[case] digits: i64, #[case] y: $D, #[case] z: $D) {
+        fn test_round_signed(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.round(digits, RoundingMode::HalfUp), y);
             assert_eq!(x.round(digits, RoundingMode::Down), z);
         }
