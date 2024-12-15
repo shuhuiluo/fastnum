@@ -145,6 +145,7 @@ pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, Pars
         }
     }
 
+    // TODO: Adjust scale & subnormal & etc 
     let scale = match make_scale(decimal_offset, exponent_value) {
         Ok(scale) => scale,
         Err(e) => {

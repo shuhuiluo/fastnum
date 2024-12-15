@@ -14,9 +14,11 @@ pub(crate) mod udec;
 
 mod category;
 mod context;
-mod flags;
 mod sign;
 mod signals;
+
+#[doc(hidden)]
+mod flags;
 
 #[allow(dead_code)]
 pub(crate) mod utils;
@@ -27,7 +29,6 @@ pub(crate) mod errors;
 mod macros;
 
 #[cfg(feature = "test-util")]
-#[doc(hidden)]
 pub use flags::Flags;
 
 #[cfg(not(feature = "test-util"))]

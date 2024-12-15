@@ -4,14 +4,35 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## [0.1.1] - 2024-12-
+## Unreleased
 
+### Added
+
+* Extend test coverage.
+
+### Fixed
+
+### Changed
+
+* Minor documentation fixes.
+
+## [0.1.2] – 2024-12-15
+
+### Added
+
+* Added `signals!` macro.
+* Extend test coverage.
+
+### Changed
+
+* Deprecated `with_scale!` in favor of `quantum!`.
 * Documentation improvements.
 
-## [0.1.0] - 2024-12-11
+## [0.1.1] – 2024-12-11
 
-This release introduces performance improvements (thanks to poll_recv_many #1189), improves resilience of
-ordered consumers by recreating them in more cases while having less server calls. It also adds some new features.
+* Minor fixes.
+
+## [0.1.0] – 2024-12-11
 
 ### Breaking changes
 

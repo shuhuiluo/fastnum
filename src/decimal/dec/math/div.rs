@@ -19,7 +19,7 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>, ctx: Cont
         return divisor.with_signals_from_and(&dividend, Signal::OP_INVALID);
     }
 
-    if dividend.is_infinite() || divisor.is_infinite() {
+    if dividend.is_infinite() && divisor.is_infinite() {
         return D::NAN
             .with_signals_from(&dividend)
             .with_signals_from_and(&divisor, Signal::OP_INVALID);
@@ -31,6 +31,10 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>, ctx: Cont
         D::INFINITY.with_flags(flags.raise_signal(Signal::div_by_zero()))
     } else if dividend.is_zero() || divisor.is_one() {
         dividend.with_signals_from(&divisor)
+    } else if dividend.is_infinite() {
+        D::INFINITY.with_flags(flags)
+    } else if divisor.is_infinite() {
+        D::ZERO.with_flags(flags)
     } else {
         let (mut scale, mut ofw) = dividend.scale.overflowing_sub(divisor.scale);
         // TODO: may be we can adjust scale

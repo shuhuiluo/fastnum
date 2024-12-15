@@ -1,6 +1,8 @@
 use crate::{decimal::Signal, utils::err_msg};
 
-/// traps - a list of set trap enablers for signals. When a signal's trap enabler is set the condition causes Decimal.Error to be raised.
+/// # SignalsTraps
+///
+/// `SignalsTraps` is a list of set trap enablers for signals.
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
 pub struct SignalsTraps(Signal);
 
@@ -8,18 +10,30 @@ impl SignalsTraps {
     const EMPTY: Self = Self(Signal::EMPTY);
     const DEFAULT: Self = Self(Signal::DEFAULT_TRAPS);
 
+    /// Returns the empty list of signal traps.
+    #[must_use]
     #[inline(always)]
     pub const fn empty() -> Self {
         Self::EMPTY
     }
 
+    /// Returns the default set of signal traps.
+    #[must_use]
     #[inline(always)]
     pub const fn default() -> Self {
         Self::DEFAULT
     }
 
+    /// Adds the signal trap for the given signal.
+    #[must_use]
+    #[inline(always)]
+    pub const fn set(mut self, signal: Signal) -> Self {
+        self.0 = self.0.set(signal);
+        self
+    }
+
     #[inline]
-    pub const fn trap(&self, signals: Signal) {
+    pub(crate) const fn trap(&self, signals: Signal) {
         let signaled = self.0.intersect(signals);
         if signaled.is_empty() {
             return;

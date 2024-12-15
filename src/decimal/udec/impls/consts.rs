@@ -2,9 +2,10 @@ macro_rules! consts_impl {
     () => {
         impl<const N: usize> UnsignedDecimal<N> {
             
+            /// **N**ot **A** **N**umber value. More about [`NaN`](crate#special-values).
             pub const NAN: Self = Self::new(Decimal::NAN);
             
-            /// Infinity (∞).
+            /// Infinity (∞). More about [`±Infinity`](crate#special-values).
             pub const INFINITY: Self = Self::new(Decimal::INFINITY);
             
             /// The smallest value that can be represented by this decimal type (0).

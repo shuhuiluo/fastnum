@@ -8,7 +8,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::{Context, RoundingMode::{self, *}}};
+            use fastnum::{*, decimal::{*, RoundingMode::*}};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
@@ -17,7 +17,7 @@ macro_rules! test_impl {
     (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::{Context, RoundingMode::{self, *}}};
+            use fastnum::{*, decimal::{*, RoundingMode::*}};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
@@ -234,7 +234,10 @@ macro_rules! test_impl {
         #[case($dec!(1e-32767), $D::MAX)]
         #[should_panic(expected = "(fastnum) underflow was occurred while performing arithmetic operation")]
         fn test_div_underflow_panic(#[case] a: $D, #[case] b: $D) {
-            let _ = a / b;
+            let ctx = Context::default().with_signal_traps(SignalsTraps::default().set(Signal::OP_UNDERFLOW));
+            let _ = with_context!(ctx, {
+                a / b
+            });
         }
 
         #[rstest(::trace)]

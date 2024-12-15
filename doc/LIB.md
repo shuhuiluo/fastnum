@@ -3,13 +3,17 @@
 Fixed-size signed and unsigned decimal numbers implemented in pure Rust. Suitable for
 financial, crypto and any other fixed-precision calculations.
 
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
+
+[IEEE 854]: https://en.wikipedia.org/wiki/IEEE_854-1987
+
 ## Overview
 
 `fastnum` provides signed and unsigned exact precision decimal numbers suitable for financial calculations that
 require significant integral and fractional digits with no round-off errors (such as 0.1 + 0.2 ≠ 0.3).
 
 Any `fastnum` decimal type consists of an N-bit big unsigned integer, paired with a 64-bit signaling block which
-contains a 16-bit scaling factor determines the position of the decimal point, sign, special and signaling flags.
+contains a 16-bit scaling factor determines the position of the decimal point, sign, special, and signaling flags.
 Trailing zeros are preserved and may be exposed when in string form.
 
 Thus, `fastnum` decimal numbers are trivially copyable and do not require any dynamic allocation. This allows you to get
@@ -54,7 +58,7 @@ Or, to enable various `fastnum` features as well, add for example this line inst
 fastnum = { version = "0.1", features = ["serde"] } # enables the "serde" feature
 ```
 
-## Example Usage
+## Example usage
 
 ```
 use fastnum::{udec256, UD256};
@@ -123,45 +127,429 @@ const E: UD256 = udec256!(1.5).div(udec256!(0), Context::default());
 
 ## Representation
 
-Under the hood any finite N-bit unsigned decimal type consists of a N-bit big unsigned integer, paired with a signed
-integer scaling factor:
+### Abstract model
 
-coefficient × 10<sup>-exp</sup>, where
+Numbers represent the values which can be manipulated by, or be the results of.
+Numbers may be finite numbers (numbers whose value can be represented exactly) or they may be special
+values (infinities and other values which are not finite numbers).
 
-- **coefficient** (or _significant integral digits_) – an unsigned N-bit big integer which is zero or positive.
-- **scaling factor** (or _exponent_) – a signed 64-bit integer which determines the position of the decimal point and
-  indicates the power of ten by which the coefficient is multiplied.
+#### Finite numbers
+
+The numerical value of a finite number is given by: (–1)<sup>sign</sup> × coefficient × 10<sup>exponent</sup>.
+
+- **_sign_** – a value which must be either `0` or `1`, where `1` indicates that the number is negative or is the
+  negative zero and `0` indicates that the number is zero or positive.
+- **_coefficient_** – an unsigned integer which is zero or positive.
+- **_exponent_** – a signed integer which indicates the power of ten by which the coefficient is multiplied.
+
+For example, if the sign had the value `1`, the exponent had the value `–1`, and the coefficient had the value `25`,
+then the numerical value of the number is exactly `–2.5`.
 
 Trailing zeros are preserved and may be exposed when in string form. These can be truncated using the normalize or
-round functions. The quantum of a finite number is given by: 1 × 10<sup>-exp</sup>. This is the value of a unit in the
-least significant position of the coefficient of a finite number.
+round functions.
 
-Signed N-bit decimal is represented as:
+A number with a coefficient of `0` is permitted to have both `+` and `-` sign.
+Negative zero is accepted as an operand for all operations (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)).
 
-sign × UD\[coefficient × 10<sup>-exp</sup>\], where
+The _quantum_ of a finite number is given by: 1 × 10<sup>-exp</sup>. This is the value of a unit in the
+least significant position of the _coefficient_ of a finite number.
 
-- **UD** - N-bit unsigned decimal
-- **sign** - a value indicates that the number is negative or positive.
+This abstract definition deliberately allows for multiple representations of values which are numerically equal but are
+visually distinct (such as `1` and `1.00`).
+However, there is a one-to-one mapping between the abstract representation and the result of the primary conversion to
+string using to-scientific-string on that abstract representation.
+In other words, if one number has a different abstract representation to another, then the primary string conversion
+will also be different.
 
-A number with a coefficient of `0` is permitted to have both `+` and `minus` sign. Negative zero is accepted as an
-operand for all operations (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)).
+#### Exponent
 
-The value of an encoding is either a special value (a `NaN` or an `±Infinity`) or it is a finite number whose numerical value
-is given exactly by: (–1)sign × coefficient × 10<sup>exponent</sup>.
-For example, if the sign had the value 1, the exponent had the value –1, and the coefficient had the value 25, then the
-numerical value of the number is exactly –2.5.
+The _exponent_ is represented by a two’s complement 16-bit binary integer.
 
-## Special values
+The **_adjusted exponent_** is the value of the exponent of a number when that number is expressed as though in
+scientific notation with one digit (non-zero unless the coefficient is `0`) before any decimal point.
+This is given by the value of the _exponent + (C<sub>length</sub> – 1)_, where _C<sub>length</sub>_ is the length of the
+coefficient in decimal digits.
+When a limit to the exponent _E<sub>limit</sub>_ applies,
+it must result in a balanced range of positive or negative numbers, taking into account the magnitude of the
+coefficient.
+To achieve this balanced range, the minimum and maximum values of the adjusted exponent (_E<sub>min</sub>_ and _E<sub>
+max</sub>_ respectively) must have magnitudes which differ by no more than one, so _E<sub>min</sub>_ will be _–E<sub>
+max</sub> ±1_.
+[IEEE 754] further constrains this so that _E<sub>min</sub> = 1 – E<sub>max</sub>_.
+Therefore, if the length of the coefficient is _C<sub>length</sub>_ digits, the exponent may take any of the values
+_-E<sub>limit</sub> – (C<sub>length</sub> – 1) + 1_ through _E<sub>limit</sub> – (C<sub>length</sub> – 1)_.
+
+#### Special values
+
+[Infinity]: #special-values
+
+[NaN]: #special-values
+
+In addition to the finite numbers, numbers must also be able to represent one of three named special values:
+
+- `±Infinity` – a value representing a number whose magnitude is infinitely large (see [IEEE 754] §3.2 and §6.1).
+- `quiet NaN` – a value representing undefined results (_Not a Number_) which does not cause an Invalid operation
+  condition.
+- `signaling NaN` – a value representing undefined results (_Not a Number_) which will usually cause an Invalid
+  operation condition if used in any operation defined in this specification (see [IEEE 754] §3.2 and §6.2).
+
+When a number has one of these special values, its coefficient and exponent are undefined.
+All special values may have a sign, as for finite numbers.
+The sign of an `Infinity` is significant (that is, it is possible to have both positive and negative infinity), and the
+sign of a `NaN` has no meaning.
+
+#### Signed zero
+
+[Zero]: #signed-zero
+
+Signed zero (`±0`) is zero with an associated sign.
+In ordinary arithmetic, the number `0` does not have a sign, so that `−0`, `+0` and `0` are equivalent.
+However, in computing, some number representations allow for the existence of two zeros, often denoted by `−0` (negative
+zero) and `+0` (positive zero), regarded as equal by the numerical comparison operations but with possible different
+behaviors in particular operations.
+
+Real arithmetic with signed zeros can be considered a variant of the extended real number line such that `1/−0 = −∞` and
+`1/+0 = +∞`; division is undefined only for `±0/±0` and `±∞/±∞`.
+
+Negatively signed zero echoes the mathematical analysis concept of approaching `0` from below as a one-sided limit,
+which may be denoted by `x → 0−`, `x → +0`. The notation `−0` may be used informally to denote a negative number that
+has been rounded to zero. The concept of negative zero also has some theoretical applications in statistical mechanics
+and other disciplines.
+
+More about [Signed Zero](https://en.wikipedia.org/wiki/Signed_zero).
+
+#### Normal numbers, subnormal numbers, and Underflow
+
+[Subnormal]: #normal-numbers-subnormal-numbers-and-underflow
+
+In any context where exponents are bounded most finite numbers are normal.
+Non-zero finite numbers whose adjusted exponents are greater than or equal to _E<sub>min</sub>_ are called normal numbers;
+those non-zero numbers whose adjusted exponents are less than _E<sub>min</sub>_ are called subnormal numbers.
+Like other numbers, subnormal numbers are accepted as operands for all operations, and may result from any operation.
+If a result is subnormal, before any rounding, then the Subnormal condition is raised.
+
+For a subnormal result, the minimum value of the exponent becomes _E<sub>min</sub> – (precision – 1)_, called _E<sub>
+tiny</sub>_, where precision is the working precision, as described below.
+The result will be rounded, if necessary, to ensure that the exponent is no smaller than _E<sub>tiny</sub>_.
+If, during this rounding, the result becomes inexact, then the Underflow condition is raised.
+A subnormal result does not necessarily raise Underflow, therefore, but is always indicated by the Subnormal condition (
+even if, after rounding, its value is `0` or ten to the power of _E<sub>min</sub>_).
+
+When a number underflows to zero during a calculation, its exponent will be _E<sub>tiny</sub>_. 
+The maximum value of the exponent is unaffected.
+
+Note that the minimum value of the exponent for subnormal numbers is the same as the minimum value of exponent which can
+arise during operations which do not result in subnormal numbers, which occurs in the case where C<sub>length</sub> =
+precision.
+
+### Memory layout
+
+Under the hood any N-bit decimal type consists of an N-bit big unsigned integer (_coefficient_), paired with a _control
+block_ which consists of the following components:
+
+- a signed 16-bit integer scaling factor (negotiated _exponent_),
+- number flags (include _sign_ and special values flags),
+- signaling flags.
+
+<style>
+.mermaid svg { 
+  max-width: 100% !important; 
+  height: auto;
+}
+</style>
+<pre class="mermaid">
+    ---
+    title: D128 decimal memory layout (bytes)
+    config:
+      theme: 'forest'
+      packet:
+        bitsPerRow: 40
+        bitWidth: 18
+    ---
+    packet-beta
+    0-31: "coefficient (U128)"
+    32-33: "exp"
+    34-34: "f"
+    35-39: "context"
+</pre>
+<pre class="mermaid">
+    ---
+    title: D128 decimal memory layout (bits)
+    config:
+        theme: 'forest'
+        packet:
+            bitsPerRow: 192
+            bitWidth: 5
+    ---
+    packet-beta
+    0-127: "coefficient (U128)"
+    128-143: "exp"
+    144-151: "flags"
+    152-191: "context"
+</pre>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+var doc_theme = localStorage.getItem("rustdoc-theme");
+if (doc_theme === "dark" || doc_theme === "ayu") 
+    mermaid.initialize({theme: "dark", rough: true});
+</script>
+
+#### Signaling flags and trap-enablers
+
+The exceptional conditions, which may arise during performing arithmetic operations on decimal numbers, are grouped into
+signals, which can be controlled individually.
+
+Signaling flags are very similar to the [processor flag register](https://en.wikipedia.org/wiki/FLAGS_register) and
+contain information about arithmetic errors such as operation overflow, division by `0`, or loss of precision
+calculations.
+Depending on the needs of the application, flags may be ignored, considered as informational, or cause `panic!`.
+
+The signals are:
+
+|     **Signal**      | Description                                                                                      |
+|:-------------------:|--------------------------------------------------------------------------------------------------|
+|      `CLAMPED`      | The exponent of a result has been altered.                                                       |
+| `DIVISION_BY_ZERO`  | Non-zero dividend is divided by zero.                                                            |
+|      `INEXACT`      | Result is not exact (one or more non-zero coefficient digits were discarded during rounding).    |                                                                                    
+| `INVALID_OPERATION` | Invalid operation. Result would be undefined or impossible.                                      |
+|     `OVERFLOW`      | Indicates that exponent of the decimal result is too large to fit the target type.               |
+|      `ROUNDED`      | Result has been rounded (that is, some zero or non-zero coefficient digits were discarded).      |
+|     `SUBNORMAL`     | Result is _subnormal_ (its adjusted exponent is less than E<sub>min</sub>), before any rounding. |
+|     `UNDERFLOW`     | Result is both subnormal and inexact.                                                            |
+
+For each of the signals, the corresponding flag in _signals block_ is set to 1 when the signal occurs.
+For each of the signals, the corresponding Context _trap-enabler_ indicates which action is to be taken when the signal
+occurs (see [IEEE 754] §7). If `0`, a defined result is supplied, and execution continues (for example, an overflow is
+perhaps converted to a positive or negative infinity). If `1`, then execution of the operation cause `panic!`.
+
+##### Clamped
+
+This occurs and signals clamped if the exponent of a result has been altered in order to fit the constraints of the
+underlying `i16` integer type.
+This may occur when the exponent of a zero result would be outside the bounds of a
+representation, or (in the [IEEE 754] interchange formats) when a large normal number would have an encoded exponent
+that can't be represented.
+In this latter case, the exponent is reduced to fit and the corresponding number of zero
+digits are appended to the coefficient (“fold-down”).
+The condition always occurs when a subnormal value rounds to zero.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = dec256!(1E-10);
+    let b = dec256!(1E-100);
+    a + b
+});
+
+assert_eq!(res, dec256!(1E-10));
+assert!(res.is_op_inexact());
+assert!(res.is_op_rounded());
+assert!(res.is_op_clamped());
+
+```
+
+##### Division by zero
+
+This occurs and signals division-by-zero if division of a finite number by zero was attempted, and the dividend was not
+zero.
+The result of the operation is `±Infinity`, where sign is the exclusive or of the signs of the operands for divide, or
+is `1` for an odd power of `-0`, for power.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = dec256!(1);
+    let b = dec256!(0);
+    a / b
+});
+
+assert!(res.is_infinite());
+assert!(res.is_op_div_by_zero());
+```
+
+##### Inexact
+
+This occurs and signals inexact whenever the result of an operation is not exact (that is, it needed to be rounded and
+any discarded digits were non-zero), or if an overflow or underflow condition occurs.
+The result in all cases is unchanged.
+
+For example, `1/3 = 0.333333333333(3)`. The result of division is an infinite decimal fraction which cannot
+be stored in any of the existing types: performing the operation will cause `OVERFLOW` for any finite count of
+decimal digits However, the result can be obtained if we make a deal and agree to the loss of precision.
+In this case, the result will be the rounded value, accompanied by information that rounding has been performed and
+the result may not be accurate.
+
+|         | Result            | Rounded (HalfUp) | Rounded (Down) | `INEXACT` |
+|---------|-------------------|------------------|----------------|:---------:|
+| `6 / 3` | 2                 | 2                | 2              |           |
+| `1 / 3` | 0.333333333333(3) | 0.333333333333   | 0.333333333333 |    ⁉️     |
+| `2 / 3` | 0.666666666666(6) | 0.666666666667   | 0.666666666666 |    ⁉️     |
+
+For most practical purposes this is an acceptable trade-off. However, we always leave the possibility
+be sure that the result is accurate and there were no loss of precision.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = dec128!(1);
+    let b = dec128!(3);
+    a / b
+});
+
+assert_eq!(res, dec128!(0.333333333333333333333333333333333333333));
+assert!(res.is_op_inexact());
+```
+
+##### Invalid operation
+
+This occurs and signals invalid-operation if:
+
+- an operand to an operation is `NaN`.
+- an attempt is made to add `+Infinity` to `-Infinity` during an addition or subtraction operation.
+- an attempt is made to multiply `0` by `±Infinity`.
+- an attempt is made to divide either `+Infinity` or `-Infinity` by either `+Infinity` or `-Infinity`.
+- the divisor for a remainder operation is zero.
+- the dividend for a remainder operation is `±Infinity`.
+- either operand of the quantize operation is infinite.
+- the operand of the `ln` or the `log10` operation is less than zero.
+- the operand of the square-root operation has a negative sign and a non-zero coefficient.
+- both operands of the power operation are zero, or if the left-hand operand is less than zero and the right-hand
+  operand does not have an integral value or is infinite.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = D128::INFINITY;
+    let b = D128::INFINITY;
+    a - b
+});
+
+assert!(res.is_nan());
+assert!(res.is_op_invalid());
+```
+
+##### Overflow
+
+This occurs and signals overflow if the adjusted exponent of a result (from a conversion or from an operation that is
+not an attempt to divide by zero), after rounding, would be greater than the largest value that can be handled by the
+implementation (the value E<sub>max</sub>).
+The result depends on the rounding mode:
+
+- For round-half-up and round-half-even (and for round-half-down and round-up), the result of the operation is
+  `±Infinity`, where sign is the sign of the intermediate result.
+- For round-down, (and round-05up, if implemented), the result is the largest finite number that can be represented in
+  the current precision, with the sign of the intermediate result.
+- For round-ceiling, the result is the same as for round-down if the sign of the intermediate result is `-`, or is
+  `Infinity` otherwise.
+- For round-floor, the result is the same as for round-down if the sign of the intermediate result is `+`, or is
+  `-Infinity` otherwise.
+
+In all cases, `Inexact` and `Rounded` will also be raised.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = D128::MAX;
+    let b = D128::MAX;
+    a * b
+});
+
+assert!(res.is_infinite());
+assert!(res.is_op_overflow());
+assert!(res.is_op_rounded());
+assert!(res.is_op_inexact());
+```
+
+##### Rounded
+
+This occurs and signals rounded whenever the result of an operation is rounded (that is, some zero or non-zero digits
+were discarded from the coefficient), or if an overflow or underflow condition occurs.
+The result in all cases is unchanged.
+The rounded signal may be tested (or trapped) to determine if a given operation (or sequence of operations) caused a
+loss of precision.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = D128::MAX;
+    let b = dec128!(1.0);
+    a * b
+});
+
+assert_eq!(res, D128::MAX);
+assert!(res.is_op_rounded());
+```
+
+##### Subnormal
+
+This occurs and signals subnormal whenever the result of a conversion or operation is subnormal (that is, its adjusted
+exponent is less than E<sub>min</sub>, before any rounding).
+The result in all cases is unchanged. The subnormal signal may be tested (or trapped) to determine if a given or
+operation (or sequence of operations) yielded a subnormal result.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = dec128!(1E-30000);
+    let b = dec128!(1E2768);
+    a / b
+});
+
+assert!(res.is_op_subnormal());
+```
+
+##### Underflow
+
+This occurs and signals underflow if a result is inexact and the adjusted exponent of the result would be smaller (more
+negative) than the smallest value that can be handled by the implementation (the value E<sub>min</sub>).
+That is, the result is both inexact and subnormal.
+The result after an underflow will be a subnormal number rounded, if necessary, so that its exponent is not less than
+E<sub>tiny</sub>.
+This may result in `0` with the sign of the intermediate result and an exponent of E<sub>tiny</sub>.
+
+In all cases, [`Inexact`](#inexact), [`Rounded`](#rounded), and [`Subnormal`](#subnormal) will also be raised.
+
+```
+use fastnum::{decimal::*, *};
+
+let ctx = Context::default().with_signal_traps(SignalsTraps::empty());
+let res = with_context!(ctx, {
+    let a = dec128!(1e-32767);
+    let b = D128::MAX;
+    a / b
+});
+
+assert!(res.is_op_underflow());
+assert!(res.is_op_inexact());
+assert!(res.is_op_rounded());
+assert!(res.is_op_subnormal());
+
+```
 
 ## Precision
 
-Precision is an integral number of decimal digits. It is limited by maximum decimal digits that N-bit unsigned coefficient
-can hold.
+Precision is an integral number of decimal digits. It is limited by maximum decimal digits that N-bit unsigned
+coefficient can hold.
 
 ## Arithmetic
 
 The `fastnum` crate provides support for fast correctly rounded decimal floating-point arithmetic. It offers several
-advantages over the native floating-point ([IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)) types:
+advantages over the native floating-point ([IEEE 754]) types:
 
 ### Exact precision
 
@@ -262,8 +650,8 @@ arithmetic: [IBM’s General Decimal Arithmetic Specification](https://speleotro
 
 7. Operands may have more than precision digits and are not rounded before use.
 
-8. [Arithmetic policy] defines the rules for unwrapping the result of an arithmetic operation containing
-   [emergency flags](#emergency-flags).
+8. [Context](#decimal-context) defines the rules for unwrapping the result of an arithmetic operation containing
+   [signaling flags](#signaling-flags-and-trap-enablers).
 
 9. Trailing zeros are not removed after operations. The reduce operation may be used to remove trailing zeros if
    desired.
@@ -331,146 +719,6 @@ assert_eq!(udec256!(1.3) - udec256!(1.30), udec256!(0.00));
 assert_eq!(dec256!(1.3) - dec256!(2.07), dec256!(-0.77));
 ```
 
-#### Emergency flags
-
-flags and trap-enablers
-The exceptional conditions are grouped into signals, which can be controlled individually. The context contains a flag (
-which is either 0 or 1) and a trap-enabler (which also is either 0 or 1) for each signal.
-
-For each of the signals, the corresponding flag is set to 1 when the signal occurs. It is only reset to 0 by explicit
-user action.
-
-For each of the signals, the corresponding trap-enabler indicates which action is to be taken when the signal occurs (
-see IEEE 754 §7). If 0, a defined result is supplied, and execution continues (for example, an overflow is perhaps
-converted to a positive or negative infinity). If 1, then execution of the operation is ended or paused and control
-passes to a ‘trap handler’, which will have access to the defined result.
-
-The signals are:
-
-clamped
-raised when the exponent of a result has been altered or constrained in order to fit the constraints of a specific
-concrete representation
-
-division-by-zero
-raised when a non-zero dividend is divided by zero
-
-inexact
-raised when a result is not exact (one or more non-zero coefficient digits were discarded during rounding)
-
-invalid-operation
-raised when a result would be undefined or impossible
-
-overflow
-raised when the exponent of a result is too large to be represented
-
-rounded
-raised when a result has been rounded (that is, some zero or non-zero coefficient digits were discarded)
-
-subnormal
-raised when a result is subnormal (its adjusted exponent is less than Emin), before any rounding
-
-underflow
-raised when a result is both subnormal and inexact.
-
-This specification does not define the means by which flags and traps are reset or altered, respectively, or the means
-by which traps are effected.
-
-The context might also specify further variables, such as Emax where a variable exponent bound is required.
-
-| **Flag**         | Description                                                                            |
-|------------------|----------------------------------------------------------------------------------------|
-| `OVERFLOW`       | Indicates that the decimal result of an operation is too large to fit the target type. |
-| `INEXACT`        | Rounding was performed during the operation. The result may not be exact.              |
-| `DIVIDE_BY_ZERO` | Division by zero.                                                                      |
-| `NEGATIVE`       | The negative result cannot be represented by an unsigned type.                         |
-| `INVALID`        | Invalid operation.                                                                     |
-
-Emergency flags are very similar to the [processor flag register](https://en.wikipedia.org/wiki/FLAGS_register) and
-contain information about arithmetic errors such as operation overflow, division by `0`, or loss of precision
-calculations. Depending on the needs of the application, flags may be ignored, considered as informational, or cause
-`panic!`.
-
-#### Overflow
-
-`OVERFLOW` happens when the result of an arithmetic operation is too large to be stored in the designated destination
-area.
-
-This is strong version of `INEXACT` flag when no rounding allows reducing the dimension of a number and it
-does not fit into target type. For example, `UD128::MAX * UD128::MAX` cannot be stored in `UD128` even with rounding
-applied and loss of precision.
-
-#### Inexact
-
-`INEXACT` flag indicates that rounding was performed during the operation execution and the result may not be exact.
-This is weak version of `OVERFLOW` flag: overflow caused by the operation can be "compensated" by rounding.
-
-For example, `1/3 = 0.333333333333(3)`. The result of division is an infinite decimal fraction which cannot
-be stored in any of the existing types: performing the operation will cause `OVERFLOW` for any finite count of
-decimal digits However, the result can be obtained if we make a deal and agree to the loss of precision.
-In this case, the result will be the rounded value, accompanied by information that rounding has been performed and
-the result may not be accurate.
-
-|         | Result            | Rounded (HalfUp) | Rounded (Down) | `INEXACT` |
-|---------|-------------------|------------------|----------------|:---------:|
-| `1 + 1` | 2                 | 2                | 2              |           |
-| `1 / 3` | 0.333333333333(3) | 0.333333333333   | 0.333333333333 |    ⁉️     |
-| `2 / 3` | 0.666666666666(6) | 0.666666666667   | 0.666666666666 |    ⁉️     |
-
-For most practical purposes this is an acceptable trade-off. However, we always leave the possibility
-be sure that the result is accurate and there were no loss of precision.
-
-#### Divide by zero
-
-`DIVIDE_BY_ZERO` flag indicates that an attempt to divide by `0` was made.
-
-#### Negative
-
-`NEGATIVE` flag indicates that the result of a mathematical operation over unsigned decimal is negative and cannot be
-represented by current unsigned type.
-
-#### Invalid operation
-
-`INVALID` flag indicates may be raised when an operand to an operation is invalid (for example, if it
-exceeds the bounds that an implementation can handle, or the operation is a logarithm and the operand is negative).
-
-```
-use fastnum::udec128;
-use fastnum::decimal::Context;
-
-let a = udec128!(1);
-let b = udec128!(3);
-
-let c = a.div(b, Context::default());
-
-assert_eq!(c, udec128!(0.333333333333333333333333333333333333333));
-```
-
-```should_panic
-use fastnum::udec256;
-use fastnum::decimal::Context;
-
-let a = udec256!(1);
-let b = udec256!(0);
-
-let c = a.div(b, Context::default());
-```
-
-Or can be converted into [Option] or [Result].
-
-```
-use fastnum::udec128;
-use fastnum::decimal::Context;
-
-let a = udec128!(1);
-let b = udec128!(3);
-
-let res = a.div(b, Context::default());
-
-assert_eq!(res, udec128!(0.333333333333333333333333333333333333333));
-assert!(res.is_op_inexact());
-assert_eq!(res.ok(), None);
-```
-
 ### Compare and ordering
 
 The result of any compare operation is always exact and unrounded.
@@ -500,8 +748,6 @@ assert!(n.is_zero());
 
 ### Rust operators overloads
 
-[RustOperatorsOverloads]: #rust-operators-overloads
-
 Common numerical operations (such as addition operator `+`, addition assignment operator `+=`, division operator
 `/`, [etc...](https://doc.rust-lang.org/book/appendix-02-operators.html)) are overloaded for `fastnum` decimals, so we
 can treat them the same way we treat other numbers.
@@ -516,7 +762,7 @@ let c = a + b;
 assert_eq!(c, udec256!(6));
 ```
 
-Unfortunately current version of Rust does not support const traits, so this example fail to compile:
+Unfortunately the current version of Rust does not support const traits, so this example fail to compile:
 
 ```compile_fail
 use fastnum::{udec256, UD256};
@@ -539,32 +785,35 @@ const C: UD256 = A.add(B, Context::default());
 assert_eq!(C, udec256!(6));
 ```
 
-**Note**: All Rust overloaded operators uses default [Decimal Context](#decimal-context). So the
-decision about whether to ignore the overflow and underflow flags and whether the rounded or wrapped result is used or
-not is decided based on [Default Context](#default-context).
+**Note**: all Rust overloaded operators use default [Decimal Context](#default-context).
+So the decision about whether to ignore the overflow and underflow flags and whether the rounded or wrapped result is
+used or not is decided based on [Default Context](#default-context).
 
-## Decimal Context
+## Decimal context
 
-### Default Context
+**_Decimal context_** represents the user-selectable parameters and rules which govern the results of arithmetic
+operations (for example, the rounding mode when rounding occurs).
 
-## Signed zero
+The context is defined by the following parameters:
 
-Signed zero is zero with an associated sign. In ordinary arithmetic, the number `0` does not have a sign, so that `−0`,
-`+0` and `0` are equivalent. However, in computing, some number representations allow for the existence of two zeros,
-often denoted by `−0` (negative zero) and `+0` (positive zero), regarded as equal by the numerical comparison operations
-but with possible different behaviors in particular operations. This occurs in the sign-magnitude and ones' complement
-signed number representations for integers, and in most floating-point number representations. The number `0` is usually
-encoded as `+0`, but can still be represented by `+0`, `−0`, or `0`.
+- `rounding_mode`: a named value which indicates the algorithm to be used when rounding is necessary, see more
+  about [rounding mode](#rounding-mode);
+- `signal_traps`: For each of the signals, the corresponding trap-enabler indicates which action is to be taken when the
+  signal occurs (see [IEEE 754] §7). 
+  See more about [Signals](#signaling-flags-and-trap-enablers).
 
-Real arithmetic with signed zeros can be considered a variant of the extended real number line such that `1/−0 = −∞` and
-`1/+0 = +∞`; division is undefined only for `±0/±0` and `±∞/±∞`.
+### Default context
 
-Negatively signed zero echoes the mathematical analysis concept of approaching `0` from below as a one-sided limit,
-which may be denoted by `x → 0−`, `x → +0`. The notation `−0` may be used informally to denote a negative number that
-has been rounded to zero. The concept of negative zero also has some theoretical applications in statistical mechanics
-and other disciplines.
-
-More about [Signed Zero](https://en.wikipedia.org/wiki/Signed_zero).
+|     **Signal**      | Trap-enabler |
+|:-------------------:|:------------:|
+|      `CLAMPED`      |              |
+| `DIVISION_BY_ZERO`  |      ⚠️      |
+|      `INEXACT`      |              |                                                                                    
+| `INVALID_OPERATION` |      ⚠️      |
+|     `OVERFLOW`      |      ⚠️      |
+|      `ROUNDED`      |              |
+|     `SUBNORMAL`     |              |
+|     `UNDERFLOW`     |              |
 
 ## Normalization
 
@@ -590,8 +839,6 @@ significant digit of the coefficient (it will be a zero) is removed (reducing th
 incremented by one. This in turn may give rise to an overflow condition, which determines the result after overflow.
 
 ### Rounding mode
-
-[RoundingMode]: #rounding-mode
 
 [RoundingMode](crate::decimal::RoundingMode) enum determines how to calculate the last digit of the number when
 performing rounding:
@@ -721,7 +968,7 @@ Rust's `fmt::Display` formatting options for `fastnum` decimals:
 | `{:?}`          | Debug                                          | Shows internal representation of decimal.                                                               |
 | `{:#?}`         | Alternate Debug (used by `dbg!()`)             | Shows simple int+exponent string representation of decimal.                                             |
 
-### Default Display
+### Default display
 
 - "Small" fractional numbers (close to zero) are printed in scientific notation
     - Number is considered "small" by number of leading zeros exceeding a threshold
@@ -848,7 +1095,7 @@ let my_struct: MyStruct = serde_json::from_str(&json_src).unwrap();
 | `sqlx_mysql`      |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) MySQL backend.                                                                      |
 | `utoipa`          |         | Enables support of `fastnum` decimals for autogenerated OpenAPI documentation via the [`utoipa`](https://docs.rs/utoipa/latest/utoipa/) crate.                                                      |
 
-### Compile-Time Configuration
+### Compile-time configuration
 
 You can set a few default parameters at _compile-time_ via environment variables:
 

@@ -1,4 +1,4 @@
-use crate::decimal::common::scale::test_impl;
+use crate::decimal::common::quantum::test_impl;
 
 test_impl!(D, 128);
 test_impl!(D, 256);

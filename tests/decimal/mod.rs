@@ -13,7 +13,7 @@ mod hash;
 mod math;
 mod parse;
 mod round;
-mod scale;
+mod quantum;
 mod smoke;
 
 #[cfg(feature = "numtraits")]

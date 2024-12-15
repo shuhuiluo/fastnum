@@ -4,19 +4,13 @@ mod signal_traps;
 pub use rounding_mode::RoundingMode;
 pub use signal_traps::SignalsTraps;
 
-use crate::decimal::{doc, Signal};
+use crate::decimal::Signal;
 
 /// # Decimal Context
 ///
 /// The context represents the user-selectable parameters and rules which govern
 /// the results of arithmetic operations (for example, the rounding mode when
 /// rounding occurs).
-/// The context is defined by the following parameters:
-/// - `rounding_mode`: a named value which indicates the algorithm to be used
-///   when rounding is necessary, see more about [RoundingMode];
-/// - `signal_traps`: For each of the signals, the corresponding trap-enabler
-///   indicates which action is to be taken when the signal occurs (see IEEE 754
-///   §7). See more about [SignalsTraps].
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Context {
     rounding_mode: RoundingMode,
@@ -29,18 +23,21 @@ impl Context {
         signal_traps: SignalsTraps::default(),
     };
 
+    /// Returns the [Default Decimal Context](#crate::default-decimal-context).
     #[inline]
     pub const fn default() -> Self {
         Self::DEFAULT
     }
 
+    /// Apply the given [RoundingMode] to the `Context`.
+    #[must_use]
     #[inline]
     pub const fn with_rounding_mode(mut self, rounding_mode: RoundingMode) -> Self {
         self.rounding_mode = rounding_mode;
         self
     }
 
-    /// Method applies [SignalsTraps] to the given context.
+    /// Method applies specified [SignalsTraps] to the given context.
     /// # Examples
     ///
     /// ```
@@ -56,14 +53,15 @@ impl Context {
     /// assert!(res.is_op_div_by_zero());
     /// assert!(res.is_op_invalid());
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn with_signal_traps(mut self, traps: SignalsTraps) -> Self {
         self.signal_traps = traps;
         self
     }
 
-    #[must_use = doc::must_use_op!()]
+    /// Get [RoundingMode] of given `Context`.
+    #[must_use]
     #[inline]
     pub const fn rounding_mode(&self) -> RoundingMode {
         self.rounding_mode

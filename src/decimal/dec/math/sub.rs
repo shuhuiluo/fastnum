@@ -35,14 +35,6 @@ pub(crate) const fn sub<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D
 pub(crate) const fn sub_abs<const N: usize>(mut lhs: D<N>, mut rhs: D<N>, ctx: Context) -> D<N> {
     debug_assert!(!lhs.is_negative() && !rhs.is_negative());
 
-    if rhs.is_zero() {
-        return extend_scale_to(lhs.with_signals_from(&rhs), rhs.scale, ctx);
-    }
-
-    if lhs.is_zero() {
-        return extend_scale_to(rhs.with_signals_from(&lhs), lhs.scale, ctx).neg();
-    }
-
     if lhs.is_infinite() && rhs.is_infinite() {
         return D::NAN
             .with_signals_from(&lhs)
@@ -52,7 +44,15 @@ pub(crate) const fn sub_abs<const N: usize>(mut lhs: D<N>, mut rhs: D<N>, ctx: C
     } else if rhs.is_infinite() {
         return rhs.with_signals_from(&lhs);
     }
+    
+    if rhs.is_zero() {
+        return extend_scale_to(lhs.with_signals_from(&rhs), rhs.scale, ctx);
+    }
 
+    if lhs.is_zero() {
+        return extend_scale_to(rhs.with_signals_from(&lhs), lhs.scale, ctx).neg();
+    }
+    
     if lhs.scale == rhs.scale {
         sub_aligned(lhs, rhs)
     } else if lhs.scale < rhs.scale {

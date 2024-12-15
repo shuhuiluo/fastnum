@@ -12,7 +12,7 @@ financial, crypto and any other fixed-precision calculations.
 ## Overview
 
 This crate is inspired by [num_bigint](https://docs.rs/num-bigint/0.4.6/num_bigint/)
-and [bigdecimal](https://docs.rs/bigdecimal/latest/bigdecimal/) - an amazing crates that allows you to store big
+and [bigdecimal](https://docs.rs/bigdecimal/latest/bigdecimal/) – amazing crates that allow you to store big
 integers and arbitrary precision fixed-point decimal numbers almost any precision.
 
 [BigInt](https://docs.rs/num-bigint/latest/num_bigint/struct.BigInt.html) internally uses a [

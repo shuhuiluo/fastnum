@@ -21,6 +21,10 @@ pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D
 
     let mut flags = lhs.flags.mul(rhs.flags);
 
+    if lhs.is_infinite() || rhs.is_infinite() {
+        return D::INFINITY.with_flags(flags);
+    }
+
     if lhs.is_zero() {
         return extend_scale_to(
             lhs.with_flags(flags),

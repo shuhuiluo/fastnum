@@ -41,28 +41,43 @@ pub struct Decimal<const N: usize> {
 consts_impl!();
 
 impl<const N: usize> Decimal<N> {
-    /// Creates and initializes a decimal from string.
+    /// Creates and initializes decimal from string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{D256, dec256};
+    ///
+    /// assert_eq!(D256::from_str("-1.2345"), Ok(dec256!(-1.2345)));
+    /// ```
     #[track_caller]
     #[inline]
     pub const fn from_str(s: &str) -> Result<Self, ParseError> {
         parse::from_str(s)
     }
 
-    /// Creates and initializes an unsigned decimal from string.
+    /// Parse decimal from string.
     ///
     /// # Panics
     ///
-    /// This function will panic if `UnsignedDecimal<N>` cannot be constructed
-    /// from given string.
+    /// This function will panic if `Decimal<N>` can't be constructed
+    /// from a given string.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{UD256, udec256};
+    /// use fastnum::{D256, dec256};
     ///
-    /// assert_eq!(UD256::parse_str("1.2345"), udec256!(1.2345));
+    /// assert_eq!(D256::parse_str("1.2345"), dec256!(1.2345));
+    /// ```
+    ///
+    /// ```should_panic
+    /// use fastnum::{D256, dec256};
+    ///
+    /// let _ = D256::parse_str("Hello");
     /// ```
     #[track_caller]
+    #[must_use]
     #[inline]
     pub const fn parse_str(s: &str) -> Self {
         match Self::from_str(s) {
@@ -73,9 +88,9 @@ impl<const N: usize> Decimal<N> {
         }
     }
 
-    /// Returns the internal big integer, representing the significant
-    /// decimal digits of a `Decimal`, including significant trailing
-    /// zeros.
+    /// Returns the internal big integer, representing the
+    /// [_Coefficient_](crate#representation) of a given `Decimal`, including
+    /// significant trailing zeros.
     ///
     /// # Examples
     ///
@@ -88,12 +103,14 @@ impl<const N: usize> Decimal<N> {
     /// let b = dec256!(-1.0);
     /// assert_eq!(b.digits(), u256!(10));
     /// ```
+    #[must_use]
     #[inline]
     pub const fn digits(&self) -> UInt<N> {
         self.digits
     }
 
-    /// Returns the count of digits in the non-scaled integer representation
+    /// Return the count of digits in the non-scaled integer representation
+    #[must_use]
     #[inline]
     pub const fn digits_count(&self) -> usize {
         if self.is_zero() {
@@ -102,7 +119,7 @@ impl<const N: usize> Decimal<N> {
         self.digits.ilog10() as usize + 1
     }
 
-    /// Returns the scale of the `Decimal`, the total number of
+    /// Return the scale of the `Decimal`, the total number of
     /// digits to the right of the decimal point (including insignificant
     /// leading zeros).
     ///
@@ -123,6 +140,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(d.fractional_digits_count(), 0);
     /// assert_eq!(e.fractional_digits_count(), -9);
     /// ```
+    #[must_use]
     #[inline]
     pub const fn fractional_digits_count(&self) -> i16 {
         self.scale
@@ -139,6 +157,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(0.0).sign(),  Sign::Plus);
     /// assert_eq!(dec256!(+1.0).sign(),  Sign::Plus);
     /// ```
+    #[must_use]
     #[inline]
     pub const fn sign(&self) -> Sign {
         if self.flags.is_negative() {
@@ -148,45 +167,106 @@ impl<const N: usize> Decimal<N> {
         }
     }
 
+    /// Returns `true` if the given decimal number is the result of division by
+    /// zero and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{*, decimal::*};
+    ///
+    /// let res = with_context!(Context::default().with_signal_traps(SignalsTraps::empty()), {
+    ///     let a = dec256!(1.0);
+    ///     let b = dec256!(0);
+    ///     a / b
+    /// });
+    ///
+    /// assert!(res.is_op_div_by_zero());
+    /// ```
+    ///
+    /// More about [`OP_DIV_BY_ZERO`](Signal::OP_DIV_BY_ZERO) signal.
+    #[must_use]
     #[inline]
     pub const fn is_op_div_by_zero(&self) -> bool {
         self.flags.has_signal(Signal::OP_DIV_BY_ZERO)
     }
 
+    /// Return `true` if the argument has [Signal::OP_OVERFLOW] signal flag, and
+    /// `false` otherwise.
+    #[must_use]
+    #[inline]
+    pub const fn is_op_overflow(&self) -> bool {
+        self.flags.has_signal(Signal::OP_OVERFLOW)
+    }
+
+    /// Return `true` if the argument has [Signal::OP_UNDERFLOW] signal flag,
+    /// and `false` otherwise.
+    #[must_use]
+    #[inline]
+    pub const fn is_op_underflow(&self) -> bool {
+        self.flags.has_signal(Signal::OP_UNDERFLOW)
+    }
+
+    /// Return `true` if the argument has [Signal::OP_INVALID] signal flag, and
+    /// `false` otherwise.
+    #[must_use]
     #[inline]
     pub const fn is_op_invalid(&self) -> bool {
         self.flags.has_signal(Signal::OP_INVALID)
     }
 
+    /// Return `true` if the argument has [Signal::OP_SUBNORMAL] signal flag,
+    /// and `false` otherwise.
     #[must_use]
     #[inline]
     pub const fn is_op_subnormal(&self) -> bool {
         self.flags.has_signal(Signal::OP_SUBNORMAL)
     }
 
+    /// Return `true` if the argument has [Signal::OP_INEXACT] signal flag, and
+    /// `false` otherwise.
+    #[must_use]
     #[inline]
     pub const fn is_op_inexact(&self) -> bool {
         self.flags.has_signal(Signal::OP_INEXACT)
     }
 
+    /// Return `true` if the argument has [Signal::OP_ROUNDED] signal flag, and
+    /// `false` otherwise.
+    #[must_use]
     #[inline]
     pub const fn is_op_rounded(&self) -> bool {
         self.flags.has_signal(Signal::OP_ROUNDED)
     }
 
+    /// Return `true` if the argument has [Signal::OP_CLAMPED] signal flag, and
+    /// `false` otherwise.
+    #[must_use]
     #[inline]
     pub const fn is_op_clamped(&self) -> bool {
         self.flags.has_signal(Signal::OP_CLAMPED)
     }
 
+    /// Return `true` if the argument has no signal flags, and `false`
+    /// otherwise.
+    #[must_use]
     #[inline]
     pub const fn is_op_ok(&self) -> bool {
         !self.flags.has_signals()
     }
 
-    /// Returns the decimal category of the number. If only one property
-    /// is going to be tested, it is generally faster to use the specific
-    /// predicate instead.
+    /// Return the [`signaling block`](Signal) of given decimal.
+    #[must_use]
+    #[inline]
+    pub const fn op_signals(&self) -> Signal {
+        self.flags.signals()
+    }
+
+    /// Return the decimal category of the number.
+    /// If only one property is going to be tested, it is generally faster to
+    /// use the specific predicate instead.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use fastnum::{dec256, D256, decimal::Category};
@@ -197,6 +277,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(num.classify(), Category::Normal);
     /// assert_eq!(inf.classify(), Category::Infinite);
     /// ```
+    #[must_use]
     #[inline]
     pub const fn classify(&self) -> Category {
         if self.flags.is_nan() {
@@ -212,56 +293,70 @@ impl<const N: usize> Decimal<N> {
         }
     }
 
-    /// Returns `true` if the number is neither zero, infinite,
-    /// [subnormal], or NaN.
+    /// Return `true` if the number is neither [zero], [`±Infinity`],
+    /// [subnormal], or [`NaN`] and `false` otherwise.
+    ///
+    /// # Examples
     ///
     /// ```
-    /// let min = f64::MIN_POSITIVE; // 2.2250738585072014e-308f64
-    /// let max = f64::MAX;
-    /// let lower_than_min = 1.0e-308_f64;
-    /// let zero = 0.0f64;
+    /// use fastnum::{dec256, D256, decimal::Category};
     ///
-    /// assert!(min.is_normal());
-    /// assert!(max.is_normal());
+    /// let num = dec256!(12.4);
+    /// let subnormal = dec256!(1E-30000) / dec256!(1E2768);
+    /// let inf = D256::INFINITY;
+    /// let nan = D256::NAN;
+    /// let zero = D256::ZERO;
+    ///
+    /// assert!(num.is_normal());
     ///
     /// assert!(!zero.is_normal());
-    /// assert!(!f64::NAN.is_normal());
-    /// assert!(!f64::INFINITY.is_normal());
-    /// // Values between `0` and `min` are Subnormal.
-    /// assert!(!lower_than_min.is_normal());
+    /// assert!(!nan.is_normal());
+    /// assert!(!nan.is_normal());
+    /// assert!(!subnormal.is_normal());
     /// ```
-    /// [subnormal]: https://en.wikipedia.org/wiki/Denormal_number
-
+    ///
+    /// [subnormal]: crate#normal-numbers-subnormal-numbers-and-underflow
+    /// [zero]: crate#signed-zero
+    /// [`±Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_normal(&self) -> bool {
-        !self.is_subnormal()
+        matches!(self.classify(), Category::Normal)
     }
 
-    /// Returns `true` if the number is [subnormal].
+    /// Return `true` if the number is [subnormal] and `false` otherwise.
+    ///
+    /// # Examples
     ///
     /// ```
-    /// let min = f64::MIN_POSITIVE; // 2.2250738585072014e-308_f64
-    /// let max = f64::MAX;
-    /// let lower_than_min = 1.0e-308_f64;
-    /// let zero = 0.0_f64;
+    /// use fastnum::{dec256, D256, decimal::Category};
     ///
-    /// assert!(!min.is_subnormal());
-    /// assert!(!max.is_subnormal());
+    /// let num = dec256!(12.4);
+    /// let subnormal = dec256!(1E-30000) / dec256!(1E2768);
+    /// let inf = D256::INFINITY;
+    /// let nan = D256::NAN;
+    /// let zero = D256::ZERO;
     ///
+    /// assert!(subnormal.is_subnormal());
+    ///
+    /// assert!(!num.is_subnormal());
     /// assert!(!zero.is_subnormal());
-    /// assert!(!f64::NAN.is_subnormal());
-    /// assert!(!f64::INFINITY.is_subnormal());
-    /// // Values between `0` and `min` are Subnormal.
-    /// assert!(lower_than_min.is_subnormal());
+    /// assert!(!nan.is_subnormal());
+    /// assert!(!nan.is_subnormal());
     /// ```
-    /// [subnormal]: https://en.wikipedia.org/wiki/Denormal_number
+    ///
+    /// [subnormal]: crate#normal-numbers-subnormal-numbers-and-underflow
     #[must_use]
     #[inline]
     pub const fn is_subnormal(&self) -> bool {
         self.is_op_subnormal()
     }
 
-    /// Returns `true` if this number is neither infinite nor `NaN`.
+    /// Return `true` if this number is neither [`±Infinity`] nor [`NaN`] and
+    /// `false` otherwise.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use fastnum::{D256, dec256};
@@ -277,13 +372,19 @@ impl<const N: usize> Decimal<N> {
     /// assert!(!inf.is_finite());
     /// assert!(!neg_inf.is_finite());
     /// ```
+    ///
+    /// [`±Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_finite(&self) -> bool {
         !self.flags.is_special()
     }
 
-    /// Returns `true` if this value is positive infinity or negative infinity
-    /// and false otherwise.
+    /// Return `true` if this value is positive or negative [`Infinity`] and
+    /// `false` otherwise.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use fastnum::{D256, dec256};
@@ -293,18 +394,23 @@ impl<const N: usize> Decimal<N> {
     /// let neg_inf = D256::NEG_INFINITY;
     /// let nan = D256::NAN;
     ///
-    /// assert!(!d.is_infinite());
-    /// assert!(!nan.is_infinite());
-    ///
     /// assert!(inf.is_infinite());
     /// assert!(neg_inf.is_infinite());
+    ///
+    /// assert!(!d.is_infinite());
+    /// assert!(!nan.is_infinite());
     /// ```
+    ///
+    /// [`Infinity`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_infinite(&self) -> bool {
         self.flags.is_infinity()
     }
 
-    /// Returns `true` if this value is `NaN` and false otherwise.
+    /// Return `true` if this value is [`NaN`] and `false` otherwise.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use fastnum::{D256, dec256};
@@ -315,22 +421,78 @@ impl<const N: usize> Decimal<N> {
     /// assert!(nan.is_nan());
     /// assert!(!d.is_nan());
     /// ```
+    ///
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_nan(&self) -> bool {
         self.flags.is_nan()
     }
 
+    /// Return `true` if this value is positive, including [`+0.0`],
+    /// [`+Infinity`] and [`NaN`], and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{D256, dec256};
+    ///
+    /// let d = dec256!(7.0);
+    /// let neg_zero = dec256!(-0.0);
+    /// let neg_d = dec256!(-7.0);
+    ///
+    /// assert!(d.is_sign_positive());
+    /// assert!(D256::ZERO.is_sign_positive());
+    /// assert!(D256::INFINITY.is_sign_positive());
+    /// assert!(D256::NAN.is_sign_positive());
+    ///
+    /// assert!(!neg_d.is_sign_positive());
+    /// assert!(!neg_zero.is_sign_positive());
+    /// assert!(!D256::NEG_INFINITY.is_sign_positive());
+    /// ```
+    ///
+    /// [`+0.0`]: crate#signed-zero
+    /// [`+Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_sign_positive(&self) -> bool {
         !self.flags.is_negative()
     }
 
+    /// Return `true` if this value is negative, including [`-0.0`] and
+    /// [`-Infinity`] and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{D256, dec256};
+    ///
+    /// let d = dec256!(7.0);
+    /// let neg_zero = dec256!(-0.0);
+    /// let neg_d = dec256!(-7.0);
+    ///
+    /// assert!(neg_d.is_sign_negative());
+    /// assert!(neg_zero.is_sign_negative());
+    /// assert!(D256::NEG_INFINITY.is_sign_negative());
+    ///
+    /// assert!(!d.is_sign_negative());
+    /// assert!(!D256::ZERO.is_sign_negative());
+    /// assert!(!D256::INFINITY.is_sign_negative());
+    /// assert!(!D256::NAN.is_sign_negative());
+    /// ```
+    ///
+    /// [`-0.0`]: crate#signed-zero
+    /// [`-Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_sign_negative(&self) -> bool {
         self.flags.is_negative()
     }
 
-    /// Return if the referenced decimal is zero.
+    /// Return `true` if the referenced decimal is [`±0.0`] and `false`
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -349,12 +511,16 @@ impl<const N: usize> Decimal<N> {
     /// let d = dec256!(-0.1);
     /// assert!(!d.is_zero());
     /// ```
+    ///
+    /// [`±0.0`]: crate#signed-zero
+    #[must_use]
     #[inline]
     pub const fn is_zero(&self) -> bool {
-        self.digits.is_zero()
+        self.digits.is_zero() && !self.flags.is_special()
     }
 
-    /// Return if the referenced unsigned decimal is strictly [Self::ONE].
+    /// Return `true` if the referenced decimal is strictly `1` and `false`
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -367,57 +533,75 @@ impl<const N: usize> Decimal<N> {
     /// let b = udec256!(10e-1);
     /// assert!(!b.is_one());
     /// ```
+    #[must_use]
     #[inline]
     pub const fn is_one(&self) -> bool {
-        self.digits.is_one() && self.scale == 0 && self.flags.is_empty()
+        self.digits.is_one() && self.scale == 0 && !self.flags.is_special()
     }
 
-    /// Returns true if the decimal is positive and false if the decimal is zero
-    /// or negative.
+    /// Return `true` if this value is positive, including [`+0.0`],
+    /// [`+Infinity`] and [`NaN`], and `false` otherwise.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fastnum::dec256;
+    /// use fastnum::{D256, dec256};
     ///
-    /// // Positive
-    /// assert!(dec256!(+1.0).is_positive());
-    /// assert!(dec256!(1.0).is_positive());
-    /// assert!(dec256!(+0).is_positive());
-    /// assert!(dec256!(0).is_positive());
+    /// let d = dec256!(7.0);
+    /// let neg_zero = dec256!(-0.0);
+    /// let neg_d = dec256!(-7.0);
     ///
-    /// // Not positive
-    /// assert!(!dec256!(-0).is_positive());
-    /// assert!(!dec256!(-1.0).is_positive());
+    /// assert!(d.is_positive());
+    /// assert!(D256::ZERO.is_positive());
+    /// assert!(D256::INFINITY.is_positive());
+    /// assert!(D256::NAN.is_positive());
+    ///
+    /// assert!(!neg_d.is_positive());
+    /// assert!(!neg_zero.is_positive());
+    /// assert!(!D256::NEG_INFINITY.is_positive());
     /// ```
+    ///
+    /// [`+0.0`]: crate#signed-zero
+    /// [`+Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_positive(&self) -> bool {
         !self.flags.is_negative()
     }
 
-    /// Returns true if the decimal is strictly negative and false otherwise.
+    /// Return `true` if this value is negative, including [`-0.0`] and
+    /// [`-Infinity`] and `false` otherwise.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fastnum::dec256;
+    /// use fastnum::{D256, dec256};
     ///
-    /// // Negative
-    /// assert!(dec256!(-0).is_negative());
-    /// assert!(dec256!(-1.0).is_negative());
+    /// let d = dec256!(7.0);
+    /// let neg_zero = dec256!(-0.0);
+    /// let neg_d = dec256!(-7.0);
     ///
-    /// // Not negative
-    /// assert!(!dec256!(0).is_negative());
-    /// assert!(!dec256!(+0).is_negative());
-    /// assert!(!dec256!(1.0).is_negative());
-    /// assert!(!dec256!(+1.0).is_negative());
+    /// assert!(neg_d.is_negative());
+    /// assert!(neg_zero.is_negative());
+    /// assert!(D256::NEG_INFINITY.is_negative());
+    ///
+    /// assert!(!d.is_negative());
+    /// assert!(!D256::ZERO.is_negative());
+    /// assert!(!D256::INFINITY.is_negative());
+    /// assert!(!D256::NAN.is_negative());
     /// ```
+    ///
+    /// [`-0.0`]: crate#signed-zero
+    /// [`-Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn is_negative(&self) -> bool {
         self.flags.is_negative()
     }
 
-    /// Invert sign of given decimal.
+    /// Invert sign of the given decimal.
     ///
     /// # Examples
     ///
@@ -428,6 +612,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).neg(), dec256!(-1.0));
     /// assert_eq!(dec256!(-1.0).neg(), dec256!(1.0));
     /// ```
+    #[must_use]
     #[inline]
     pub const fn neg(mut self) -> Self {
         self.flags = self.flags.neg();
@@ -444,6 +629,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).abs(), dec256!(1.0));
     /// assert_eq!(dec256!(-1.0).abs(), dec256!(1.0));
     /// ```
+    #[must_use]
     #[inline]
     pub const fn abs(mut self) -> Self {
         self.flags = self.flags.abs();
@@ -461,26 +647,40 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).unsigned_abs(), udec256!(1.0));
     /// assert_eq!(dec256!(-1.0).unsigned_abs(), udec256!(1.0));
     /// ```
+    #[must_use]
     #[inline]
     pub const fn unsigned_abs(self) -> UnsignedDecimal<N> {
         UnsignedDecimal::new(self.abs())
     }
 
-    /// Initialize decimal with `1 * 10`<sup>exp</sup> value.
+    /// _Deprecated_, use [`quantum`](Self::quantum) instead.
+    #[must_use]
+    #[deprecated(since = "0.1.2", note = "Use `quantum` instead")]
+    #[inline]
+    pub const fn from_scale(exp: i16) -> Self {
+        Self::quantum(exp as i32, Context::default())
+    }
+
+    /// The quantum of a finite number is given by: 1 × 10<sup>exp</sup>.
+    /// This is the value of a unit in the least significant position of the
+    /// coefficient of a finite number.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{UD256, udec256};
+    /// use fastnum::{D256, dec256, decimal::Context};
     ///
-    /// assert_eq!(UD256::from_scale(0), udec256!(1));
-    /// assert_eq!(UD256::from_scale(-0), udec256!(1));
-    /// assert_eq!(UD256::from_scale(-3), udec256!(0.001));
-    /// assert_eq!(UD256::from_scale(3), udec256!(1000));
+    /// let ctx = Context::default();
+    ///
+    /// assert_eq!(D256::quantum(0, ctx), dec256!(1));
+    /// assert_eq!(D256::quantum(-0, ctx), dec256!(1));
+    /// assert_eq!(D256::quantum(-3, ctx), dec256!(0.001));
+    /// assert_eq!(D256::quantum(3, ctx), dec256!(1000));
     /// ```
+    #[must_use]
     #[inline]
-    pub const fn from_scale(exp: i16) -> Self {
-        Self::new(UInt::ONE, -exp, Flags::default())
+    pub const fn quantum(exp: i32, ctx: Context) -> Self {
+        scale::quantum(exp).unwrap_signals(ctx)
     }
 
     /// Returns a number that represents the sign of `self`.
@@ -501,6 +701,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// assert!(D256::NAN.signum().is_nan());
     /// ```
+    #[must_use]
     #[inline]
     pub const fn signum(&self) -> Self {
         if self.is_nan() {
@@ -536,7 +737,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Tests for `self` and `other` values to be equal, and is used by `==`
     /// operator.
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn eq(&self, other: &Self) -> bool {
         cmp::eq(self, other)
@@ -544,7 +745,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Tests for `self` and `other` values to be equal, and is used by `==`
     /// operator.
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn ne(&self, other: &Self) -> bool {
         cmp::ne(self, other)
@@ -563,7 +764,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1).max(dec256!(2)), dec256!(2));
     /// assert_eq!(dec256!(2).max(dec256!(2)), dec256!(2));
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn max(self, other: Self) -> Self {
         match self.cmp(&other) {
@@ -585,7 +786,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1).min(dec256!(2)), dec256!(1));
     /// assert_eq!(dec256!(2).min(dec256!(2)), dec256!(2));
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn min(self, other: Self) -> Self {
         match self.cmp(&other) {
@@ -612,7 +813,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(0).clamp(dec256!(-2), dec256!(1)), dec256!(0));
     /// assert_eq!(dec256!(2).clamp(dec256!(-2), dec256!(1)), dec256!(1));
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn clamp(self, min: Self, max: Self) -> Self {
         assert!(min.le(&max));
@@ -637,7 +838,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).lt(&dec256!(2.0)), true);
     /// assert_eq!(dec256!(2.0).lt(&dec256!(1.0)), false);
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn lt(&self, other: &Self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
@@ -659,7 +860,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).le(&dec256!(2.0)), true);
     /// assert_eq!(dec256!(2.0).le(&dec256!(1.0)), false);
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn le(&self, other: &Self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
@@ -681,7 +882,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).gt(&dec256!(2.0)), false);
     /// assert_eq!(dec256!(2.0).gt(&dec256!(1.0)), true);
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn gt(&self, other: &Self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
@@ -703,7 +904,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.0).ge(&dec256!(2.0)), false);
     /// assert_eq!(dec256!(2.0).ge(&dec256!(1.0)), true);
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn ge(&self, other: &Self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
@@ -728,7 +929,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(10).cmp(&dec256!(5)), Ordering::Greater);
     /// assert_eq!(dec256!(5).cmp(&dec256!(5)), Ordering::Equal);
     /// ```
-    #[must_use = doc::must_use_op!()]
+    #[must_use]
     #[inline]
     pub const fn cmp(&self, other: &Self) -> Ordering {
         cmp::cmp(self, other)
@@ -884,16 +1085,14 @@ impl<const N: usize> Decimal<N> {
         math::rem::rem(self, rhs, ctx).unwrap_signals(ctx)
     }
 
-    /// Return given decimal number rounded to 'digits' precision after the
-    /// decimal point, using given [RoundingMode] unwrapped with default
-    /// rounding and overflow policy.
+    /// Returns the given decimal number rounded to `digits` precision after the
+    /// decimal point, using given [RoundingMode].
     ///
     /// # Panics:
     ///
     /// This method will panic if round operation (up-scale or down-scale)
-    /// performs with some emergency flags and specified
-    /// [crate::decimal::Context] enjoin to panic when the
-    /// corresponding flag occurs.
+    /// performs with some signaling flags and specified
+    /// [Context] enjoin to panic when the corresponding flag occurs.
     ///
     /// # Examples
     ///
@@ -912,9 +1111,14 @@ impl<const N: usize> Decimal<N> {
         self.with_scale(digits, Context::default().with_rounding_mode(rounding_mode))
     }
 
-    /// Returns the result of rounding given decimal number
-    /// to 'digits' precision after the decimal point using given
-    /// [RoundingMode].
+    /// Returns the given decimal number _re-scaled_ to `digits` precision after
+    /// the decimal point, using given [Context].
+    ///
+    /// # Panics:
+    ///
+    /// This method will panic if a _re-scale_ operation performs with some
+    /// signaling flags and specified [Context] enjoin to panic when the
+    /// corresponding flag occurs.
     ///
     /// # Examples
     ///
@@ -947,7 +1151,14 @@ impl<const N: usize> Decimal<N> {
         // }
     }
 
-    #[must_use = doc::must_use_op!()]
+    /// Returns
+    /// - `None` if the given decimal value is [`NaN`] or [`±Infinity`], or at
+    ///   least one signaling flag is set.
+    /// - `Some(Self)` otherwise.
+    ///
+    /// [`±Infinity`]: crate#special-values
+    /// [`NaN`]: crate#special-values
+    #[must_use]
     #[inline]
     pub const fn ok(self) -> Option<Self> {
         if self.flags.is_special() || self.flags.has_signals() {

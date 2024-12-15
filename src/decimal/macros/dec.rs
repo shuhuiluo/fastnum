@@ -32,16 +32,13 @@ macro_rules! macro_impl {
         /// // The below example will fail to compile, as the function will panic at compile time:
         #[doc = concat!("use fastnum::{", stringify!($name), ", ", stringify!($DEC), "}")]
         ///
-        /// // Gives a compile error of "error[E0080]: evaluation of constant value failed... the evaluated program panicked at 'attempt to parse decimal from string containing invalid digit'",
+        /// // Gives a compile error of "error[E0080]: evaluation of constant value failed... 
+        /// // the evaluated program panicked at 'attempt to parse decimal from string containing invalid digit'",
         #[doc = concat!("const N: ", stringify!($DEC), " = ", stringify!($name), "!(A1.23456789);")]
         /// ```
         ///
-        ///
-        /// This protect from
         /// This allows you to perform all the necessary checks such as potentialy overflow or calculation accuracy loss and others at the compile time.
-        /// Protect from potential errors in runtime
-        /// Avoid 
-        ///
+        /// Protect from unexpected errors in runtime.
         ///
         macro_rules! $name {
             ($lit: literal) => {{

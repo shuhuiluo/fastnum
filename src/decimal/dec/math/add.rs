@@ -34,14 +34,6 @@ pub(crate) const fn add<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D
 pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D<N> {
     debug_assert!(!lhs.is_negative() && !rhs.is_negative());
 
-    if rhs.is_zero() {
-        return extend_scale_to(lhs, rhs.scale, ctx).with_signals_from(&rhs);
-    }
-
-    if lhs.is_zero() {
-        return extend_scale_to(rhs, lhs.scale, ctx).with_signals_from(&lhs);
-    }
-
     if lhs.is_infinite() {
         return lhs.with_signals_from(&rhs);
     }
@@ -49,7 +41,15 @@ pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) 
     if rhs.is_infinite() {
         return rhs.with_signals_from(&lhs);
     }
+    
+    if rhs.is_zero() {
+        return extend_scale_to(lhs, rhs.scale, ctx).with_signals_from(&rhs);
+    }
 
+    if lhs.is_zero() {
+        return extend_scale_to(rhs, lhs.scale, ctx).with_signals_from(&lhs);
+    }
+    
     if lhs.scale == rhs.scale {
         add_aligned(lhs, rhs, ctx)
     } else if lhs.scale < rhs.scale {
