@@ -1,43 +1,64 @@
-// use sqlx::decode::Decode;
-// use sqlx::encode::{Encode, IsNull};
-// use sqlx::error::BoxDynError;
-// use sqlx::postgres::types::Oid;
-// use sqlx::postgres::{
-//     PgArgumentBuffer, PgHasArrayType, PgTypeInfo, PgValueFormat, PgValueRef, Postgres,
-// };
-// use sqlx::types::numeric::{PgNumeric, PgNumericSign};
-// use sqlx::types::Type;
-// 
-// use crate::decimal::extras::utils::db::postgres;
-// use crate::decimal::macros::decimal_err;
-// use crate::decimal::unsigned::UnsignedDecimal;
-// use crate::decimal::ParseError;
-// use crate::{UD128, UD256, UD512};
-// 
-// impl<UINT> Type<Postgres> for UnsignedDecimal<UINT> {
-//     fn type_info() -> PgTypeInfo {
-//         PgTypeInfo::with_oid(Oid(1700))
-//     }
-// }
-// 
-// impl<UINT> PgHasArrayType for UnsignedDecimal<UINT> {
-//     fn array_type_info() -> PgTypeInfo {
-//         PgTypeInfo::with_oid(Oid(1231))
-//     }
-// }
-// 
-// macro_rules! macro_impl {
-//     ($UDEC: ident, $bits: literal, $module: ident) => {
-//         impl TryFrom<PgNumeric> for $UDEC {
-//             type Error = BoxDynError;
-// 
-//             fn try_from(numeric: PgNumeric) -> Result<Self, BoxDynError> {
-//                 Self::try_from(&numeric)
-//             }
-//         }
-//     };
-// }
-// 
-// macro_impl!(UD128, 128, u128);
-// macro_impl!(UD256, 256, u256);
-// macro_impl!(UD512, 512, u512);
+use sqlx::{
+    decode::Decode,
+    encode::{Encode, IsNull},
+    error::BoxDynError,
+    postgres::{PgArgumentBuffer, PgHasArrayType, PgTypeInfo, PgValueFormat, PgValueRef, Postgres},
+    types::Type,
+};
+
+use crate::decimal::{
+    errors::parse::pretty_error_msg,
+    extras::{
+        sqlx::pg::{decode, encode, NUMERIC, NUMERIC_ARRAY},
+        utils::db::postgres::NBase,
+    },
+    Decimal, ParseError, UnsignedDecimal,
+};
+
+type D<const N: usize> = Decimal<N>;
+type UD<const N: usize> = UnsignedDecimal<N>;
+
+impl<const N: usize> Type<Postgres> for UD<N> {
+    fn type_info() -> PgTypeInfo {
+        NUMERIC
+    }
+}
+
+impl<const N: usize> PgHasArrayType for UD<N> {
+    fn array_type_info() -> PgTypeInfo {
+        NUMERIC_ARRAY
+    }
+}
+
+impl<const N: usize> Encode<'_, Postgres> for UD<N> {
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> Result<IsNull, BoxDynError> {
+        let nbase: NBase = self
+            .0
+            .try_into()
+            .map_err(|e| pretty_error_msg(UD::<N>::type_name().as_str(), e))?;
+        encode(nbase, buf)?;
+
+        Ok(IsNull::No)
+    }
+}
+
+impl<const N: usize> Decode<'_, Postgres> for UD<N> {
+    fn decode(value: PgValueRef<'_>) -> Result<Self, BoxDynError> {
+        match value.format() {
+            PgValueFormat::Binary => {
+                let dec: D<N> = decode(value.as_bytes()?)?
+                    .try_into()
+                    .map_err(|e| pretty_error_msg(UD::<N>::type_name().as_str(), e))?;
+
+                if dec.is_negative() {
+                    return Err(
+                        pretty_error_msg(Self::type_name().as_str(), ParseError::Signed).into(),
+                    );
+                }
+
+                Ok(UD::new(dec))
+            }
+            PgValueFormat::Text => Ok(value.as_str()?.parse::<UD<N>>()?),
+        }
+    }
+}

@@ -1,7 +1,7 @@
 # fastnum
 
-Fixed-size signed and unsigned decimal numbers implemented in pure Rust. Suitable for
-financial, crypto and any other fixed-precision calculations.
+Fixed-size signed and unsigned decimal numbers, implemented in pure Rust.
+Suitable for financial, crypto and any other fixed-precision calculations.
 
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 
@@ -37,16 +37,17 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
   its [own macro helper](#const-evaluated-in-compile-time-macro-helpers) which can be used for
   definitions of constants or variables whose value is known in advance. This allows you to perform all the necessary
   checks at the compile time.
-- **Short dependencies list by default**: `fastnum` does not depend on many other crates by default. Support for crates
-  such as [`rand`](https://docs.rs/rand/latest/rand/) and [`serde`](https://docs.rs/serde/latest/serde/) can be enabled
-  with crate [features](#features).
+- **Short dependencies list by default**: `fastnum` depends only upon `bnum` by default.
+  All other dependencies are optional.
+  Support for crates such as [`rand`](https://docs.rs/rand/latest/rand/) and [
+  `serde`](https://docs.rs/serde/latest/serde/) can be enabled with crate [features](#features).
 - **`no-std` compatible**: `fastnum` can be used in `no_std` environments.
 - **`const` evaluation**: nearly all methods defined on `fastnum` integers and decimals are `const`, which allows
   complex compile-time calculations and checks.
 
 ## Installation
 
-To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
+To install and use `fastnum`, add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
 fastnum = "0.1"
@@ -135,7 +136,7 @@ values (infinities and other values which are not finite numbers).
 
 #### Finite numbers
 
-The numerical value of a finite number is given by: (–1)<sup>sign</sup> × coefficient × 10<sup>exponent</sup>.
+The numerical value of a finite number is given by: _(–1)<sup>sign</sup> × coefficient × 10<sup>exponent</sup>_.
 
 - **_sign_** – a value which must be either `0` or `1`, where `1` indicates that the number is negative or is the
   negative zero and `0` indicates that the number is zero or positive.
@@ -223,7 +224,8 @@ More about [Signed Zero](https://en.wikipedia.org/wiki/Signed_zero).
 [Subnormal]: #normal-numbers-subnormal-numbers-and-underflow
 
 In any context where exponents are bounded most finite numbers are normal.
-Non-zero finite numbers whose adjusted exponents are greater than or equal to _E<sub>min</sub>_ are called normal numbers;
+Non-zero finite numbers whose adjusted exponents are greater than or equal to _E<sub>min</sub>_ are called normal
+numbers;
 those non-zero numbers whose adjusted exponents are less than _E<sub>min</sub>_ are called subnormal numbers.
 Like other numbers, subnormal numbers are accepted as operands for all operations, and may result from any operation.
 If a result is subnormal, before any rounding, then the Subnormal condition is raised.
@@ -235,7 +237,7 @@ If, during this rounding, the result becomes inexact, then the Underflow conditi
 A subnormal result does not necessarily raise Underflow, therefore, but is always indicated by the Subnormal condition (
 even if, after rounding, its value is `0` or ten to the power of _E<sub>min</sub>_).
 
-When a number underflows to zero during a calculation, its exponent will be _E<sub>tiny</sub>_. 
+When a number underflows to zero during a calculation, its exponent will be _E<sub>tiny</sub>_.
 The maximum value of the exponent is unaffected.
 
 Note that the minimum value of the exponent for subnormal numbers is the same as the minimum value of exponent which can
@@ -496,7 +498,7 @@ assert!(res.is_op_rounded());
 ##### Subnormal
 
 This occurs and signals subnormal whenever the result of a conversion or operation is subnormal (that is, its adjusted
-exponent is less than E<sub>min</sub>, before any rounding).
+exponent is less than _E<sub>min</sub>_, before any rounding).
 The result in all cases is unchanged. The subnormal signal may be tested (or trapped) to determine if a given or
 operation (or sequence of operations) yielded a subnormal result.
 
@@ -617,9 +619,6 @@ assert_eq!(n, udec256!(1.56));
 let n = udec256!(1.30) * udec256!(1.20);
 assert_eq!(n, udec256!(1.5600));
 ```
-
-To preserve significance, the significant digits do not truncate trailing zeros. _Decimals also include special values
-such as `Infinity`, `-Infinity`, and `NaN`_. The standard also differentiates `-0` from `+0`.
 
 More about decimal
 arithmetic: [IBM’s General Decimal Arithmetic Specification](https://speleotrove.com/decimal/decarith.html).
@@ -799,7 +798,7 @@ The context is defined by the following parameters:
 - `rounding_mode`: a named value which indicates the algorithm to be used when rounding is necessary, see more
   about [rounding mode](#rounding-mode);
 - `signal_traps`: For each of the signals, the corresponding trap-enabler indicates which action is to be taken when the
-  signal occurs (see [IEEE 754] §7). 
+  signal occurs (see [IEEE 754] §7).
   See more about [Signals](#signaling-flags-and-trap-enablers).
 
 ### Default context
@@ -815,17 +814,54 @@ The context is defined by the following parameters:
 |     `SUBNORMAL`     |              |
 |     `UNDERFLOW`     |              |
 
-## Normalization
+## Normalization (reduce)
 
-|               |                          Unsigned                           |                       Signed                        |
-|---------------|:-----------------------------------------------------------:|:---------------------------------------------------:|
-| normalization | [`normalized`](crate::decimal::UnsignedDecimal::normalized) | [`normalized`](crate::decimal::Decimal::normalized) |
+_Normalize_ (or _reduce_) takes one operand and reduces a number to its shortest (_coefficient_) form.
+If the final result is finite, it is reduced to its simplest form,
+with all trailing zeros removed and its sign preserved.
+That is,
+while the coefficient is non-zero and a multiple of ten the coefficient is divided by ten
+and the exponent is incremented by `1`.
+Otherwise (the coefficient is zero) the exponent is set to `0`.
+In all cases the sign is unchanged.
 
-## Rescaling
+### Examples
 
-|            |                          Unsigned                           |                       Signed                        |
-|------------|:-----------------------------------------------------------:|:---------------------------------------------------:|
-| with_scale | [`with_scale`](crate::decimal::UnsignedDecimal::with_scale) | [`with_scale`](crate::decimal::Decimal::with_scale) |
+```
+use fastnum::{*, decimal::*};
+
+let a = dec256!(-1234500);
+assert_eq!(a.digits(), u256!(1234500));
+assert_eq!(a.fractional_digits_count(), 0);
+
+let b = a.normalized(Context::default());
+assert_eq!(b.digits(), u256!(12345));
+assert_eq!(b.fractional_digits_count(), -2);
+```
+
+## Rescaling (quantize)
+
+If given decimal number is a special value, then the general rules apply,
+and an [`Invalid operation`](#invalid-operation) condition is raised and the result is `NaN`.
+Otherwise, `with_scale` quantize the decimal number specified to the power of ten of the quantum.
+The coefficient:
+
+- may be rounded using the Context rounding setting (if the exponent is being increased),
+- multiplied by a positive power of ten (if the exponent is being decreased),
+- or is unchanged (if the exponent is already equal to the given scale factor).
+
+If the length of the coefficient after the quantize operation overflows max value, then an [`Clamped`](#clamped)
+condition is raised and the result will be saturated.
+
+```
+use fastnum::{*, decimal::*};
+
+let n = dec256!(129.41675);
+
+assert_eq!(n.with_scale(2, Context::default().with_rounding_mode(RoundingMode::Up)),  dec256!(129.42));
+assert_eq!(n.with_scale(-1, Context::default().with_rounding_mode(RoundingMode::Down)),  dec256!(120));
+assert_eq!(n.with_scale(4, Context::default().with_rounding_mode(RoundingMode::HalfEven)),  dec256!(129.4168));
+```
 
 ## Rounding
 
@@ -1095,7 +1131,7 @@ let my_struct: MyStruct = serde_json::from_str(&json_src).unwrap();
 | `sqlx_mysql`      |         | Enables serialization and deserialization of `fastnum` decimals for [`sqlx`](https://docs.rs/sqlx/latest/sqlx/) MySQL backend.                                                                      |
 | `utoipa`          |         | Enables support of `fastnum` decimals for autogenerated OpenAPI documentation via the [`utoipa`](https://docs.rs/utoipa/latest/utoipa/) crate.                                                      |
 
-### Compile-time configuration
+## Compile-time configuration
 
 You can set a few default parameters at _compile-time_ via environment variables:
 

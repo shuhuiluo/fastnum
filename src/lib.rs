@@ -5,8 +5,6 @@
 extern crate alloc;
 extern crate core;
 
-pub extern crate const_str;
-
 pub mod decimal;
 pub mod int;
 

@@ -10,11 +10,10 @@ macro_rules! test_impl {
         paste::paste! { test_impl!($bits, [<U $bits>], [<D $bits>], [<UD $bits>]); }
     };
     ($bits: literal, $UINT: ident, $DEC: ident, $UDEC: ident) => {
-        assert_eq_size!($UINT, [u8; { $bits / 8 }]);
-
-        // TODO: 4 bytes(u32) unused because of alignment. We must use it.
-        assert_eq_size!($DEC, [u8; { $bits / 8 } + 8]);
-        assert_eq_size!($UDEC, [u8; { $bits / 8 } + 8]);
+        assert_eq_size!($UINT, [u64; { $bits / 64 }]);
+        
+        assert_eq_size!($DEC, [u64; { $bits / 64 } + 1]);
+        assert_eq_size!($UDEC, [u64; { $bits / 64 } + 1]);
     };
 }
 

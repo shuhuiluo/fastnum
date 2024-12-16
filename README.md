@@ -77,9 +77,10 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 - **Const-evaluated in compile time macro-helpers**: any type has its own macro helper which can be used for
   definitions of constants or variables whose value is known in advance. This allows you to perform all the necessary
   checks at the compile time.
-- **Short dependencies list by default**: `fastnum` does not depend on many other crates by default. Support for crates
-  such as [`rand`](https://docs.rs/rand/latest/rand/) and [`serde`](https://docs.rs/serde/latest/serde/) can be enabled
-  with crate [features](#features).
+- **Short dependencies list by default**: `fastnum` depends only upon `bnum` by default.
+  All other dependencies are optional.
+  Support for crates such as [`rand`](https://docs.rs/rand/latest/rand/) and [
+  `serde`](https://docs.rs/serde/latest/serde/) can be enabled with crate [features](#features).
 - **`no-std` compatible**: `fastnum` can be used in `no_std` environments.
 - **`const` evaluation**: nearly all methods defined on `fastnum` integers and decimals are `const`, which allows
   complex compile-time calculations and checks.
@@ -215,7 +216,7 @@ You can set a few default parameters at _compile-time_ via environment variables
 There are several areas for further work:
 
 - Micro-optimization of big integer types using vector extensions (SSE2, SSE4.2, AVX2, AVX512F, etc.).
-- Const trait implementations once they are stabilized in Rust. (https://github.com/rust-lang/rust/issues/67792)
+- Const trait implementations once they're stabilized in Rust. (https://github.com/rust-lang/rust/issues/67792)
 - Integration with a large number of crates (ORM's, auto-docs crates, etc.).
 
 ## Licensing

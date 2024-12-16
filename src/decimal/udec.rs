@@ -437,7 +437,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// use fastnum::{UD256, udec256, decimal::Context};
     ///
     /// let ctx = Context::default();
-    /// 
+    ///
     /// assert_eq!(UD256::quantum(0, ctx), udec256!(1));
     /// assert_eq!(UD256::quantum(-0, ctx), udec256!(1));
     /// assert_eq!(UD256::quantum(-3, ctx), udec256!(0.001));
@@ -449,8 +449,8 @@ impl<const N: usize> UnsignedDecimal<N> {
         Self::new(Decimal::<N>::quantum(exp, ctx))
     }
 
-    /// __Normalize__ this unsigned decimal moving all significant trailing
-    /// zeros into the exponent.
+    /// Reduces a decimal number to its shortest (coefficient)
+    /// form shifting all significant trailing zeros into the exponent.
     ///
     /// # Examples
     ///

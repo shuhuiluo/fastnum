@@ -36,6 +36,10 @@ pub struct Decimal<const N: usize> {
 
     /// Special values and signaling flags.
     flags: Flags,
+
+    // TODO: 4 bytes(u32) unused because of alignment. We must use it.
+    #[doc(hidden)]
+    _padding: u32,
 }
 
 consts_impl!();
@@ -713,8 +717,8 @@ impl<const N: usize> Decimal<N> {
         }
     }
 
-    /// __Normalize__ this decimal shift all significant trailing zeros into
-    /// the exponent.
+    /// Reduces a decimal number to its shortest (coefficient)
+    /// form shifting all significant trailing zeros into the exponent.
     ///
     /// # Examples
     ///
@@ -1135,20 +1139,6 @@ impl<const N: usize> Decimal<N> {
     #[inline]
     pub const fn with_scale(self, new_scale: i16, ctx: Context) -> Self {
         scale::with_scale(self, new_scale, ctx).unwrap_signals(ctx)
-        // match (rounding_mode, self.sign) {
-        //     (RoundingMode::Floor, Sign::Minus) => signify_result(
-        //         round::with_scale(self.value, new_scale, RoundingMode::Up),
-        //         self.sign,
-        //     ),
-        //     (RoundingMode::Ceiling, Sign::Minus) => signify_result(
-        //         round::with_scale(self.value, new_scale, RoundingMode::Down),
-        //         self.sign,
-        //     ),
-        //     (_, _) => signify_result(
-        //         round::with_scale(self.value, new_scale, rounding_mode),
-        //         self.sign,
-        //     ),
-        // }
     }
 
     /// Returns
@@ -1218,6 +1208,7 @@ impl<const N: usize> Decimal<N> {
             digits,
             scale,
             flags,
+            _padding: 0,
         }
     }
 
