@@ -8,7 +8,9 @@
 #[macro_use]
 mod macros;
 
+#[cfg(debug_assertions)]
 mod assertions;
+
 mod doc;
 mod error;
 #[allow(clippy::module_inception)]
