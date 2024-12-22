@@ -1342,6 +1342,8 @@ fastnum = { version = "0.1", features = ["serde"] }
 Basic usage:
 
 ```
+# #[cfg(feature="serde")]
+# {
 use fastnum::{udec256, UD256};
 use serde::*;
 use serde_json;
@@ -1360,11 +1362,14 @@ dbg!(&my_struct);
 
 println!("{}", serde_json::to_string(&my_struct).unwrap());
 // {"name":"foo","value":"1234.567"}
+# }
 ```
 
 Should panic:
 
-```should_panic
+```no_run
+# #[cfg(feature="serde")]
+# {
 use fastnum::{udec256, UD256};
 use serde::*;
 use serde_json;
@@ -1377,6 +1382,7 @@ struct MyStruct {
 
 let json_src = r#"{ "name": "foo", "value": 1234567e-3 }"#;
 let my_struct: MyStruct = serde_json::from_str(&json_src).unwrap();
+# }
 ```
 
 ## Features

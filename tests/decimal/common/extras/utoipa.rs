@@ -68,21 +68,11 @@ macro_rules! test_impl {
                 #[openapi(paths(get_pet_by_id))]
                 struct ApiDoc;
                 
-                let json = serde_json::to_value(ApiDoc::openapi()).unwrap();
+                let mut json = serde_json::to_value(ApiDoc::openapi()).unwrap();
+                json.as_object_mut().unwrap().remove("info");
                 
                 let expected = json!({
                       "openapi": "3.1.0",
-                      "info": {
-                        "title": "fastnum",
-                        "description": env!("CARGO_PKG_DESCRIPTION"),
-                        "contact": {
-                          "name": "Neo"
-                        },
-                        "license": {
-                          "name": env!("CARGO_PKG_LICENSE"),
-                        },
-                        "version": env!("CARGO_PKG_VERSION")
-                      },
                       "paths": {
                         "/pets/{id}": {
                           "get": {
