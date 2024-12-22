@@ -1,7 +1,7 @@
 macro_rules! macro_impl {
     ($INT: ident, $bits: literal, $sign: ident, $name: ident) => {
         #[macro_export]
-        #[doc = concat!("A macro to construct ", $bits, "-bit [crate::", stringify!($INT), "] ", stringify!($sign), " integer from literals.")]
+        #[doc = concat!("A macro to construct ", $bits, "-bit [`", stringify!($INT), "`](crate::", stringify!($INT), ") ", stringify!($sign), " integer from literals.")]
         ///
         ///
         /// # Examples:

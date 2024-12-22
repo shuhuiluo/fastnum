@@ -751,6 +751,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// assert_eq!(c, udec256!(3));
     /// ```
     ///
+    /// Panics if overflowed:
+    ///
     /// ```should_panic
     /// use fastnum::*;
     ///
@@ -759,6 +761,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// let c = a + b;
     /// ```
+    /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -784,6 +787,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// assert_eq!(c, udec256!(3));
     /// ```
     ///
+    /// Panics if overflowed:
+    ///
     /// ```should_panic
     /// use fastnum::*;
     ///
@@ -792,6 +797,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// let c = a - b;
     /// ```
+    /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -817,7 +823,9 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a * b;
     /// assert_eq!(c, udec256!(10));
     /// ```
-    ///
+    /// 
+    /// Panics if overflowed:
+    /// 
     /// ```should_panic
     /// use fastnum::*;
     ///
@@ -826,6 +834,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// let c = a * b;
     /// ```
+    ///
+    /// See more about [multiplication](crate#multiplication).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -851,6 +861,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// assert_eq!(c, udec256!(2.5));
     /// ```
     ///
+    /// Panics if divided by zero:
+    ///
     /// ```should_panic
     /// use fastnum::*;
     ///
@@ -859,6 +871,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// let c = a / b;
     /// ```
+    ///
+    /// See more about [division](crate#division).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]

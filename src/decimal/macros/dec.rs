@@ -1,7 +1,7 @@
 macro_rules! macro_impl {
     ($d:tt, $DEC: ident, $bits: literal, $sign: ident, $name: ident) => {
         #[macro_export]
-        #[doc = concat!("A macro to construct ", $bits, "-bit ", stringify!($sign), " [`", stringify!($DEC), "`]([crate::", stringify!($DEC), ") decimal from literals in compile time.")]
+        #[doc = concat!("A macro to construct ", $bits, "-bit ", stringify!($sign), " [`", stringify!($DEC), "`](crate::", stringify!($DEC), ") decimal from literals in compile time.")]
         ///
         /// Const-evaluated in compile time macro-helper can be used for definitions of constants or variables whose value is known in compile time.
         ///

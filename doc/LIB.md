@@ -770,6 +770,8 @@ assert_eq!(dec256!(-1.3).unsigned_abs(), udec256!(1.3));
 
 #### Addition and subtraction
 
+[Addition and subtraction]: #addition-and-subtraction
+
 [`add(self, other)`](crate::decimal::Decimal::add) | [`sub(self, other)`](crate::decimal::Decimal::sub)
 
 If either operand is a [special value] then the [general rules] apply.
@@ -804,6 +806,8 @@ assert_eq!(dec256!(1.3) - dec256!(2.07), dec256!(-0.77));
 ```
 
 #### Division
+
+[Division]: #division
 
 [`div(dividend, divisor)`](crate::decimal::Decimal::div)
 
@@ -865,15 +869,18 @@ exponent will be set appropriately.
 
 #### Multiplication
 
+[Multiplication]: #multiplication
+
 [`mul(self, other)`](crate::decimal::Decimal::mul)
 
 If either operand is a [special value] then the [general rules] apply.
 Otherwise, the operands are multiplied together (_long multiplication_), resulting in a number which may be as long as
 the sum of the lengths of the two operands, as follows:
 
-The coefficient of the result, before rounding, is computed by multiplying together the coefficients of the operands.
-The exponent of the result, before rounding, is the sum of the exponents of the two operands.
-The sign of the result is the exclusive or of the signs of the operands.
+1. The coefficient of the result, before rounding, is computed by multiplying together the coefficients of the operands.
+2. The exponent of the result, before rounding, is the sum of the exponents of the two operands.
+3. The sign of the result is the exclusive or of the signs of the operands.
+
 The result is then rounded to precision digits if necessary, counting from the most significant digit of the result.
 
 ##### Examples:
@@ -1111,7 +1118,7 @@ Also, unlike other operations, `quantize` will never raise [`Underflow`], even i
 
 Rounding is applied when a result coefficient has more significant digits than the value of precision.
 In this case the result coefficient is shortened to precision digits and may then be incremented by one (which may
-require a further shortening), depending on the rounding algorithm selected and the remaining digits of the original
+require further shortening), depending on the rounding algorithm selected and the remaining digits of the original
 coefficient.
 The exponent is adjusted to compensate for any shortening.
 

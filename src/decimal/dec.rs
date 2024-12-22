@@ -999,7 +999,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(c, dec256!(3));
     /// ```
     ///
-    /// Panics if overflow:
+    /// Panics if overflowed:
     ///
     /// ```should_panic
     /// use fastnum::*;
@@ -1009,6 +1009,8 @@ impl<const N: usize> Decimal<N> {
     ///
     /// let c = a + b;
     /// ```
+    ///
+    /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -1033,7 +1035,8 @@ impl<const N: usize> Decimal<N> {
     /// let c = a - b;
     /// assert_eq!(c, dec256!(-1));
     /// ```
-    /// Panics if overflow:
+    ///
+    /// Panics if overflowed:
     ///
     /// ```should_panic
     /// use fastnum::*;
@@ -1043,6 +1046,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// let c = a - b;
     /// ```
+    /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -1068,7 +1072,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(c, dec256!(10));
     /// ```
     ///
-    /// Panics if overflow:
+    /// Panics if overflowed:
     ///
     /// ```should_panic
     /// use fastnum::*;
@@ -1078,6 +1082,8 @@ impl<const N: usize> Decimal<N> {
     ///
     /// let c = a * b;
     /// ```
+    ///
+    /// See more about [multiplication](crate#multiplication).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
@@ -1103,7 +1109,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(c, dec256!(-2.5));
     /// ```
     ///
-    /// Panics if divide by zero:
+    /// Panics if divided by zero:
     ///
     /// ```should_panic
     /// use fastnum::{dec256, D256};
@@ -1113,6 +1119,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// let c = a / b;
     /// ```
+    /// See more about [division](crate#division).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
     #[inline]
