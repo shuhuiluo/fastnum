@@ -1,13 +1,13 @@
 use core::ops::{Div, DivAssign};
 
-use crate::decimal::{Context, Decimal};
+use crate::decimal::Decimal;
 
 impl<const N: usize> Div for Decimal<N> {
     type Output = Decimal<N>;
 
     #[inline]
     fn div(self, rhs: Self) -> Decimal<N> {
-        self.div(rhs, Context::default())
+        self.div(rhs)
     }
 }
 

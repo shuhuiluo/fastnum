@@ -1,13 +1,13 @@
 use core::ops::{Mul, MulAssign};
 
-use crate::decimal::{Context, Decimal};
+use crate::decimal::Decimal;
 
 impl<const N: usize> Mul for Decimal<N> {
     type Output = Decimal<N>;
 
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
-        self.mul(rhs, Context::default())
+        self.mul(rhs)
     }
 }
 

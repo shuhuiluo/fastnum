@@ -1,13 +1,13 @@
 use core::ops::{Div, DivAssign};
 
-use crate::decimal::{UnsignedDecimal, Context};
+use crate::decimal::UnsignedDecimal;
 
 impl<const N: usize> Div for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
     fn div(self, rhs: Self) -> UnsignedDecimal<N> {
-        self.div(rhs, Context::default())
+        self.div(rhs)
     }
 }
 

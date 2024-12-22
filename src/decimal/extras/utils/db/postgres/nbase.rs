@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
-    decimal::{Decimal, Flags, ParseError},
+    decimal::{dec::ControlBlock, Decimal, ParseError},
     int::{
         math::{div_rem, to_i16},
         UInt,
@@ -141,12 +141,12 @@ impl<const N: usize> TryFrom<NBase> for D<N> {
                 weight,
                 scale,
                 digits,
-            } => (Flags::default(), weight, scale, digits),
+            } => (ControlBlock::default(), weight, scale, digits),
             NBase::Negative {
                 weight,
                 scale,
                 digits,
-            } => (Flags::default().neg(), weight, scale, digits),
+            } => (ControlBlock::default().neg(), weight, scale, digits),
             NBase::NaN => {
                 return Ok(Self::NAN);
             }

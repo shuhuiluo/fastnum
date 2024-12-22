@@ -16,7 +16,9 @@ macro_rules! signals {
         const __SIGNALS: $crate::decimal::Signal = signals!(@ [$($tts),*]);
         __SIGNALS
     }};
-    (@ []) => {};
+    (@ []) => {
+        $crate::decimal::Signal::EMPTY
+    };
     (@ CP) => {
         $crate::decimal::Signal::OP_CLAMPED
     };

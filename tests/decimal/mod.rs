@@ -4,7 +4,6 @@
 
 pub(crate) mod common;
 
-mod assertions;
 mod cmp;
 mod extras;
 mod format;
@@ -12,9 +11,11 @@ mod from;
 mod hash;
 mod math;
 mod parse;
-mod round;
+mod quantize;
 mod quantum;
+mod round;
 mod smoke;
+mod signals;
 
 #[cfg(feature = "numtraits")]
 pub(crate) mod numtraits;

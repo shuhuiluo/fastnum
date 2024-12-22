@@ -1,13 +1,13 @@
 use core::ops::{Sub, SubAssign};
 
-use crate::decimal::{Context, Decimal};
+use crate::decimal::Decimal;
 
 impl<const N: usize> Sub for Decimal<N> {
     type Output = Decimal<N>;
 
     #[inline]
     fn sub(self, rhs: Self) -> Decimal<N> {
-        self.sub(rhs, Context::default())
+        self.sub(rhs)
     }
 }
 

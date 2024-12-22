@@ -7,7 +7,7 @@ use diesel::{
     sql_types::Numeric,
 };
 
-use crate::decimal::UnsignedDecimal;
+use crate::decimal::{Context, UnsignedDecimal};
 
 impl<const N: usize> ToSql<Numeric, Mysql> for UnsignedDecimal<N>
 where
@@ -74,7 +74,7 @@ impl<const N: usize> FromSql<Numeric, Mysql> for UnsignedDecimal<N> {
             }
             MysqlType::Numeric => {
                 let s = core::str::from_utf8(raw)?;
-                UnsignedDecimal::from_str(s)
+                UnsignedDecimal::from_str(s, Context::default())
                     .map_err(|_| format!("{s} is not valid decimal number").into())
             }
             _ => Err(format!("{value:?} is not valid decimal number").into()),

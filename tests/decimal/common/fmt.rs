@@ -8,7 +8,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D};
+            use fastnum::{*, decimal::*};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
@@ -17,7 +17,7 @@ macro_rules! test_impl {
     (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D};
+            use fastnum::{*, decimal::*};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
@@ -55,6 +55,13 @@ macro_rules! test_impl {
 
     (COMMON:: 128, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(COMMON:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($D::INFINITY, concat!(stringify!($D), r#"(digits=[340282366920938463463374607431768211455], exp=[32768], flags=[INF], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        fn test_fmt_debug_128(#[case] d: $D, #[case] expected: &str) {
+            let formated = format!("{d:?}");
+            assert_eq!(formated.as_str(), expected);
+        }
     };
     (COMMON:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
@@ -77,19 +84,18 @@ macro_rules! test_impl {
         }
         
         #[rstest(::trace)]
-        #[case($D::NAN, concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[NAN], signals=[])"#))]
-        #[case($D::INFINITY, concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[INF], signals=[])"#))]
-        #[case($dec!(0), concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[], signals=[])"#))]
-        #[case($dec!(0.00), concat!(stringify!($D), r#"(digits=[0], exp=[-2], flags=[], signals=[])"#))]
-        #[case($dec!(1), concat!(stringify!($D), r#"(digits=[1], exp=[0], flags=[], signals=[])"#))]
-        #[case($dec!(123.400), concat!(stringify!($D), r#"(digits=[123400], exp=[-3], flags=[], signals=[])"#))]
-        #[case($dec!(123.4e-2), concat!(stringify!($D), r#"(digits=[1234], exp=[-3], flags=[], signals=[])"#))]
-        #[case($dec!(123.456), concat!(stringify!($D), r#"(digits=[123456], exp=[-3], flags=[], signals=[])"#))]
-        #[case($dec!(01.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[])"#))]
-        #[case($dec!(1.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[])"#))]
-        #[case($dec!(01.2E3), concat!(stringify!($D), r#"(digits=[12], exp=[2], flags=[], signals=[])"#))]
-        #[case($dec!(6.02214076e1023), concat!(stringify!($D), r#"(digits=[602214076], exp=[1015], flags=[], signals=[])"#))]
-        #[case($dec!(1e9999), concat!(stringify!($D), r#"(digits=[1], exp=[9999], flags=[], signals=[])"#))]
+        #[case($D::NAN, concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[NAN], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(0), concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(0.00), concat!(stringify!($D), r#"(digits=[0], exp=[-2], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(1), concat!(stringify!($D), r#"(digits=[1], exp=[0], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(123.400), concat!(stringify!($D), r#"(digits=[123400], exp=[-3], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(123.4e-2), concat!(stringify!($D), r#"(digits=[1234], exp=[-3], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(123.456), concat!(stringify!($D), r#"(digits=[123456], exp=[-3], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(01.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(1.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(01.2E3), concat!(stringify!($D), r#"(digits=[12], exp=[2], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(6.02214076e1023), concat!(stringify!($D), r#"(digits=[602214076], exp=[1015], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(1e9999), concat!(stringify!($D), r#"(digits=[1], exp=[9999], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
         fn test_fmt_debug(#[case] d: $D, #[case] expected: &str) {
             let formated = format!("{d:?}");
             assert_eq!(formated.as_str(), expected);
@@ -447,6 +453,8 @@ macro_rules! test_impl {
         fn test_fmt_options_exp_upper(#[case] d: $D, #[case] expected: &str) {
             assert_eq!(format!("{:E}", d), expected);
         }
+        
+        // TODO: subnormals & other
 
         #[rstest(::trace)]
         #[case(format!("1E{}", i8::MAX), "1e+127")]
@@ -456,37 +464,18 @@ macro_rules! test_impl {
             let result = d.to_string();
             assert_eq!(result, expected);
 
-            let round_trip = $D::from_str(&result).unwrap();
+            let round_trip = $D::from_str(&result, Context::default()).unwrap();
             assert_eq!(round_trip, d);
 
             let sci = d.to_scientific_notation();
-            let sci_round_trip = $D::from_str(&sci).unwrap();
+            let sci_round_trip = $D::from_str(&sci, Context::default()).unwrap();
             assert_eq!(sci_round_trip, d);
 
             let eng = d.to_engineering_notation();
-            let eng_round_trip = $D::from_str(&eng).unwrap();
+            let eng_round_trip = $D::from_str(&eng, Context::default()).unwrap();
             assert_eq!(eng_round_trip, d);
         }
-
-        #[rstest(::trace)]
-        #[case("1E-32767".to_string(), "1E-32767")]
-        fn test_fmt_boundaries_invalid(#[case] src: String, #[case] expected: &str) {
-            let d: $D = src.parse().unwrap();
-            let result = d.to_string();
-            assert_eq!(result, expected);
-
-            let round_trip = $D::from_str(&result).unwrap();
-            assert_eq!(round_trip, d);
-
-            let sci = d.to_scientific_notation();
-            let sci_round_trip = $D::from_str(&sci).unwrap();
-            assert_eq!(sci_round_trip, d);
-
-            let eng = d.to_engineering_notation();
-            let eng_round_trip = $D::from_str(&eng);
-            assert!(eng_round_trip.is_err());
-        }
-
+        
         #[rstest(::trace)]
         #[case($dec!(4159248078.2835), "4.1592480782835e9")]
         #[case($dec!(0.00001234), "1.234e-5")]
@@ -529,6 +518,13 @@ macro_rules! test_impl {
     };
     (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(SIGNED:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($D::NEG_INFINITY, concat!(stringify!($D), r#"(digits=[340282366920938463463374607431768211455], exp=[32768], flags=[S, INF], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        fn test_fmt_debug_signed_128(#[case] d: $D, #[case] expected: &str) {
+            let formated = format!("{d:?}");
+            assert_eq!(formated.as_str(), expected);
+        }
     };
     (SIGNED:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
@@ -543,20 +539,19 @@ macro_rules! test_impl {
         }
 
         #[rstest(::trace)]
-        #[case($D::NEG_INFINITY, concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[S, INF], signals=[])"#))]
-        #[case($dec!(-0), concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[S], signals=[])"#))]
-        #[case($dec!(-1), concat!(stringify!($D), r#"(digits=[1], exp=[0], flags=[S], signals=[])"#))]
-        #[case($dec!(-123.400), concat!(stringify!($D), r#"(digits=[123400], exp=[-3], flags=[S], signals=[])"#))]
-        #[case($dec!(+123.4e-2), concat!(stringify!($D), r#"(digits=[1234], exp=[-3], flags=[], signals=[])"#))]
-        #[case($dec!(-123.456), concat!(stringify!($D), r#"(digits=[123456], exp=[-3], flags=[S], signals=[])"#))]
-        #[case($dec!(+01.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[])"#))]
-        #[case($dec!(-1.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[S], signals=[])"#))]
-        #[case($dec!(-01.2E3), concat!(stringify!($D), r#"(digits=[12], exp=[2], flags=[S], signals=[])"#))]
-        #[case($dec!(-6.02214076e1023), concat!(stringify!($D), r#"(digits=[602214076], exp=[1015], flags=[S], signals=[])"#))]
-        #[case($dec!(+1e9999), concat!(stringify!($D), r#"(digits=[1], exp=[9999], flags=[], signals=[])"#))]
-        #[case($dec!(-144.3308279), concat!(stringify!($D), r#"(digits=[1443308279], exp=[-7], flags=[S], signals=[])"#))]
-        #[case($dec!(-349983058835858339619e2), concat!(stringify!($D), r#"(digits=[349983058835858339619], exp=[2], flags=[S], signals=[])"#))]
-        #[case($dec!(-90037659.6905), concat!(stringify!($D), r#"(digits=[900376596905], exp=[-4], flags=[S], signals=[])"#))]
+        #[case($dec!(-0), concat!(stringify!($D), r#"(digits=[0], exp=[0], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-1), concat!(stringify!($D), r#"(digits=[1], exp=[0], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-123.400), concat!(stringify!($D), r#"(digits=[123400], exp=[-3], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(+123.4e-2), concat!(stringify!($D), r#"(digits=[1234], exp=[-3], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-123.456), concat!(stringify!($D), r#"(digits=[123456], exp=[-3], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(+01.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-1.20), concat!(stringify!($D), r#"(digits=[120], exp=[-2], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-01.2E3), concat!(stringify!($D), r#"(digits=[12], exp=[2], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-6.02214076e1023), concat!(stringify!($D), r#"(digits=[602214076], exp=[1015], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(+1e9999), concat!(stringify!($D), r#"(digits=[1], exp=[9999], flags=[], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-144.3308279), concat!(stringify!($D), r#"(digits=[1443308279], exp=[-7], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-349983058835858339619e2), concat!(stringify!($D), r#"(digits=[349983058835858339619], exp=[2], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
+        #[case($dec!(-90037659.6905), concat!(stringify!($D), r#"(digits=[900376596905], exp=[-4], flags=[S], signals=[], ctx=[R=HalfUp, S=!DBZ, !INV, !OFW])"#))]
         fn test_fmt_debug_signed(#[case] d: $D, #[case] expected: &str) {
             let formated = format!("{d:?}");
             assert_eq!(formated.as_str(), expected);

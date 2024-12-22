@@ -1,5 +1,7 @@
 use core::fmt::{Debug, Display, Formatter};
 
+use crate::utils::assert_eq_size;
+
 /// # Signal
 ///
 /// The exceptional conditions are grouped into signals, which can be controlled
@@ -7,6 +9,7 @@ use core::fmt::{Debug, Display, Formatter};
 /// For each of the signals, the corresponding flag is set to `1`
 /// when the signal occurs.
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct Signal(u8);
 
 impl Signal {
@@ -163,3 +166,5 @@ impl Debug for Signal {
         write!(f, "{}", self)
     }
 }
+
+assert_eq_size!(Signal, u8);

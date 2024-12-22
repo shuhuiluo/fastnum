@@ -8,6 +8,7 @@
 #[macro_use]
 mod macros;
 
+mod assertions;
 mod doc;
 mod error;
 #[allow(clippy::module_inception)]

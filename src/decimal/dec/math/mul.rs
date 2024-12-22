@@ -1,8 +1,8 @@
 use crate::{
     decimal::{
-        dec::{math::utils::overflow_scale, scale::extend_scale_to},
+        dec::{construct::construct, math::utils::overflow, scale::extend_scale_to},
         round::round,
-        Context, Decimal, Signal,
+        Decimal, Signal,
     },
     int::{math::div_rem_wide, UInt},
 };
@@ -10,57 +10,53 @@ use crate::{
 type D<const N: usize> = Decimal<N>;
 
 #[inline]
-pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D<N> {
+pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     if lhs.is_nan() {
-        return lhs.with_signals_from_and(&rhs, Signal::OP_INVALID);
+        return lhs.compound_and_raise(&rhs, Signal::OP_INVALID);
     }
 
     if rhs.is_nan() {
-        return rhs.with_signals_from_and(&lhs, Signal::OP_INVALID);
+        return rhs.compound_and_raise(&lhs, Signal::OP_INVALID);
     }
 
-    let mut flags = lhs.flags.mul(rhs.flags);
+    let mut cb = lhs.cb.combine_mul(rhs.cb);
 
     if lhs.is_infinite() || rhs.is_infinite() {
-        return D::INFINITY.with_flags(flags);
+        return if lhs.is_zero() || rhs.is_zero() {
+            lhs.with_cb(cb).signaling_nan()
+        } else {
+            D::INFINITY.with_cb(cb)
+        };
     }
 
     if lhs.is_zero() {
-        return extend_scale_to(
-            lhs.with_flags(flags),
-            rhs.scale.saturating_add(lhs.scale),
-            ctx,
-        );
+        return extend_scale_to(lhs.with_cb(cb), rhs.scale.saturating_add(lhs.scale));
     }
 
     if rhs.is_zero() {
-        return extend_scale_to(
-            rhs.with_flags(flags),
-            lhs.scale.saturating_add(rhs.scale),
-            ctx,
-        );
+        return extend_scale_to(rhs.with_cb(cb), lhs.scale.saturating_add(rhs.scale));
     }
 
-    let (mut scale, mut overflow) = lhs.scale.overflowing_add(rhs.scale);
+    let (mut exp, mut overflow_exp) = (lhs.scale as i32 + rhs.scale as i32).overflowing_neg();
 
-    if overflow {
-        return overflow_scale(scale, flags);
+    if overflow_exp {
+        return overflow(cb);
     }
 
     let (mut low, mut high) = lhs.digits.widening_mul(rhs.digits);
 
+    if high.is_zero() {
+        return construct(low, exp, cb);
+    }
+
     let mut out;
     let mut rem;
 
-    if high.is_zero() {
-        return D::new(low, scale, flags);
-    }
-
     while !high.is_zero() {
-        (scale, overflow) = scale.overflowing_sub(1);
+        (exp, overflow_exp) = exp.overflowing_add(1);
 
-        if overflow {
-            return overflow_scale(scale, flags);
+        if overflow_exp {
+            return overflow(cb);
         }
 
         out = [0; N];
@@ -89,10 +85,10 @@ pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D
         low = UInt::from_digits(out);
 
         if rem != 0 {
-            flags = flags.raise_signal(Signal::OP_INEXACT);
-            low = round(low, UInt::from_digit(rem), ctx);
+            cb = cb.raise_signal(Signal::OP_INEXACT);
+            low = round(low, UInt::from_digit(rem), cb.context());
         }
     }
 
-    D::new(low, scale, flags.raise_signal(Signal::OP_ROUNDED))
+    construct(low, exp, cb.raise_signal(Signal::OP_ROUNDED))
 }

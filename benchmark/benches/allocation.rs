@@ -3,7 +3,7 @@ use std::str::FromStr;
 use criterion::{black_box, BenchmarkId, Criterion};
 
 use bigdecimal::BigDecimal;
-use fastnum::{udec128, UD128};
+use fastnum::{dec128, D128};
 
 pub fn vector(c: &mut Criterion) {
     let mut group = c.benchmark_group("Allocate");
@@ -14,8 +14,8 @@ pub fn vector(c: &mut Criterion) {
             b.iter(|| black_box(vec![N; *size]))
         });
 
-        group.bench_with_input(BenchmarkId::new("UD128", size), &size, |b, size| {
-            const N: UD128 = udec128!(0.12345678910111213);
+        group.bench_with_input(BenchmarkId::new("D128", size), &size, |b, size| {
+            const N: D128 = dec128!(0.12345678910111213);
             b.iter(|| black_box(vec![N; *size]))
         });
 

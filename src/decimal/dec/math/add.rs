@@ -1,78 +1,74 @@
-use crate::{
-    decimal::{
-        dec::{
-            math::sub::sub_abs,
-            scale::{extend_scale_to, with_scale},
-        },
-        round::RoundConsts,
-        Context, Decimal, Signal,
+use crate::decimal::{
+    dec::{
+        math::sub::sub_abs,
+        scale::{extend_scale_to, rescale},
     },
-    int::UInt,
+    Decimal, Signal,
 };
 
 type D<const N: usize> = Decimal<N>;
 
 #[inline]
-pub(crate) const fn add<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D<N> {
+pub(crate) const fn add<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     if lhs.is_nan() {
-        return lhs.with_signals_from_and(&rhs, Signal::OP_INVALID);
+        return lhs.compound_and_raise(&rhs, Signal::OP_INVALID);
     }
 
     if rhs.is_nan() {
-        return rhs.with_signals_from_and(&lhs, Signal::OP_INVALID);
+        return rhs.compound_and_raise(&lhs, Signal::OP_INVALID);
     }
 
     match (lhs.is_negative(), rhs.is_negative()) {
-        (false, false) => add_abs(lhs, rhs, ctx),
-        (true, true) => add_abs(rhs.neg(), lhs.neg(), ctx).neg(),
-        (false, true) => sub_abs(lhs, rhs.neg(), ctx),
-        (true, false) => sub_abs(rhs, lhs.neg(), ctx),
+        (false, false) => add_abs(lhs, rhs),
+        (true, true) => add_abs(rhs.neg(), lhs.neg()).neg(),
+        (false, true) => sub_abs(lhs, rhs.neg()),
+        (true, false) => sub_abs(rhs, lhs.neg()),
     }
 }
 
 #[inline]
-pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>, ctx: Context) -> D<N> {
+pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     debug_assert!(!lhs.is_negative() && !rhs.is_negative());
 
     if lhs.is_infinite() {
-        return lhs.with_signals_from(&rhs);
+        return lhs.compound(&rhs);
     }
 
     if rhs.is_infinite() {
-        return rhs.with_signals_from(&lhs);
+        return rhs.compound(&lhs);
     }
-    
+
     if rhs.is_zero() {
-        return extend_scale_to(lhs, rhs.scale, ctx).with_signals_from(&rhs);
+        return extend_scale_to(lhs, rhs.scale).compound(&rhs);
     }
 
     if lhs.is_zero() {
-        return extend_scale_to(rhs, lhs.scale, ctx).with_signals_from(&lhs);
+        return extend_scale_to(rhs, lhs.scale).compound(&lhs);
     }
-    
+
     if lhs.scale == rhs.scale {
-        add_aligned(lhs, rhs, ctx)
+        add_aligned(lhs, rhs)
     } else if lhs.scale < rhs.scale {
-        add_rescale(lhs, rhs, ctx)
+        add_rescale(lhs, rhs)
     } else {
-        add_rescale(rhs, lhs, ctx)
+        add_rescale(rhs, lhs)
     }
 }
 
 #[inline]
-const fn add_rescale<const N: usize>(mut lhs: D<N>, mut rhs: D<N>, ctx: Context) -> D<N> {
-    lhs = with_scale(lhs, rhs.scale, ctx);
+const fn add_rescale<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
+    lhs = rescale(lhs, rhs.scale);
 
-    if lhs.flags.has_signal(Signal::OP_CLAMPED) {
-        rhs = with_scale(rhs, lhs.scale, ctx);
-        add_aligned(lhs, rhs, ctx)
+    if lhs.is_op_clamped() {
+        rhs = rescale(rhs, lhs.scale);
+        add_aligned(lhs, rhs)
     } else {
-        add_aligned(lhs, rhs, ctx)
+        add_aligned(lhs, rhs)
     }
 }
 
 #[inline]
-const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>, ctx: Context) -> D<N> {
+const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
     debug_assert!(lhs.scale == rhs.scale);
 
     let mut overflow;
@@ -80,24 +76,24 @@ const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>, ctx: Context)
     (lhs.digits, overflow) = lhs.digits.overflowing_add(rhs.digits);
 
     if !overflow {
-        lhs.with_signals_from(&rhs)
+        lhs.compound(&rhs)
     } else {
-        rhs.digits = RoundConsts::MAX;
-        rhs.digits = rhs.digits.strict_add(UInt::ONE);
+        // TODO: forward to round
+        rhs.digits = D::<N>::COEFF_MEDIUM_PLUS_ONE;
         (rhs.scale, overflow) = rhs.scale.overflowing_sub(1);
 
         if overflow {
-            return lhs.with_signals_from_and(&rhs, Signal::OP_OVERFLOW);
+            return lhs.compound_and_raise(&rhs, Signal::OP_OVERFLOW);
         }
 
         let scale;
         (scale, overflow) = lhs.scale.overflowing_sub(1);
 
         if overflow {
-            return lhs.with_signals_from_and(&rhs, Signal::OP_OVERFLOW);
+            return lhs.compound_and_raise(&rhs, Signal::OP_OVERFLOW);
         }
 
-        lhs = with_scale(lhs, scale, ctx);
-        add_aligned(lhs, rhs, ctx)
+        lhs = rescale(lhs, scale);
+        add_aligned(lhs, rhs)
     }
 }

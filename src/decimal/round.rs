@@ -9,12 +9,6 @@ use crate::{
     int::{math::div_rem, UInt},
 };
 
-pub(crate) struct RoundConsts<const N: usize>;
-
-impl<const N: usize> RoundConsts<N> {
-    pub const MAX: UInt<N> = div_rem(UInt::<N>::MAX, UInt::<N>::TEN).0;
-}
-
 #[inline]
 pub(crate) const fn scale_round<const N: usize>(
     mut value: UInt<N>,

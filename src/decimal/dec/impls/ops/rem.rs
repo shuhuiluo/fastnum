@@ -1,13 +1,13 @@
 use core::ops::{Rem, RemAssign};
 
-use crate::decimal::{Decimal, Context};
+use crate::decimal::Decimal;
 
 impl<const N: usize> Rem for Decimal<N> {
     type Output = Decimal<N>;
 
     #[inline]
     fn rem(self, rhs: Self) -> Decimal<N> {
-        self.rem(rhs, Context::default())
+        self.rem(rhs)
     }
 }
 

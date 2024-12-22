@@ -146,6 +146,25 @@ macro_rules! test_impl {
         #[case($dec!(123.43e5), $dec!(1.2345), $dec!(12343001.2345))]
         #[case($dec!(22132e2), $dec!(0.0000), $dec!(2213200.0000))]
         #[case($dec!(14028236093846.346337460743176821145), $dec!(140282366920934633.68211455), $dec!(140296395157028480.028452010743176821145))]
+        #[case($dec!(1E+12), $dec!(1.11), $dec!(1000000000001.11))]
+        #[case($dec!(1.11), $dec!(1E+12), $dec!(1000000000001.11))]
+        #[case($dec!(7E+12), $dec!(1.11), $dec!(7000000000001.11))]
+        #[case($dec!(1.11), $dec!(7E+12), $dec!(7000000000001.11))]
+        //---------------
+        
+        #[case($dec!(0.00), $dec!(0.01), $dec!(0.01))]
+        #[case($dec!(0.01), $dec!(0.01), $dec!(0.02))]
+        #[case($dec!(0.12), $dec!(0.01), $dec!(0.13))]
+        #[case($dec!(0.98), $dec!(0.01), $dec!(0.99))]
+        #[case($dec!(0.99), $dec!(0.01), $dec!(1.00))]
+        #[case($dec!(1.00), $dec!(0.01), $dec!(1.01))]
+        #[case($dec!(1.01), $dec!(0.01), $dec!(1.02))]
+        
+        //---------------
+        #[case($D::INFINITY, $D::INFINITY, $D::INFINITY)]
+        #[case($dec!(1), $D::INFINITY, $D::INFINITY)]
+        #[case($dec!(1000), $D::INFINITY, $D::INFINITY)]
+        #[case($D::INFINITY, $dec!(1000), $D::INFINITY)]
         fn test_add(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
             let res = a + b;
 
@@ -165,8 +184,10 @@ macro_rules! test_impl {
         #[case($D::NAN, $dec!(1))]
         #[case($dec!(1), $D::NAN)]
         #[case($D::NAN, $D::NAN)]
+        #[case($D::NAN, $D::INFINITY)]
+        #[case($D::INFINITY, $D::NAN)]
         #[should_panic(expected = "(fastnum) invalid operation")]
-        fn test_div_nan_panic(#[case] a: $D, #[case] b: $D) {
+        fn test_add_nan(#[case] a: $D, #[case] b: $D) {
             let _ = a + b;
         }
     };
@@ -198,6 +219,29 @@ macro_rules! test_impl {
         #[case($dec!(7E+12), $dec!(-1), $dec!(6999999999999))]
         #[case($dec!(100), $dec!(-1), $dec!(99))]
         #[case($dec!(-1), $dec!(100), $dec!(99))]
+        #[case($dec!(1E+12), $dec!(-1), $dec!(999999999999))]
+        #[case($dec!(-1), $dec!(1E+12), $dec!(999999999999))]
+        #[case($dec!(7E+12), $dec!(-1), $dec!(6999999999999))]
+        #[case($dec!(-1), $dec!(7E+12), $dec!(6999999999999))]
+        //--------------------
+        #[case($dec!(-0.01), $dec!(0.01), $dec!(0.00))]
+        #[case($dec!(-0.01), $dec!(-0.01), $dec!(-0.02))]
+        #[case($dec!(0.00), $dec!(-0.01), $dec!(-0.01))]
+        #[case($dec!(0.01), $dec!(-0.01), $dec!(0.00))]
+        #[case($dec!(0.12), $dec!(-0.01), $dec!(0.11))]
+        #[case($dec!(0.98), $dec!(-0.01), $dec!(0.97))]
+        #[case($dec!(0.99), $dec!(-0.01), $dec!(0.98))]
+        #[case($dec!(1.00), $dec!(-0.01), $dec!(0.99))]
+        #[case($dec!(1.01), $dec!(-0.01), $dec!(1.00))]
+        //--------------------
+        
+        #[case($D::NEG_INFINITY, $D::NEG_INFINITY, $D::NEG_INFINITY)]
+        #[case($dec!(-1), $D::INFINITY, $D::INFINITY)]
+        #[case($dec!(-1000), $D::INFINITY, $D::INFINITY)]
+        #[case($D::INFINITY, $dec!(-1000), $D::INFINITY)]
+        #[case($D::NEG_INFINITY, $dec!(-1000), $D::NEG_INFINITY)]
+        #[case($dec!(-1), $D::NEG_INFINITY, $D::NEG_INFINITY)]
+        #[case($dec!(-1000), $D::NEG_INFINITY, $D::NEG_INFINITY)]
         fn test_add_signed(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
             let res = a + b;
 
@@ -211,6 +255,18 @@ macro_rules! test_impl {
             assert_eq!(a, expected);
             assert_eq!(a.fractional_digits_count(), expected.fractional_digits_count());
             assert!(a.is_op_ok());
+        }
+        
+        #[rstest(::trace)]
+        #[case($D::NAN, $dec!(-1))]
+        #[case($dec!(-1), $D::NAN)]
+        #[case($D::INFINITY, $D::NEG_INFINITY)]
+        #[case($D::NEG_INFINITY, $D::INFINITY)]
+        #[case($D::NAN, $D::NEG_INFINITY)]
+        #[case($D::NEG_INFINITY, $D::NAN)]
+        #[should_panic(expected = "(fastnum) invalid operation")]
+        fn test_add_nan_signed(#[case] a: $D, #[case] b: $D) {
+            let _ = a + b;
         }
     };
 }

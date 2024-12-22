@@ -1,13 +1,13 @@
 use core::ops::{Add, AddAssign};
 
-use crate::decimal::{Decimal, Context};
+use crate::decimal::Decimal;
 
 impl<const N: usize> Add for Decimal<N> {
     type Output = Decimal<N>;
 
     #[inline]
     fn add(self, rhs: Self) -> Decimal<N> {
-        self.add(rhs, Context::default())
+        self.add(rhs)
     }
 }
 

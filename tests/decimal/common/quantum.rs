@@ -9,7 +9,7 @@ macro_rules! test_impl {
         mod $dec {
             use rstest::*;
             use fastnum::{*, decimal::*};
-            
+
             #[rstest(::trace)]
             #[case(0, $uint!(1), 0, Signal::empty())]
             #[case(-0, $uint!(1), 0, Signal::empty())]
@@ -33,13 +33,13 @@ macro_rules! test_impl {
             #[case(-32767, $uint!(1), 32767, Signal::empty())]
             fn test_quantum(#[case] exp: i32, #[case] digits: $U, #[case] scale: i16, #[case] signals: Signal) {
                 let d = $D::quantum(exp, Context::default());
-                
+
                 assert_eq!(d.digits(), digits);
                 assert_eq!(d.fractional_digits_count(), scale);
                 assert_eq!(d.op_signals(), signals);
-                
+
             }
-            
+
             #[rstest(::trace)]
             #[case(65536)]
             fn test_quantum_overflow(#[case] exp: i32) {
@@ -47,7 +47,7 @@ macro_rules! test_impl {
                 assert!(d.is_infinite());
                 assert_eq!(d.op_signals(), signals![!OFW, !INEXACT, !ROUND]);
             }
-            
+
             #[rstest(::trace)]
             #[case(-65536)]
             #[case(-32768)]

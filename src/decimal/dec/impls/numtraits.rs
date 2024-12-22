@@ -3,7 +3,7 @@ mod to_primitive;
 
 use num_traits::{ConstOne, ConstZero, Num, One, Signed, Zero};
 
-use crate::decimal::{Decimal, ParseError};
+use crate::decimal::{Context, Decimal, ParseError};
 
 impl<const N: usize> One for Decimal<N> {
     #[inline]
@@ -40,7 +40,7 @@ impl<const N: usize> Num for Decimal<N> {
         if radix != 10 {
             return Err(ParseError::InvalidRadix);
         }
-        Self::from_str(str)
+        Self::from_str(str, Context::default())
     }
 }
 

@@ -1,16 +1,16 @@
 macro_rules! macro_impl {
     ($d:tt, $DEC: ident, $bits: literal, $sign: ident, $name: ident) => {
         #[macro_export]
-        #[doc = concat!("A macro to construct ", $bits, "-bit ", stringify!($sign), " [crate::", stringify!($DEC), "] decimal from literals in compile time.")]
+        #[doc = concat!("A macro to construct ", $bits, "-bit ", stringify!($sign), " [`", stringify!($DEC), "`]([crate::", stringify!($DEC), ") decimal from literals in compile time.")]
         ///
         /// Const-evaluated in compile time macro-helper can be used for definitions of constants or variables whose value is known in compile time.
         ///
         /// # Examples:
         ///
-        /// ## Basic usage:
+        /// Basic usage:
         ///
         /// ```
-        #[doc = concat!("use fastnum::{", stringify!($name), ", ", stringify!($DEC), ", decimal::Context};")]
+        /// use fastnum::*;
         ///
         #[doc = concat!("const N: ", stringify!($DEC), " = ", stringify!($name), "!(1.23456789);")]
         /// assert!(!N.is_zero());
@@ -20,7 +20,7 @@ macro_rules! macro_impl {
         ///
         #[doc = concat!("const A: ", stringify!($DEC), " = ", stringify!($name), "!(5);")]
         #[doc = concat!("const B: ", stringify!($DEC), " = ", stringify!($name), "!(1_000);")]
-        #[doc = concat!("const C: ", stringify!($DEC), " = A.div(B, Context::default());")]
+        #[doc = concat!("const C: ", stringify!($DEC), " = A.div(B);")]
         ///
         #[doc = concat!("assert_eq!(C, ", stringify!($name), "!(0.005));")]
         ///
@@ -42,7 +42,8 @@ macro_rules! macro_impl {
         ///
         macro_rules! $name {
             ($d($d body:tt)*) => {{
-                const __DECIMAL: $crate::$DEC = $crate::$DEC::parse_str(concat!($d(stringify!($d body)),*));
+                const __CTX: $crate::decimal::Context = $crate::decimal::Context::default();
+                const __DECIMAL: $crate::$DEC = $crate::$DEC::parse_str(concat!($d(stringify!($d body)),*), __CTX);
                 __DECIMAL
             }};
         }

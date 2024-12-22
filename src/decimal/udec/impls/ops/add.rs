@@ -1,13 +1,13 @@
 use core::ops::{Add, AddAssign};
 
-use crate::decimal::{Context, UnsignedDecimal};
+use crate::decimal::UnsignedDecimal;
 
 impl<const N: usize> Add for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
     fn add(self, rhs: Self) -> UnsignedDecimal<N> {
-        self.add(rhs, Context::default())
+        self.add(rhs)
     }
 }
 

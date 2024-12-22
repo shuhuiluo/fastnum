@@ -1,13 +1,13 @@
 use core::ops::{Mul, MulAssign};
 
-use crate::decimal::{UnsignedDecimal, Context};
+use crate::decimal::UnsignedDecimal;
 
 impl<const N: usize> Mul for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
-        self.mul(rhs, Context::default())
+        self.mul(rhs)
     }
 }
 

@@ -74,12 +74,12 @@ macro_rules! test_impl {
                       "openapi": "3.1.0",
                       "info": {
                         "title": "fastnum",
-                        "description": "Fast numbers library",
+                        "description": env!("CARGO_PKG_DESCRIPTION"),
                         "contact": {
                           "name": "Neo"
                         },
                         "license": {
-                          "name": "MIT"
+                          "name": env!("CARGO_PKG_LICENSE"),
                         },
                         "version": env!("CARGO_PKG_VERSION")
                       },

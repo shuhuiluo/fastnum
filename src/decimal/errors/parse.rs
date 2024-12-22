@@ -12,9 +12,10 @@ use crate::utils::err_prefix;
 /// # Example
 ///
 /// ```
+/// use fastnum::decimal::Context;
 /// use fastnum::UD256;
 ///
-/// if let Err(e) = UD256::from_str("e12") {
+/// if let Err(e) = UD256::from_str("e12", Context::default()) {
 ///     println!("Failed conversion to Decimal: {e}");
 /// }
 /// ```

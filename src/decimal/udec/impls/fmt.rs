@@ -33,7 +33,7 @@ impl<const N: usize> Debug for UnsignedDecimal<N> {
                 return write!(f, "{}(Inf)", Self::type_name(),);
             }
 
-            let alert = if self.flags().has_signals() { "! " } else { "" };
+            let alert = if self.is_op_ok() { "" } else {  "! " };
             write!(
                 f,
                 "{}({}{}e{})",
@@ -45,12 +45,13 @@ impl<const N: usize> Debug for UnsignedDecimal<N> {
         } else {
             write!(
                 f,
-                "{}(digits=[{:?}], exp=[{}], flags=[{}], signals=[{}])",
+                "{}(digits=[{:?}], exp=[{}], flags=[{}], signals=[{}], ctx=[{}])",
                 Self::type_name(),
                 self.0.digits(),
                 (self.fractional_digits_count() as i32).saturating_neg(),
                 self.flags(), 
-                self.flags().signals()
+                self.signals(), 
+                self.context()
             )
         }
     }

@@ -1,6 +1,6 @@
 use num_traits::{ConstOne, ConstZero, FromPrimitive, Num, One, ToPrimitive, Zero};
 
-use crate::decimal::{ParseError, UnsignedDecimal};
+use crate::decimal::{Context, ParseError, UnsignedDecimal};
 
 impl<const N: usize> One for UnsignedDecimal<N> {
     #[inline]
@@ -37,7 +37,7 @@ impl<const N: usize> Num for UnsignedDecimal<N> {
         if radix != 10 {
             return Err(ParseError::InvalidRadix);
         }
-        Self::from_str(str)
+        Self::from_str(str, Context::default())
     }
 }
 

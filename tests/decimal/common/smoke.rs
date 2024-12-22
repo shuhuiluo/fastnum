@@ -79,16 +79,16 @@ macro_rules! test_impl {
 
         #[rstest(::trace)]
         fn test_base_math() {
-            let d1 = $dec!(101);
-            let d2 = $dec!(0.01);
+            let d1 = $dec!(101).with_rounding_mode(RoundingMode::Down);
+            let d2 = $dec!(0.01).with_rounding_mode(RoundingMode::Down);
 
-            let d3 = (d1 / (1.0_f64 - d2)).round(8, RoundingMode::Down);
+            let d3 = (d1 / (1.0_f64 - d2)).round(8);
             assert_eq!(d3, $dec!(102.02020202));
 
             let d4 = d3 - d1;
             assert_eq!(d4, $dec!(1.02020202));
 
-            let d5 = (d3 / d4).round(10, RoundingMode::Down);
+            let d5 = (d3 / d4).round(10);
             assert_eq!(d5, $dec!(100.0000000196));
 
             let d6 = d5 - $dec!(0.0000000196);

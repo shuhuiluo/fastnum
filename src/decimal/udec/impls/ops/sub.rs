@@ -1,13 +1,13 @@
 use core::ops::{Sub, SubAssign};
 
-use crate::decimal::{UnsignedDecimal, Context};
+use crate::decimal::UnsignedDecimal;
 
 impl<const N: usize> Sub for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
     fn sub(self, rhs: Self) -> UnsignedDecimal<N> {
-        self.sub(rhs, Context::default())
+        self.sub(rhs)
     }
 }
 
@@ -31,7 +31,7 @@ macro_rules! macro_impl {
                     Sub::<UnsignedDecimal<N>>::sub(self, rhs)
                 }
             }
-            
+
             impl<const N: usize> Sub<UnsignedDecimal<N>> for $ty {
                 type Output = UnsignedDecimal<N>;
 
@@ -69,7 +69,7 @@ macro_rules! macro_impl {
                     Sub::<UnsignedDecimal<N>>::sub(self, rhs)
                 }
             }
-            
+
             impl<const N: usize> Sub<UnsignedDecimal<N>> for $ty {
                 type Output = UnsignedDecimal<N>;
 
@@ -82,7 +82,7 @@ macro_rules! macro_impl {
                         #[cfg(not(debug_assertions))]
                         return rhs;
                     };
-                    
+
                     Sub::<UnsignedDecimal<N>>::sub(this, rhs)
                 }
             }

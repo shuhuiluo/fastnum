@@ -49,7 +49,7 @@ impl<const N: usize> Debug for Decimal<N> {
                 return write!(f, "{}({}Inf)", Self::type_name(), self.sign(),);
             }
 
-            let alert = if self.flags().has_signals() { "! " } else { "" };
+            let alert = if self.is_op_ok() { "" } else { "! " };
             write!(
                 f,
                 "{}({}{}{}e{})",
@@ -62,12 +62,13 @@ impl<const N: usize> Debug for Decimal<N> {
         } else {
             write!(
                 f,
-                "{}(digits=[{:?}], exp=[{}], flags=[{}], signals=[{}])",
+                "{}(digits=[{:?}], exp=[{}], flags=[{}], signals=[{}], ctx=[{}])",
                 Self::type_name(),
                 self.digits,
                 (self.scale as i32).saturating_neg(),
                 self.flags(),
-                self.flags().signals()
+                self.signals(),
+                self.context()
             )
         }
     }

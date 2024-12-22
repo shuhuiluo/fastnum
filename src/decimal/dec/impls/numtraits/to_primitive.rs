@@ -1,6 +1,6 @@
 use num_traits::ToPrimitive;
 
-use crate::decimal::{utils::types, Context, Decimal};
+use crate::decimal::{utils::types, Decimal};
 
 macro_rules! to_int_impl {
     ($to_int: ident, $int: ty, $to_uint: ident) => {
@@ -11,12 +11,12 @@ macro_rules! to_int_impl {
             }
 
             if self.is_negative() {
-                self.with_scale(0, Context::default())
+                self.rescale(0)
                     .digits
                     .$to_uint()
                     .and_then(|n| (0 as $int).checked_sub_unsigned(n))
             } else {
-                self.with_scale(0, Context::default()).digits.$to_int()
+                self.rescale(0).digits.$to_int()
             }
         }
     };
@@ -30,7 +30,7 @@ macro_rules! to_uint_impl {
                 return None;
             }
 
-            self.with_scale(0, Context::default()).digits.$to_uint()
+            self.rescale(0).digits.$to_uint()
         }
     };
 }

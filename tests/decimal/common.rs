@@ -5,8 +5,9 @@ pub(crate) mod from;
 pub(crate) mod hash;
 pub(crate) mod math;
 pub(crate) mod parse;
-pub(crate) mod round;
+pub(crate) mod quantize;
 pub(crate) mod quantum;
+pub(crate) mod round;
 pub(crate) mod smoke;
 
 #[cfg(feature = "numtraits")]

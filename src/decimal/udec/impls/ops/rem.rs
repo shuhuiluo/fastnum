@@ -1,13 +1,13 @@
 use core::ops::{Rem, RemAssign};
 
-use crate::decimal::{UnsignedDecimal, Context};
+use crate::decimal::UnsignedDecimal;
 
 impl<const N: usize> Rem for UnsignedDecimal<N> {
     type Output = UnsignedDecimal<N>;
 
     #[inline]
     fn rem(self, rhs: Self) -> UnsignedDecimal<N> {
-        self.rem(rhs, Context::default())
+        self.rem(rhs)
     }
 }
 

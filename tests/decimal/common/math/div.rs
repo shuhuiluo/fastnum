@@ -44,7 +44,7 @@ macro_rules! test_impl {
             #[case] mode: RoundingMode,
         ) {
             let ctx = Context::default().with_rounding_mode(mode);
-            let res = a.div(b, ctx);
+            let res = a.with_ctx(ctx) / b.with_ctx(ctx);
 
             assert_eq!(res, expected);
             assert_eq!(
@@ -85,7 +85,7 @@ macro_rules! test_impl {
             #[case] mode: RoundingMode,
         ) {
             let ctx = Context::default().with_rounding_mode(mode);
-            let res = a.div(b, ctx);
+            let res = a.with_ctx(ctx) / b.with_ctx(ctx);
 
             assert_eq!(res, expected);
             assert_eq!(
@@ -117,31 +117,56 @@ macro_rules! test_impl {
         super::test_impl!(COMMON:: 128, $dec, $D);
 
         #[rstest(::trace)]
-        #[case($dec!(1), $dec!(3), $dec!(0.333333333333333333333333333333333333333), HalfUp)]
-        #[case($dec!(1), $dec!(3), $dec!(0.333333333333333333333333333333333333333), Down)]
-        #[case($dec!(1), $dec!(3), $dec!(0.333333333333333333333333333333333333334), Up)]
-        #[case($dec!(2), $dec!(3), $dec!(0.66666666666666666666666666666666666667), HalfUp)]
-        #[case($dec!(2), $dec!(3), $dec!(0.66666666666666666666666666666666666666), Down)]
-        #[case($dec!(2), $dec!(3), $dec!(0.66666666666666666666666666666666666667), Up)]
-        #[case($dec!(8), $dec!(9), $dec!(0.88888888888888888888888888888888888889), HalfUp)]
-        #[case($dec!(8), $dec!(9), $dec!(0.88888888888888888888888888888888888888), Down)]
-        fn test_div_inexact_128(
+        #[case($dec!(1),                   $dec!(3),                  $dec!(0.333333333333333333333333333333333333333), signals![!ROUND, !INEXACT])]
+        #[case($dec!(2),                   $dec!(3),                  $dec!(0.66666666666666666666666666666666666667), signals![!ROUND, !INEXACT])]
+        #[case($dec!(8),                   $dec!(9),                  $dec!(0.88888888888888888888888888888888888889), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9),                  $dec!(0.111111111111111111111111111111111111111), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9.9),                $dec!(0.101010101010101010101010101010101010101), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9.09),               $dec!(0.110011001100110011001100110011001100110), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9.009),              $dec!(0.111000111000111000111000111000111000111), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(99999),              $dec!(0.0000100001000010000100001000010000100001000), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(999999),             $dec!(0.00000100000100000100000100000100000100000100), signals![!ROUND, !INEXACT])]
+        #[case($dec!(3195385192916917),    $dec!(3195385192946695),   $dec!(0.99999999999068093572389012671961829523), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1393723067526993),    $dec!(1393723067519475),   $dec!(1.00000000000539418495338561815691036848), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(7),                  $dec!(0.142857142857142857142857142857142857143), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1.2345678),           $dec!(1.9876543),          $dec!(0.62111796804907171231939075119853588222), signals![!ROUND, !INEXACT])]
+        // ----------------
+        #[case($dec!(1e-2), $dec!(1e32765), $dec!(1e-32767), signals![])]
+        #[case($dec!(1.23e-2), $dec!(1e32763), $dec!(1.23e-32765), signals![!SN])]
+        #[case($dec!(1e-2), $dec!(1e32767), $D::ZERO, signals![!INEXACT, !ROUND, !SN, !UFW])]
+        #[case($dec!(1e5), $dec!(1e-32765), $dec!(100e32768), signals![!CP, !ROUND])]
+        fn test_div_128(
             #[case] a: $D,
             #[case] b: $D,
             #[case] expected: $D,
-            #[case] mode: RoundingMode,
+            #[case] signals: Signal
         ) {
-            let ctx = Context::default().with_rounding_mode(mode);
-            let res = a.div(b, ctx);
-
-            assert_eq!(res, expected);
-            assert_eq!(
-                res.fractional_digits_count(),
-                expected.fractional_digits_count()
-            );
-
-            assert!(res.is_op_inexact());
-            assert!(res.is_op_rounded());
+            let d = a / b;
+            
+            assert_eq!(d, expected);
+            assert_eq!(d.fractional_digits_count(), expected.fractional_digits_count());
+            assert_eq!(d.op_signals(), signals);
+        }
+        
+        #[rstest(::trace)]
+        #[case($dec!(1),                   $dec!(3),                  $dec!(0.333333333333333333333333333333333333334), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9),                  $dec!(0.111111111111111111111111111111111111112), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9.09),               $dec!(0.110011001100110011001100110011001100110), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(9.009),              $dec!(0.111000111000111000111000111000111000111), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1),                   $dec!(7),                  $dec!(0.142857142857142857142857142857142857143), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1.2345678),           $dec!(1.9876543),          $dec!(0.62111796804907171231939075119853588222), signals![!ROUND, !INEXACT])]
+        fn test_div_128_round_up(
+            #[case] a: $D,
+            #[case] b: $D,
+            #[case] expected: $D,
+            #[case] signals: Signal
+        ) {
+            let ctx = Context::default().with_rounding_mode(Up);
+            let d = a.with_ctx(ctx) / b.with_ctx(ctx);
+            
+            assert_eq!(d, expected);
+            assert_eq!(d.fractional_digits_count(), expected.fractional_digits_count());
+            assert_eq!(d.op_signals(), signals);
         }
     };
     (COMMON:: 128, $dec: ident, $D: ident) => {
@@ -156,10 +181,20 @@ macro_rules! test_impl {
         #[case($dec!(4.0), $dec!(2), $dec!(2.0))]
         #[case($dec!(15.0), $dec!(3), $dec!(5.0))]
         #[case($dec!(1), $dec!(2), $dec!(0.5))]
+        #[case($dec!(1.0), $dec!(2), $dec!(0.5))]
+        #[case($dec!(1.00), $dec!(2), $dec!(0.50))]
+        #[case($dec!(1.000), $dec!(2), $dec!(0.500))]
+        #[case($dec!(1.0000), $dec!(2), $dec!(0.5000))]
+        #[case($dec!(1.00000), $dec!(2), $dec!(0.50000))]
+        #[case($dec!(1.000000), $dec!(2), $dec!(0.500000))]
+        #[case($dec!(1.0000000), $dec!(2), $dec!(0.5000000))]
+        #[case($dec!(2.00), $dec!(1.00), $dec!(2))]
         #[case($dec!(1), $dec!(4), $dec!(0.25))]
         #[case($dec!(1), $dec!(8), $dec!(0.125))]
-        #[case($dec!(1), $dec!(25), $dec!(0.04))]
         #[case($dec!(2), $dec!(16), $dec!(0.125))]
+        #[case($dec!(1), $dec!(25), $dec!(0.04))]
+        #[case($dec!(1), $dec!(32), $dec!(0.03125))]
+        #[case($dec!(1), $dec!(64), $dec!(0.015625))]
         #[case($dec!(1), $dec!(1024), $dec!(0.0009765625))]
         #[case($dec!(1), $dec!(2e-2), $dec!(5e1))]
         #[case($dec!(1), $dec!(0.2), $dec!(5))]
@@ -170,10 +205,48 @@ macro_rules! test_impl {
         #[case($dec!(5), $dec!(4.000), $dec!(1.25))]
         #[case($dec!(5), $dec!(4), $dec!(125e-2))]
         #[case($dec!(100), $dec!(5), $dec!(20))]
+        #[case($dec!(240), $dec!(1000), $dec!(0.24))]
+        #[case($dec!(3e0), $dec!(2e0), $dec!(1.5))]
+        #[case($dec!(30e-1), $dec!(2e0), $dec!(1.5))]
+        #[case($dec!(300e-2), $dec!(2e0), $dec!(1.50))]
+        #[case($dec!(3000e-3), $dec!(2e0), $dec!(1.500))]
+        #[case($dec!(3e0), $dec!(20e-1), $dec!(1.5))]
+        #[case($dec!(30e-1), $dec!(20e-1), $dec!(1.5))]
+        #[case($dec!(300e-2), $dec!(20e-1), $dec!(1.5))]
+        #[case($dec!(3000e-3), $dec!(20e-1), $dec!(1.50))]
+        #[case($dec!(3e0), $dec!(200e-2), $dec!(1.5))]
+        #[case($dec!(30e-1), $dec!(200e-2), $dec!(1.5))]
+        #[case($dec!(300e-2), $dec!(200e-2), $dec!(1.5))]
+        #[case($dec!(3000e-3), $dec!(200e-2), $dec!(1.5))]
+        #[case($dec!(3e0), $dec!(2000e-3), $dec!(1.5))]
+        #[case($dec!(30e-1), $dec!(2000e-3), $dec!(1.5))]
+        #[case($dec!(300e-2), $dec!(2000e-3), $dec!(1.5))]
+        #[case($dec!(3000e-3), $dec!(2000e-3), $dec!(1.5))]
+        #[case($dec!(2.4), $dec!(1), $dec!(2.4))]
+        #[case($dec!(2.40), $dec!(1), $dec!(2.40))]
+        #[case($dec!(2.400), $dec!(1), $dec!(2.400))]
+        #[case($dec!(2.4), $dec!(2), $dec!(1.2))]
+        #[case($dec!(2.400), $dec!(2), $dec!(1.200))]
+        #[case($dec!(2.), $dec!(2), $dec!(1))]
+        #[case($dec!(20), $dec!(20), $dec!(1))]
         #[case($dec!(500549251119075878721813), $dec!(209481029831), $dec!(2389472934723))]
         #[case($dec!(500549251119075878721813), $dec!(2389472934723), $dec!(209481029831))]
         #[case($dec!(15.22756), $dec!(1.234), $dec!(12.34))]
         #[case($dec!(15.22756), $dec!(12.34), $dec!(1.234))]
+        #[case($dec!(187), $dec!(187), $dec!(1))]
+        #[case($dec!(5), $dec!(2), $dec!(2.5))]
+        #[case($dec!(50), $dec!(20), $dec!(2.5))]
+        #[case($dec!(500), $dec!(200), $dec!(2.5))]
+        #[case($dec!(50.0), $dec!(20.0), $dec!(2.5))]
+        #[case($dec!(5.00), $dec!(2.00), $dec!(2.5))]
+        #[case($dec!(5), $dec!(2.0), $dec!(2.5))]
+        #[case($dec!(5), $dec!(2.000), $dec!(2.5))]
+        #[case($dec!(5), $dec!(0.20), $dec!(25))]
+        #[case($dec!(5), $dec!(0.200), $dec!(25))]
+        #[case($dec!(10), $dec!(1), $dec!(10))]
+        #[case($dec!(100), $dec!(1), $dec!(100))]
+        #[case($dec!(1000), $dec!(1), $dec!(1000))]
+        #[case($dec!(1000), $dec!(100), $dec!(10))]
         #[case($D::MAX, $D::MAX, $dec!(1))]
         fn test_div(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
             let prod = a / b;
@@ -235,9 +308,7 @@ macro_rules! test_impl {
         #[should_panic(expected = "(fastnum) underflow was occurred while performing arithmetic operation")]
         fn test_div_underflow_panic(#[case] a: $D, #[case] b: $D) {
             let ctx = Context::default().with_signal_traps(SignalsTraps::default().set(Signal::OP_UNDERFLOW));
-            let _ = with_context!(ctx, {
-                a / b
-            });
+            let _ = a.with_ctx(ctx) / b.with_ctx(ctx);
         }
 
         #[rstest(::trace)]
@@ -271,6 +342,27 @@ macro_rules! test_impl {
         #[case($D::MIN, $D::MIN, $dec!(1))]
         #[case($dec!(-50), $dec!(5), $dec!(-10))]
         #[case($dec!(200), $dec!(-5), $dec!(-40.))]
+        #[case($dec!(-2.4), $dec!(1), $dec!(-2.4))]
+        #[case($dec!(-2.4), $dec!(-1), $dec!(2.4))]
+        #[case($dec!(2.4), $dec!(-1), $dec!(-2.4))]
+        #[case($dec!(1), $dec!(-2), $dec!(-0.5))]
+        #[case($dec!(1), $dec!(-4), $dec!(-0.25))]
+        #[case($dec!(1), $dec!(-8), $dec!(-0.125))]
+        #[case($dec!(1), $dec!(-16), $dec!(-0.0625))]
+        #[case($dec!(1), $dec!(-32), $dec!(-0.03125))]
+        #[case($dec!(1), $dec!(-64), $dec!(-0.015625))]
+        #[case($dec!(-1), $dec!(2), $dec!(-0.5))]
+        #[case($dec!(-1), $dec!(4), $dec!(-0.25))]
+        #[case($dec!(-1), $dec!(8), $dec!(-0.125))]
+        #[case($dec!(-1), $dec!(16), $dec!(-0.0625))]
+        #[case($dec!(-1), $dec!(32), $dec!(-0.03125))]
+        #[case($dec!(-1), $dec!(64), $dec!(-0.015625))]
+        #[case($dec!(-1), $dec!(-2), $dec!(0.5))]
+        #[case($dec!(-1), $dec!(-4), $dec!(0.25))]
+        #[case($dec!(-1), $dec!(-8), $dec!(0.125))]
+        #[case($dec!(-1), $dec!(-16), $dec!(0.0625))]
+        #[case($dec!(-1), $dec!(-32), $dec!(0.03125))]
+        #[case($dec!(-1), $dec!(-64), $dec!(0.015625))]
         fn test_div_signed(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
             let res = a / b;
 

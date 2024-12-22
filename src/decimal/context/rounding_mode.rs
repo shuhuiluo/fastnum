@@ -1,10 +1,13 @@
+use core::fmt::{Debug, Display, Formatter};
+
+use crate::utils::assert_eq_size;
+
 include!(concat!(env!("OUT_DIR"), "/default_rounding_mode.rs"));
 
 /// Determines how to calculate the last digit of the number
 ///
-/// Default rounding mode is `HalfUp`
-///
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+/// Default rounding mode is `HalfUp`.
+#[derive(Clone, Copy, Hash, PartialEq, Eq)]
 pub enum RoundingMode {
     /// Always round away from zero
     ///
@@ -90,7 +93,6 @@ pub enum RoundingMode {
     /// * -1.6 → -2.0
     /// * -2.5 → -2.0
     /// * -5.5 → -6.0
-    ///
     HalfEven,
 }
 
@@ -106,3 +108,26 @@ impl RoundingMode {
         DEFAULT_ROUNDING_MODE
     }
 }
+
+impl Display for RoundingMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        let rm = match self {
+            RoundingMode::Up => "Up",
+            RoundingMode::Down => "Down",
+            RoundingMode::Ceiling => "Ceiling",
+            RoundingMode::Floor => "Floor",
+            RoundingMode::HalfUp => "HalfUp",
+            RoundingMode::HalfDown => "HalfDown",
+            RoundingMode::HalfEven => "HalfEven",
+        };
+        f.write_str(rm)
+    }
+}
+
+impl Debug for RoundingMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+assert_eq_size!(RoundingMode, u8);

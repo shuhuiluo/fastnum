@@ -15,10 +15,11 @@ pub(crate) mod udec;
 mod category;
 mod context;
 mod sign;
+mod flags;
 mod signals;
 
-#[doc(hidden)]
-mod flags;
+#[cfg(debug_assertions)]
+mod assertions;
 
 #[allow(dead_code)]
 pub(crate) mod utils;
@@ -28,18 +29,13 @@ pub(crate) mod errors;
 #[macro_use]
 mod macros;
 
-#[cfg(feature = "test-util")]
-pub use flags::Flags;
-
-#[cfg(not(feature = "test-util"))]
-pub(crate) use flags::Flags;
-
 pub use category::Category;
 pub use context::{Context, RoundingMode, SignalsTraps};
 pub use dec::Decimal;
-pub use errors::ParseError;
+pub use errors::{ParseError, DecimalError};
 pub use sign::Sign;
 pub use signals::Signal;
+pub use flags::Flags;
 pub use udec::UnsignedDecimal;
 
 use crate::decimal::doc::decimal_type_doc;

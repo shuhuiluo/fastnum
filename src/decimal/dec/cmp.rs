@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use crate::{
-    decimal::{dec::normalize::normalize, Decimal},
+    decimal::{dec::scale::reduce, Decimal},
     int::UInt,
 };
 
@@ -30,10 +30,8 @@ pub(crate) const fn eq<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> bool {
         (false, false) => {}
     }
 
-    let lhs = normalize(*lhs);
-    let rhs = normalize(*rhs);
-
-    // TODO
+    let lhs = reduce(*lhs);
+    let rhs = reduce(*rhs);
 
     (lhs.scale == rhs.scale) && (lhs.digits.eq(&rhs.digits))
 }
@@ -68,8 +66,8 @@ const fn cmp_magnitude<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
         (_, _) => {}
     }
 
-    let a = normalize(*lhs);
-    let b = normalize(*rhs);
+    let a = reduce(*lhs);
+    let b = reduce(*rhs);
 
     if a.scale == b.scale {
         return a.digits.cmp(&b.digits);

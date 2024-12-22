@@ -8,7 +8,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D};
+            use fastnum::{*, decimal::*};
             
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
@@ -17,7 +17,7 @@ macro_rules! test_impl {
     (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D};
+            use fastnum::{*, decimal::*};
             
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
@@ -413,8 +413,8 @@ macro_rules! test_impl {
                 #[case(1, $dec!(1))]
                 #[case(10, $dec!(10))]
                 #[case(100, $dec!(100))]
-                #[case($Pt::MAX, $D::from_str(format!("{}", $Pt::MAX).as_str()).unwrap())]
-                #[case($Pt::MAX - 1, $D::from_str(format!("{}", $Pt::MAX).as_str()).unwrap() - $dec!(1))]
+                #[case($Pt::MAX, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap())]
+                #[case($Pt::MAX - 1, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap() - $dec!(1))]
                 fn [< test_from_ $Pt >](#[case] n: $Pt, #[case] expected: $D) {
                     let d = $D::from(n);
                     assert_eq!(d, expected);
@@ -430,8 +430,8 @@ macro_rules! test_impl {
                 #[case(1, $dec!(1))]
                 #[case(10, $dec!(10))]
                 #[case(100, $dec!(100))]
-                #[case($Pt::MAX, $D::from_str(format!("{}", $Pt::MAX).as_str()).unwrap())]
-                #[case($Pt::MAX - 1, $D::from_str(format!("{}", $Pt::MAX).as_str()).unwrap() - $dec!(1))]
+                #[case($Pt::MAX, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap())]
+                #[case($Pt::MAX - 1, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap() - $dec!(1))]
                 fn [< test_from_ $Pt >](#[case] n: $Pt, #[case] expected: $D) {
                     let d = $D::try_from(n).unwrap();
                     assert_eq!(d, expected);
@@ -455,8 +455,8 @@ macro_rules! test_impl {
                 #[case(-1, $dec!(-1))]
                 #[case(-10, $dec!(-10))]
                 #[case(-100, $dec!(-100))]
-                #[case($Pt::MIN, $D::from_str(format!("{}", $Pt::MIN).as_str()).unwrap())]
-                #[case($Pt::MIN + 1, $D::from_str(format!("{}", $Pt::MIN).as_str()).unwrap() + $dec!(1))]
+                #[case($Pt::MIN, $D::from_str(format!("{}", $Pt::MIN).as_str(), Context::default()).unwrap())]
+                #[case($Pt::MIN + 1, $D::from_str(format!("{}", $Pt::MIN).as_str(), Context::default()).unwrap() + $dec!(1))]
                 fn [< test_from_ $Pt >](#[case] n: $Pt, #[case] expected: $D) {
                     let d = $D::from(n);
                     assert_eq!(d, expected);

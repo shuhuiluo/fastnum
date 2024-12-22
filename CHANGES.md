@@ -4,6 +4,29 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.4] – 2024-12-22
+
+The main goals of this release are:
+
+- Stabilize API for more stringent compliance with the recommendations of IEEE 754 and IEEE 854 standards.
+- Refactor decimal module and simplify context usage.
+
+### Breaking changes
+
+* Remove [`Context`] from a most methods argument list and put it into decimal control block for better context
+  handling.
+  Now [`Context`] is a property of any Decimal number instance.
+
+### Added
+
+* Extend test coverage.
+
+### Changed
+
+* Documentation improvements.
+* Deprecate and replace some outdated methods to align with the updated structure and functionality.
+* Benchmarks were modularized into separate operations, enhancing clarity and maintainability.
+
 ## [0.1.3] – 2024-12-16
 
 ### Added

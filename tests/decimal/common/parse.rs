@@ -8,7 +8,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $uint: ident, $D: ident, $U: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$uint, $D, $U};
+            use fastnum::{*, decimal::*};
             
             super::test_impl!(COMMON:: $bits, $uint, $D, $U, THIS);
             super::test_impl!(UNSIGNED:: $bits, $uint, $D, $U, THIS);
@@ -17,7 +17,7 @@ macro_rules! test_impl {
     (SIGNED: $bits: tt, $dec: ident, $uint: ident, $D: ident, $U: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{decimal::Sign, $uint, $D, $U};
+            use fastnum::{*, decimal::*};
             
             super::test_impl!(COMMON:: $bits, $uint, $D, $U, THIS);
             super::test_impl!(SIGNED:: $bits, $uint, $D, $U, THIS);
@@ -33,7 +33,7 @@ macro_rules! test_impl {
         #[case("13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095", $uint!(13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095), 0)]
         #[case("1340780792994259709957402499820584612747936582.0592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095", $uint!(13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095), -109)]
         fn test_parse_ok_512(#[case] s: &str, #[case] _int: $U, #[case] exp: i16) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert_eq!(dec.digits(), _int);
             assert_eq!(dec.fractional_digits_count(), -exp);
             assert!(dec.is_op_ok());
@@ -44,7 +44,7 @@ macro_rules! test_impl {
         #[case("13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095.1")]
         #[should_panic(expected = "(fastnum) number too large to fit in target type")]
         fn test_parse_overflow_512(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
     };
     (UNSIGNED:: 512, $uint: ident, $D: ident, $U: ident, THIS) => {
@@ -64,7 +64,7 @@ macro_rules! test_impl {
         #[case("115792089237316195423570985008687907853269984665640564039457584007913129639935.1")]
         #[should_panic(expected = "(fastnum) number too large to fit in target type")]
         fn test_parse_overflow_256(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
 
     };
@@ -79,7 +79,7 @@ macro_rules! test_impl {
         #[case("115792089237316195423570985008687907853269984665640564039457584007913129639935", $uint!(115792089237316195423570985008687907853269984665640564039457584007913129639935), 0)]
         #[case("1157920892373161954235709850086.87907853269984665640564039457584007913129639935", $uint!(115792089237316195423570985008687907853269984665640564039457584007913129639935), -47)]
         fn test_parse_ok_256(#[case] s: &str, #[case] _int: $U, #[case] exp: i16) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert_eq!(dec.digits(), _int);
             assert_eq!(dec.fractional_digits_count(), -exp);
             assert!(dec.is_op_ok());
@@ -109,7 +109,7 @@ macro_rules! test_impl {
         #[case("115792089237316195423570985008687907853269984665640564039457584007913129639935.1")]
         #[should_panic(expected = "(fastnum) number too large to fit in target type")]
         fn test_parse_overflow_128(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
 
     };
@@ -163,7 +163,7 @@ macro_rules! test_impl {
         #[case("34028236692093846346337460743176821145.5e1000", $uint!(340282366920938463463374607431768211455), 999)]
         #[case("340282366920938463.463374607431768211455e-1000", $uint!(340282366920938463463374607431768211455), -1021)]
         fn test_parse_ok(#[case] s: &str, #[case] _int: $U, #[case] exp: i16) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert_eq!(dec.digits(), _int);
             assert_eq!(dec.fractional_digits_count(), -exp);
             assert!(dec.is_op_ok());
@@ -174,7 +174,7 @@ macro_rules! test_impl {
         #[case::nan("NAN")]
         #[case::nan("NaN")]
         fn test_parse_nan(#[case] s: &str) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert!(dec.is_nan());
         }
         
@@ -183,7 +183,7 @@ macro_rules! test_impl {
         #[case::nan("+Inf")]
         #[case::nan("+Infinity")]
         fn test_parse_inf(#[case] s: &str) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert!(dec.is_infinite());
             assert_eq!(dec, $D::INFINITY);
         }
@@ -199,7 +199,7 @@ macro_rules! test_impl {
         #[case::only_exponent("e4")]
         #[should_panic(expected = "(fastnum) cannot parse decimal from empty string")]
         fn test_parse_empty(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
 
         #[rstest(::trace)]
@@ -220,7 +220,7 @@ macro_rules! test_impl {
         #[case::invalid_exponent("123.34e-1.5")]
         #[should_panic(expected = "(fastnum) invalid literal found in string")]
         fn test_parse_invalid_digit(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
 
         #[rstest(::trace)]
@@ -228,7 +228,7 @@ macro_rules! test_impl {
         #[case("1e9223372036854775809")]
         #[should_panic(expected = "(fastnum) exponent is too large to fit in target type")]
         fn test_parse_exponent_overflow(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
     };
     (UNSIGNED:: 128, $uint: ident, $D: ident, $U: ident, THIS) => {
@@ -242,7 +242,7 @@ macro_rules! test_impl {
         #[case::minus_sign("-1.434343")]
         #[should_panic(expected = "(fastnum) number would be signed for unsigned type")]
         fn test_parse_unsigned(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
     };
     (SIGNED:: 128, $uint: ident, $D: ident, $U: ident, THIS) => {
@@ -256,7 +256,7 @@ macro_rules! test_impl {
         #[case("-115792089237316195423570985008687907853269984665640564039457584007913129639935.1")]
         #[should_panic(expected = "(fastnum) number too small to fit in target type")]
         fn test_parse_overflow_128_signed(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
     };
     (SIGNED:: 128, $uint: ident, $D: ident, $U: ident) => {
@@ -277,7 +277,7 @@ macro_rules! test_impl {
             #[case] _int: $U,
             #[case] exp: i16,
         ) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert_eq!(dec.digits(), _int);
             assert_eq!(dec.sign(), sign);
             assert_eq!(dec.fractional_digits_count(), -exp);
@@ -288,7 +288,7 @@ macro_rules! test_impl {
         #[case::nan("-Infinity")]
         #[case::nan("-Inf")]
         fn test_parse_inf_neg(#[case] s: &str) {
-            let dec = $D::from_str(s).unwrap();
+            let dec = $D::from_str(s, Context::default()).unwrap();
             assert!(dec.is_infinite());
             assert_eq!(dec, $D::NEG_INFINITY);
         }
@@ -301,7 +301,7 @@ macro_rules! test_impl {
         #[case("+-35.55")]
         #[should_panic(expected = "(fastnum) invalid literal found in string")]
         fn test_parse_invalid_signed(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
 
         #[rstest(::trace)]
@@ -309,7 +309,7 @@ macro_rules! test_impl {
         #[case::invalid_exponent("-1e-9223372036854775808")]
         #[should_panic(expected = "(fastnum) exponent is too large to fit in target type")]
         fn test_parse_exponent_overflow_signed(#[case] s: &str) {
-            let _ = $D::from_str(s).unwrap();
+            let _ = $D::from_str(s, Context::default()).unwrap();
         }
     };
 }

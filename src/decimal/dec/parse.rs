@@ -1,19 +1,25 @@
 use core::str::from_utf8_unchecked;
 
 use crate::{
-    decimal::{Decimal, Flags, ParseError},
+    decimal::{
+        dec::{construct::construct, ControlBlock},
+        Context, Decimal, DecimalError, ParseError, Sign,
+    },
     int::UInt,
 };
 
 /// Creates and initializes a Decimal from string.
-pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, ParseError> {
+pub(crate) const fn from_str<const N: usize>(
+    s: &str,
+    ctx: Context,
+) -> Result<Decimal<N>, ParseError> {
     if s.is_empty() {
         return Err(ParseError::Empty);
     }
 
     let buf = s.as_bytes();
     let len = buf.len();
-    let mut flags = Flags::default();
+    let mut cb = ControlBlock::default().set_context(ctx);
 
     let mut i = 0;
 
@@ -23,7 +29,7 @@ pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, Pars
             i = 1;
         }
         b'-' => {
-            flags = flags.neg();
+            cb = cb.neg();
             i = 1;
         }
         b'n' | b'N' => {
@@ -40,11 +46,7 @@ pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, Pars
 
     // Parse special cases Inf/Infinity
     if bytes_equal_ci(buf.split_at(i).1, b"inf") || bytes_equal_ci(buf.split_at(i).1, b"infinity") {
-        return if flags.is_negative() {
-            Ok(Decimal::NEG_INFINITY)
-        } else {
-            Ok(Decimal::INFINITY)
-        };
+        return Ok(Decimal::INFINITY.with_cb(cb));
     }
 
     let mut decimal_offset: Option<i32> = None;
@@ -112,12 +114,12 @@ pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, Pars
         } else if digits_count > 0 {
             let multiplier = UInt::from_digit(base(digits_count as u64));
             let Some(v) = value.checked_mul(multiplier) else {
-                return Err(overflow(flags));
+                return Err(overflow(cb.sign()));
             };
 
             let next = UInt::from_digit(n);
             let Some(v) = v.checked_add(next) else {
-                return Err(overflow(flags));
+                return Err(overflow(cb.sign()));
             };
 
             value = v;
@@ -145,15 +147,29 @@ pub(crate) const fn from_str<const N: usize>(s: &str) -> Result<Decimal<N>, Pars
         }
     }
 
-    // TODO: Adjust scale & subnormal & etc 
-    let scale = match make_scale(decimal_offset, exponent_value) {
-        Ok(scale) => scale,
+    let exp = match make_exp(decimal_offset, exponent_value) {
+        Ok(exp) => exp,
         Err(e) => {
             return Err(e);
         }
     };
 
-    Ok(Decimal::new(value, scale, flags))
+    let dec = construct(value, exp, cb);
+
+    if dec.is_nan() {
+        return Err(ParseError::Unknown);
+    } else if dec.is_infinite() {
+        return Err(overflow(dec.sign()));
+    }
+
+    match dec.ok_or_err() {
+        Ok(dec) => Ok(dec),
+        Err(e) => Err(match e {
+            DecimalError::Overflow => overflow(dec.sign()),
+            DecimalError::Underflow => overflow(dec.sign()),
+            _ => ParseError::Unknown,
+        }),
+    }
 }
 
 macro_rules! from_float_impl {
@@ -167,21 +183,21 @@ macro_rules! from_float_impl {
 
             let b = to_bits(n);
 
-            let flags = if b & SIGN_MASK != 0 {
-                Flags::NEG
+            let cb = if b & SIGN_MASK != 0 {
+                ControlBlock::default().neg()
             } else {
-                Flags::EMPTY
+                ControlBlock::default()
             };
 
             let frac = b & MAN_MASK;
             let exp = b & EXP_MASK;
 
             if frac == 0 && exp == EXP_MASK {
-                return Ok(Decimal::INFINITY.with_flags(flags));
+                return Ok(Decimal::INFINITY.with_cb(cb));
             }
 
             if frac == 0 && exp == 0 {
-                return Ok(Decimal::ZERO.with_flags(flags));
+                return Ok(Decimal::ZERO.with_cb(cb));
             }
 
             if exp == 0 {
@@ -199,7 +215,7 @@ macro_rules! from_float_impl {
                 };
                 let scale = Subnormal::<N>::POW as i16;
 
-                Ok(Decimal::new(result, scale, flags))
+                Ok(Decimal::new(result, scale, cb))
             } else {
                 // normal
 
@@ -249,7 +265,7 @@ macro_rules! from_float_impl {
                     scale = 0;
                 }
 
-                Ok(Decimal::new(result, scale, flags))
+                Ok(Decimal::new(result, scale, cb))
             }
         }
     };
@@ -274,36 +290,27 @@ const fn checked_usize_i32(u: usize) -> Option<i32> {
 }
 
 #[inline]
-const fn i32_i16(u: i32) -> Result<i16, ParseError> {
-    let min = i16::MIN as i32;
-    let max = i16::MAX as i32;
-    if u < min || u > max {
-        Err(ParseError::ExponentOverflow)
-    } else {
-        Ok(u as i16)
-    }
-}
-
-#[inline]
-const fn make_scale(
+const fn make_exp(
     decimal_offset: Option<i32>,
     exponent_value: Option<i32>,
-) -> Result<i16, ParseError> {
-    let decimal_offset = match decimal_offset {
-        Some(decimal_offset) => decimal_offset,
-        None => 0,
+) -> Result<i32, ParseError> {
+    let decimal_offset = if let Some(decimal_offset) = decimal_offset {
+        decimal_offset
+    } else {
+        0
     };
 
-    let exponent_value = match exponent_value {
-        Some(exponent_value) => exponent_value,
-        None => 0,
+    let exponent_value = if let Some(exponent_value) = exponent_value {
+        exponent_value
+    } else {
+        0
     };
 
-    let Some(scale) = decimal_offset.checked_sub(exponent_value) else {
+    let Some(exp) = exponent_value.checked_sub(decimal_offset) else {
         return Err(ParseError::ExponentOverflow);
     };
 
-    i32_i16(scale)
+    Ok(exp)
 }
 
 #[inline]
@@ -371,15 +378,10 @@ const fn bytes_equal_ci(lhs: &[u8], rhs: &[u8]) -> bool {
 }
 
 #[inline(always)]
-const fn overflow(flags: Flags) -> ParseError {
-    if flags.is_negative() {
+const fn overflow(sign: Sign) -> ParseError {
+    if matches!(sign, Sign::Minus) {
         ParseError::NegOverflow
     } else {
         ParseError::PosOverflow
     }
 }
-
-// #[inline]
-// const fn str_equal_ci(lhs: &str, rhs: &str) -> bool {
-//     bytes_equal_ci(lhs.as_bytes(), rhs.as_bytes())
-// }

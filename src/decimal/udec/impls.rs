@@ -1,6 +1,3 @@
-pub(super) mod consts;
-
-// Trait implementations
 mod cmp;
 mod default;
 mod fmt;

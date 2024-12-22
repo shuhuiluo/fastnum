@@ -1,17 +1,19 @@
+mod consts;
 mod extras;
 mod impls;
-
-use impls::consts::consts_impl;
 
 use core::cmp::Ordering;
 
 use crate::{
-    decimal::{doc, Category, Context, Decimal, Flags, ParseError, RoundingMode},
+    decimal::{
+        doc, udec::consts::consts_impl, Category, Context, Decimal, DecimalError, Flags,
+        ParseError, RoundingMode, Signal,
+    },
     int::UInt,
 };
 
-#[allow(unused_imports)]
-use crate::decimal::Signal;
+#[cfg(feature = "dev")]
+use crate::decimal::Sign;
 
 /// # Unsigned Decimal
 ///
@@ -23,20 +25,36 @@ pub struct UnsignedDecimal<const N: usize>(Decimal<N>);
 consts_impl!();
 
 impl<const N: usize> UnsignedDecimal<N> {
+    /// Creates and initializes unsigned decimal from parts.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{*, decimal::*};
+    ///
+    /// assert_eq!(UD256::from_parts(u256!(12345), -4, Context::default()), udec256!(1.2345));
+    /// ```
+    #[cfg(feature = "dev")]
+    #[must_use]
+    #[inline]
+    pub const fn from_parts(digits: UInt<N>, exp: i32, ctx: Context) -> Self {
+        Self::from_signed(Decimal::from_parts(digits, exp, Sign::Plus, ctx))
+    }
+
     /// Creates and initializes an unsigned decimal from string.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{UD256, udec256, decimal::ParseError};
+    /// use fastnum::{*, decimal::*};
     ///
-    /// assert_eq!(UD256::from_str("1.2345"), Ok(udec256!(1.2345)));
-    /// assert_eq!(UD256::from_str("-1.2345"), Err(ParseError::Signed));
+    /// assert_eq!(UD256::from_str("1.2345", Context::default()), Ok(udec256!(1.2345)));
+    /// assert_eq!(UD256::from_str("-1.2345", Context::default()), Err(ParseError::Signed));
     /// ```
     #[track_caller]
     #[inline]
-    pub const fn from_str(s: &str) -> Result<Self, ParseError> {
-        match Decimal::<N>::from_str(s) {
+    pub const fn from_str(s: &str, ctx: Context) -> Result<Self, ParseError> {
+        match Decimal::<N>::from_str(s, ctx) {
             Ok(d) => {
                 if d.is_negative() {
                     Err(ParseError::Signed)
@@ -57,22 +75,26 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// use fastnum::{UD256, udec256};
+    /// Basic usage:
     ///
-    /// assert_eq!(UD256::parse_str("1.2345"), udec256!(1.2345));
     /// ```
+    /// use fastnum::{*, decimal::*};
+    ///
+    /// assert_eq!(UD256::parse_str("1.2345", Context::default()), udec256!(1.2345));
+    /// ```
+    ///
+    /// Should panic:
     ///
     /// ```should_panic
-    /// use fastnum::{UD256, udec256};
+    /// use fastnum::{*, decimal::*};
     ///
-    /// let _ = UD256::parse_str("-1.2345");
+    /// let _ = UD256::parse_str("-1.2345", Context::default());
     /// ```
     #[track_caller]
     #[must_use]
     #[inline]
-    pub const fn parse_str(s: &str) -> Self {
-        match Self::from_str(s) {
+    pub const fn parse_str(s: &str, ctx: Context) -> Self {
+        match Self::from_str(s, ctx) {
             Ok(n) => n,
             Err(e) => panic!("{}", e.description()),
         }
@@ -180,11 +202,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// ```
     /// use fastnum::{*, decimal::*};
     ///
-    /// let res = with_context!(Context::default().with_signal_traps(SignalsTraps::empty()), {
-    ///     let a = udec256!(1.0);
-    ///     let b = udec256!(0);
-    ///     a / b
-    /// });
+    /// let ctx = Context::default().without_traps();
+    /// let res = udec256!(1.0).with_ctx(ctx) / udec256!(0).with_ctx(ctx);
     ///
     /// assert!(res.is_op_div_by_zero());
     /// ```
@@ -264,7 +283,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     #[must_use]
     #[inline]
     pub const fn op_signals(&self) -> Signal {
-        self.0.op_signals()
+        self.signals()
     }
 
     /// Return the decimal category of the number.
@@ -419,9 +438,26 @@ impl<const N: usize> UnsignedDecimal<N> {
         self.0.is_nan()
     }
 
+    /// Apply [Context] to the given decimal number.
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn with_ctx(mut self, ctx: Context) -> Self {
+        self.0 = self.0.with_ctx(ctx);
+        self
+    }
+
+    /// Apply [RoundingMode] to the given decimal number.
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn with_rounding_mode(mut self, rm: RoundingMode) -> Self {
+        self.0 = self.0.with_rounding_mode(rm);
+        self
+    }
+
     /// _Deprecated_, use [`quantum`](Self::quantum) instead.
     #[must_use]
-    #[deprecated(since = "0.1.2", note = "Use `quantum` instead")]
+    #[deprecated(since = "0.1.2")]
+    #[track_caller]
     #[inline]
     pub const fn from_scale(exp: i16) -> Self {
         Self::quantum(exp as i32, Context::default())
@@ -434,7 +470,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{UD256, udec256, decimal::Context};
+    /// use fastnum::{*, decimal::*};
     ///
     /// let ctx = Context::default();
     ///
@@ -444,6 +480,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// assert_eq!(UD256::quantum(3, ctx), udec256!(1000));
     /// ```
     #[must_use]
+    #[track_caller]
     #[inline]
     pub const fn quantum(exp: i32, ctx: Context) -> Self {
         Self::new(Decimal::<N>::quantum(exp, ctx))
@@ -461,13 +498,24 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// assert_eq!(a.digits(), u256!(1234500));
     /// assert_eq!(a.fractional_digits_count(), 0);
     ///
-    /// let b = a.normalized(Context::default());
+    /// let b = a.reduce();
     /// assert_eq!(b.digits(), u256!(12345));
     /// assert_eq!(b.fractional_digits_count(), -2);
     /// ```
     #[must_use = doc::must_use_op!()]
-    pub const fn normalized(self, ctx: Context) -> Self {
-        Self::new(self.0.normalized(ctx))
+    #[track_caller]
+    #[inline]
+    pub const fn reduce(self) -> Self {
+        Self::new(self.0.reduce())
+    }
+
+    /// _Deprecated_, use [`reduce`](Self::reduce) instead.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[deprecated(since = "0.1.4")]
+    #[inline]
+    pub const fn normalized(self) -> Self {
+        self.reduce()
     }
 
     /// Invert sign of the given unsigned decimal.
@@ -687,26 +735,24 @@ impl<const N: usize> UnsignedDecimal<N> {
 
     /// Calculates `self` + `rhs`.
     ///
-    /// Returns the result of addition and [emergency
-    /// flags](crate#arithmetic-result). Is internally used by the `+`
-    /// operator.
-    ///
+    /// Is internally used by the `+` operator.
+    #[doc = doc::decimal_operation_panics!("addition operation")]
     /// # Examples
     ///
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::Context};
+    /// use fastnum::*;
     ///
     /// let a = UD256::ONE;
     /// let b = UD256::TWO;
     ///
-    /// let c = a.add(b, Context::default());
+    /// let c = a + b;
     /// assert_eq!(c, udec256!(3));
     /// ```
     ///
     /// ```should_panic
-    /// use fastnum::{udec256, UD256};
+    /// use fastnum::*;
     ///
     /// let a = UD256::MAX;
     /// let b = UD256::MAX;
@@ -714,33 +760,32 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a + b;
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn add(self, rhs: Self, ctx: Context) -> Self {
-        Self::new(self.0.add(rhs.0, ctx))
+    pub const fn add(self, rhs: Self) -> Self {
+        Self::new(self.0.add(rhs.0))
     }
 
-    /// Calculates `self` - `rhs`.
+    /// Calculates `self` – `rhs`.
     ///
-    /// Returns the result of subtraction and [emergency
-    /// flags](crate#arithmetic-result). Is internally used by the `-`
-    /// operator.
-    ///
+    /// Is internally used by the `-` operator.
+    #[doc = doc::decimal_operation_panics!("subtract operation")]
     /// # Examples
     ///
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::{Context, RoundingMode}};
+    /// use fastnum::*;
     ///
     /// let a = UD256::FIVE;
     /// let b = UD256::TWO;
     ///
-    /// let c = a.sub(b, Context::default());
+    /// let c = a - b;
     /// assert_eq!(c, udec256!(3));
     /// ```
     ///
     /// ```should_panic
-    /// use fastnum::{udec256, UD256};
+    /// use fastnum::*;
     ///
     /// let a = UD256::ZERO;
     /// let b = UD256::ONE;
@@ -748,34 +793,33 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a - b;
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn sub(self, rhs: Self, ctx: Context) -> Self {
-        let res = self.0.sub(rhs.0, ctx);
-        Self::from_signed(res, ctx)
+    pub const fn sub(self, rhs: Self) -> Self {
+        let res = self.0.sub(rhs.0);
+        Self::from_signed(res)
     }
 
     /// Calculates `self` × `rhs`.
     ///
-    /// Returns the result of multiplication and [emergency
-    /// flags](crate#arithmetic-result). Is internally used by the `*`
-    /// operator.
-    ///
+    /// Is internally used by the `*` operator.
+    #[doc = doc::decimal_operation_panics!("multiplication operation")]
     /// # Examples
     ///
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::{Context, RoundingMode}};
+    /// use fastnum::*;
     ///
     /// let a = UD256::FIVE;
     /// let b = UD256::TWO;
     ///
-    /// let c = a.mul(b, Context::default());
+    /// let c = a * b;
     /// assert_eq!(c, udec256!(10));
     /// ```
     ///
     /// ```should_panic
-    /// use fastnum::{udec256, UD256};
+    /// use fastnum::*;
     ///
     /// let a = UD256::MAX;
     /// let b = UD256::MAX;
@@ -783,33 +827,32 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a * b;
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn mul(self, rhs: Self, ctx: Context) -> Self {
-        Self::new(self.0.mul(rhs.0, ctx))
+    pub const fn mul(self, rhs: Self) -> Self {
+        Self::new(self.0.mul(rhs.0))
     }
 
     /// Calculates `self` ÷ `rhs`.
     ///
-    /// Returns the result of division and [emergency
-    /// flags](crate#arithmetic-result). Is internally used by the `/`
-    /// operator.
-    ///
+    /// Is internally used by the `/` operator.
+    #[doc = doc::decimal_operation_panics!("divide operation")]
     /// # Examples
     ///
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::{Context, RoundingMode}};
+    /// use fastnum::*;
     ///
     /// let a = UD256::FIVE;
     /// let b = UD256::TWO;
     ///
-    /// let c = a.div(b, Context::default());
+    /// let c = a / b;
     /// assert_eq!(c, udec256!(2.5));
     /// ```
     ///
     /// ```should_panic
-    /// use fastnum::{udec256, UD256};
+    /// use fastnum::*;
     ///
     /// let a = UD256::ONE;
     /// let b = UD256::ZERO;
@@ -817,97 +860,166 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a / b;
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn div(self, rhs: Self, ctx: Context) -> Self {
-        Self::new(self.0.div(rhs.0, ctx))
+    pub const fn div(self, rhs: Self) -> Self {
+        Self::new(self.0.div(rhs.0))
     }
 
     /// Calculates `self` % `rhs`.
     ///
-    /// Returns the result of division reminder and [emergency
-    /// flags](crate#arithmetic-result). Is internally used by the `%`
-    /// operator.
-    ///
+    /// Is internally used by the `%` operator.
+    #[doc = doc::decimal_operation_panics!("reminder operation")]
     /// # Examples
     ///
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::{Context, RoundingMode}};
+    /// use fastnum::*;
     ///
     /// let a = UD256::FIVE;
     /// let b = UD256::TWO;
     ///
-    /// let c = a.rem(b, Context::default());
+    /// let c = a % b;
     /// assert_eq!(c, udec256!(1));
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn rem(self, rhs: Self, ctx: Context) -> Self {
-        Self::new(self.0.rem(rhs.0, ctx))
+    pub const fn rem(self, rhs: Self) -> Self {
+        Self::new(self.0.rem(rhs.0))
     }
 
-    /// Return the given unsigned decimal number rounded to `digits` precision
-    /// after the decimal point, using given [RoundingMode].
-    ///
-    /// # Panics:
-    ///
-    /// This method will panic if round operation (up-scale or down-scale)
-    /// performs with some signaling flags and specified
-    /// [Context] enjoin to panic when the corresponding flag occurs.
-    ///
+    /// Returns the given decimal number rounded to `digits` precision after the
+    /// decimal point, using [RoundingMode] from it [Context].
+    #[doc = doc::decimal_operation_panics!("round operation (up-scale or down-scale)")]
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{udec256, decimal::RoundingMode};
+    /// use fastnum::{*, decimal::{*, RoundingMode::*}};
     ///
     /// let n = udec256!(129.41675);
     ///
-    /// assert_eq!(n.round(2, RoundingMode::Up),  udec256!(129.42));
-    /// assert_eq!(n.round(-1, RoundingMode::Down),  udec256!(120));
-    /// assert_eq!(n.round(4, RoundingMode::HalfEven),  udec256!(129.4168));
+    /// // Default rounding mode is `HalfUp`
+    /// assert_eq!(n.round(2),  udec256!(129.42));
+    ///
+    /// assert_eq!(n.with_rounding_mode(Up).round(2), udec256!(129.42));
+    /// assert_eq!(n.with_rounding_mode(Down).round(-1), udec256!(120));
+    /// assert_eq!(n.with_rounding_mode(HalfEven).round(4), udec256!(129.4168));
     /// ```
+    /// See also:
+    /// - More about [`round`](crate#rounding) decimals.
+    /// - [RoundingMode].
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn round(self, digits: i16, rounding_mode: RoundingMode) -> Self {
-        Self::new(self.0.round(digits, rounding_mode))
+    pub const fn round(self, digits: i16) -> Self {
+        Self::new(self.0.round(digits))
     }
 
-    /// Returns the given unsigned decimal number _re-scaled_ to `digits`
-    /// precision after the decimal point, using given [Context].
-    ///
-    /// # Panics:
-    ///
-    /// This method will panic if a _re-scale_ operation performs with some
-    /// signaling flags and specified [Context] enjoin to panic when the
-    /// corresponding flag occurs.
-    ///
-    /// ```
-    /// use fastnum::{udec256, decimal::{RoundingMode, Context}};
-    ///
-    /// let n = udec256!(129.41675);
-    ///
-    /// assert_eq!(n.with_scale(2, Context::default().with_rounding_mode(RoundingMode::Up)),  udec256!(129.42));
-    /// assert_eq!(n.with_scale(-1, Context::default().with_rounding_mode(RoundingMode::Down)),  udec256!(120));
-    /// assert_eq!(n.with_scale(4, Context::default().with_rounding_mode(RoundingMode::HalfEven)),  udec256!(129.4168));
-    /// ```
+    /// _Deprecated_, use [`rescale`](Self::rescale) instead.
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
-    pub const fn with_scale(self, new_scale: i16, ctx: Context) -> Self {
-        Self::new(self.0.with_scale(new_scale, ctx))
+    #[deprecated(since = "0.1.4")]
+    pub const fn with_scale(self, new_scale: i16) -> Self {
+        Self::rescale(self, new_scale)
     }
 
-    /// Returns
-    /// - `None` if the given decimal value is [`NaN`] or [`Infinity`], or at
-    ///   least one signaling flag is set.
-    /// - `Some(Self)` otherwise.
+    /// Returns the given decimal number _re-scaled_ to `digits` precision after
+    /// the decimal point.
+    #[doc = doc::decimal_operation_panics!("rescale operation")]
+    /// # Examples
     ///
-    /// [`Infinity`]: crate#special-values
-    /// [`NaN`]: crate#special-values
+    /// ```
+    /// use fastnum::{*, decimal::*};
+    ///
+    /// assert_eq!(udec256!(2.17).rescale(3), udec256!(2.170));
+    /// assert_eq!(udec256!(2.17).rescale(2), udec256!(2.17));
+    /// assert_eq!(udec256!(2.17).rescale(1), udec256!(2.2));
+    /// assert_eq!(udec256!(2.17).rescale(0), udec256!(2));
+    /// assert_eq!(udec256!(2.17).rescale(-1), udec256!(0));
+    ///
+    /// let ctx = Context::default().without_traps();
+    ///
+    /// assert!(UD256::INFINITY.with_ctx(ctx).rescale(2).is_nan());
+    /// assert!(UD256::NAN.with_ctx(ctx).rescale(1).is_nan());
+    /// ```
+    ///
+    /// See also:
+    /// - More about [`rescale`](crate#rescale) decimals.
+    /// - [Self::quantize].
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn rescale(mut self, new_scale: i16) -> Self {
+        self.0 = self.0.rescale(new_scale);
+        self
+    }
+
+    /// Returns a value equal to `self` (rounded), having the exponent of
+    /// `other`.
+    #[doc = doc::decimal_operation_panics!("quantize operation")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::{*, decimal::*};
+    ///
+    /// let ctx = Context::default().without_traps();
+    ///
+    /// assert_eq!(udec256!(2.17).quantize(udec256!(0.001)), udec256!(2.170));
+    /// assert_eq!(udec256!(2.17).quantize(udec256!(0.01)), udec256!(2.17));
+    /// assert_eq!(udec256!(2.17).quantize(udec256!(0.1)), udec256!(2.2));
+    /// assert_eq!(udec256!(2.17).quantize(udec256!(1e+0)), udec256!(2));
+    /// assert_eq!(udec256!(2.17).quantize(udec256!(1e+1)), udec256!(0));
+    ///
+    /// assert_eq!(UD256::INFINITY.quantize(UD256::INFINITY), UD256::INFINITY);
+    ///
+    /// assert!(udec256!(2).with_ctx(ctx).quantize(UD256::INFINITY).is_nan());
+    ///
+    /// assert_eq!(udec256!(0.1).quantize(udec256!(1)), udec256!(0));
+    /// assert_eq!(udec256!(0).quantize(udec256!(1e+5)), udec256!(0E+5));
+    ///
+    /// assert!(udec128!(0.34028).with_ctx(ctx).quantize(udec128!(1e-32765)).is_nan());
+    ///
+    /// assert_eq!(udec256!(217).quantize(udec256!(1e-1)), udec256!(217.0));
+    /// assert_eq!(udec256!(217).quantize(udec256!(1e+0)), udec256!(217));
+    /// assert_eq!(udec256!(217).quantize(udec256!(1e+1)), udec256!(2.2E+2));
+    /// assert_eq!(udec256!(217).quantize(udec256!(1e+2)), udec256!(2E+2));
+    /// ```
+    ///
+    /// See also:
+    /// - More about [`quantize`](crate#quantize) decimals.
+    /// - [Self::rescale].
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn quantize(mut self, other: Self) -> Self {
+        self.0 = self.0.quantize(other.0);
+        self
+    }
+
+    /// Returns:
+    /// - `true` if no [Exceptional condition] [Signal] flag has been trapped by
+    ///   [Context] trap-enabler, and
+    /// - `false` otherwise.
+    ///
+    /// [Exceptional condition]: crate#signaling-flags-and-trap-enablers
+    #[inline(always)]
+    pub const fn is_ok(&self) -> bool {
+        self.0.is_ok()
+    }
+
+    /// Returns:
+    /// - `Some(Self)` if no [Exceptional condition] [Signal] flag has been
+    ///   trapped by [Context] trap-enabler, and
+    /// - `None` otherwise.
+    ///
+    /// [Exceptional condition]: crate#signaling-flags-and-trap-enablers
     #[must_use]
     #[inline]
     pub const fn ok(self) -> Option<Self> {
-        if self.flags().is_special() || self.flags().has_signals() {
+        if self.is_ok() {
             None
         } else {
             Some(self)
@@ -924,11 +1036,12 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let n = udec256!(12345678);
     /// assert_eq!(&n.to_scientific_notation(), "1.2345678e7");
     /// ```
+    #[inline]
     pub fn to_scientific_notation(&self) -> String {
         self.0.to_scientific_notation()
     }
 
-    /// Create string of this unsigned decimal in engineering notation.
+    /// Create a string of this unsigned decimal in engineering notation.
     ///
     /// Engineering notation is scientific notation with the exponent
     /// coerced to a multiple of three.
@@ -941,6 +1054,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let n = udec256!(12345678);
     /// assert_eq!(&n.to_engineering_notation(), "12.345678e6");
     /// ```
+    #[inline]
     pub fn to_engineering_notation(&self) -> String {
         self.0.to_engineering_notation()
     }
@@ -948,24 +1062,21 @@ impl<const N: usize> UnsignedDecimal<N> {
 
 #[doc(hidden)]
 impl<const N: usize> UnsignedDecimal<N> {
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn new(dec: Decimal<N>) -> Self {
         debug_assert!(!dec.is_negative());
         Self(dec)
     }
 
     #[inline]
-    pub(crate) const fn from_signed(dec: Decimal<N>, _ctx: Context) -> Self {
+    pub(crate) const fn from_signed(mut dec: Decimal<N>) -> Self {
         if dec.is_negative() {
-            #[cfg(debug_assertions)]
-            panic!(crate::utils::err_msg!(
-                "operation has negative result for unsigned type"
-            ));
-            #[cfg(not(debug_assertions))]
-            Self::new(Decimal::NAN.with_signals_from_and(&dec, Signal::OP_INVALID))
-        } else {
-            Self::new(dec)
+            dec = Decimal::NAN
+                .compound_and_raise(&dec, Signal::OP_INVALID)
+                .check();
         }
+
+        Self::new(dec)
     }
 
     #[inline]
@@ -973,8 +1084,27 @@ impl<const N: usize> UnsignedDecimal<N> {
         format!("UD{}", N * 64)
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn flags(&self) -> Flags {
         self.0.flags()
+    }
+
+    #[inline(always)]
+    pub(crate) const fn signals(&self) -> Signal {
+        self.0.signals()
+    }
+
+    #[inline(always)]
+    pub(crate) const fn context(&self) -> Context {
+        self.0.context()
+    }
+
+    #[inline]
+    #[allow(dead_code)]
+    pub(crate) const fn ok_or_err(self) -> Result<Self, DecimalError> {
+        match self.0.ok_or_err() {
+            Ok(ok) => Ok(Self::new(ok)),
+            Err(e) => Err(e),
+        }
     }
 }

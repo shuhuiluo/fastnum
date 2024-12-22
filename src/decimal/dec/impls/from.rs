@@ -1,5 +1,8 @@
 use crate::{
-    decimal::{dec::parse, Decimal, Flags, ParseError},
+    decimal::{
+        dec::{parse, ControlBlock},
+        Decimal, ParseError,
+    },
     int::UInt,
 };
 
@@ -10,7 +13,7 @@ macro_rules! from_uint {
             {
                 #[inline]
                 fn from(n: $uint) -> Self {
-                    Self::new(UInt::from(n), 0, Flags::default())
+                    Self::new(UInt::from(n), 0, ControlBlock::default())
                 }
             }
         )*
@@ -23,14 +26,14 @@ macro_rules! from_int {
             impl<const N: usize> From<$int> for Decimal<N> {
                 #[inline]
                 fn from(n: $int) -> Self {
-                    let flags =
+                    let cb =
                     if n.is_negative() {
-                        Flags::default().neg()
+                        ControlBlock::default().neg()
                     } else {
-                        Flags::default()
+                        ControlBlock::default()
                     };
 
-                    Self::new(UInt::from(n.unsigned_abs()), 0, flags)
+                    Self::new(UInt::from(n.unsigned_abs()), 0, cb)
                 }
             }
         )*
