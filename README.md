@@ -1,6 +1,8 @@
 # fastnum
 
+[![GitHub](https://img.shields.io/badge/GitHub-neogenie/fastnum-default?logo=github)](https://github.com/neogenie/fastnum)
 [![Crates.io](https://img.shields.io/crates/v/fastnum.svg)](https://crates.io/crates/fastnum)
+[![Crates.io](https://img.shields.io/crates/d/fastnum.svg)](https://crates.io/crates/fastnum)
 [![doc.rs](https://img.shields.io/docsrs/fastnum)](https://docs.rs/fastnum/latest/fastnum)
 ![MSRV](https://img.shields.io/static/v1?label=MSRV&message=1.82&color=blue&logo=rust)
 
@@ -257,7 +259,7 @@ The current Minimum Supported Rust Version (MSRV) is `1.82.0`.
 **NB**: `fastnum` is currently pre-`1.0.0`. As per
 the [Semantic Versioning guidelines](https://semver.org/#spec-item-4),
 the public API may contain breaking changes while it is in this stage. However, as the API is designed to be as similar
-as possible to the API of Rust's primitive integers, it is unlikely that there will be a large number of breaking
+as possible to the API of Rust's primitive types, it is unlikely that there will be a large number of breaking
 changes.
 
 ## Compile-Time Configuration

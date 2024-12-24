@@ -1,4 +1,5 @@
 pub(crate) mod cmp;
+pub(crate) mod consts;
 pub(crate) mod extras;
 pub(crate) mod fmt;
 pub(crate) mod from;

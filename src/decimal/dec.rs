@@ -82,7 +82,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn from_str(s: &str, ctx: Context) -> Result<Self, ParseError> {
-        parse::from_str(s, ctx)
+        parse::from_slice(s.as_bytes(), ctx)
     }
 
     /// Parse decimal from string.

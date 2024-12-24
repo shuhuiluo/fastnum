@@ -9,15 +9,14 @@ use crate::{
 };
 
 /// Creates and initializes a Decimal from string.
-pub(crate) const fn from_str<const N: usize>(
-    s: &str,
+pub(crate) const fn from_slice<const N: usize>(
+    buf: &[u8],
     ctx: Context,
 ) -> Result<Decimal<N>, ParseError> {
-    if s.is_empty() {
+    if buf.is_empty() {
         return Err(ParseError::Empty);
     }
 
-    let buf = s.as_bytes();
     let len = buf.len();
     let mut cb = ControlBlock::default().set_context(ctx);
 

@@ -1,3 +1,5 @@
+mod float_const;
+
 use num_traits::{ConstOne, ConstZero, FromPrimitive, Num, One, ToPrimitive, Zero};
 
 use crate::decimal::{Context, ParseError, UnsignedDecimal};

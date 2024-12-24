@@ -1,3 +1,4 @@
+mod float_const;
 mod from_primitive;
 mod to_primitive;
 
@@ -85,6 +86,3 @@ impl<const N: usize> Signed for Decimal<N> {
 //
 // }
 //
-// impl<const N: usize> FloatConst for Decimal<N> {
-//
-// }

@@ -213,6 +213,12 @@ common.
 
 [`±Infinity`]: #infinity
 
+[`+∞`]: #infinity
+
+[`-∞`]: #infinity
+
+[`∞`]: #infinity
+
 `±Infinity` – a value representing a number whose magnitude is infinitely large (see [IEEE 754] §3.2 and §6.1).
 
 When a number has one of these special values, its coefficient and exponent are undefined.
@@ -1256,6 +1262,55 @@ incremented by `1` (rounded up) if its rightmost digit is odd (to make an even d
 * `-1.6` → `-2.0`
 * `-2.5` → `-2.0`
 * `-5.5` → `-6.0`
+
+## Base and mathematical constants
+
+[`π`]: https://en.wikipedia.org/wiki/Pi
+
+[`e`]: https://en.wikipedia.org/wiki/E_(mathematical_constant)
+
+[`τ = 2π`]: https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals
+
+|      Const       |                                    Value                                     |                           Signed                            |                              Unsigned                               |
+|:----------------:|:----------------------------------------------------------------------------:|:-----------------------------------------------------------:|:-------------------------------------------------------------------:|
+|      `NAN`       |                                   [`NaN`]                                    |            [`NAN`](crate::decimal::Decimal::NAN)            |            [`NAN`](crate::decimal::UnsignedDecimal::NAN)            |
+|    `INFINITY`    |                                    [`+∞`]                                    |       [`INFINITY`](crate::decimal::Decimal::INFINITY)       |       [`INFINITY`](crate::decimal::UnsignedDecimal::INFINITY)       |
+|  `NEG_INFINITY`  |                                    [`-∞`]                                    |   [`NEG_INFINITY`](crate::decimal::Decimal::NEG_INFINITY)   |                                                                     |
+|      `MIN`       | _0_ for unsigned and _-(2<sup>N</sup> - 1) × 10<sup>32'768</sup>_ for signed |            [`MIN`](crate::decimal::Decimal::MIN)            |            [`MIN`](crate::decimal::UnsignedDecimal::MIN)            |
+|      `MAX`       |                 _(2<sup>N</sup> - 1) × 10<sup>32'768</sup>_                  |            [`MAX`](crate::decimal::Decimal::MAX)            |            [`MAX`](crate::decimal::UnsignedDecimal::MAX)            |
+|      `ZERO`      |                                     _0_                                      |           [`ZERO`](crate::decimal::Decimal::ZERO)           |           [`ZERO`](crate::decimal::UnsignedDecimal::ZERO)           |
+|      `ONE`       |                                     _1_                                      |            [`ONE`](crate::decimal::Decimal::ONE)            |            [`ONE`](crate::decimal::UnsignedDecimal::ONE)            |
+|       ...        |                                                                              |                                                             |                                                                     |
+|      `TEN`       |                                     _10_                                     |            [`TEN`](crate::decimal::Decimal::TEN)            |            [`TEN`](crate::decimal::UnsignedDecimal::TEN)            |
+|       `PI`       |                         Archimedes' constant _[`π`]_                         |             [`PI`](crate::decimal::Decimal::PI)             |             [`PI`](crate::decimal::UnsignedDecimal::PI)             |
+|       `E`        |                            Euler's number _[`e`]_                            |              [`E`](crate::decimal::Decimal::E)              |              [`E`](crate::decimal::UnsignedDecimal::E)              |
+|      `TAU`       |                    The full circle constant _[`τ = 2π`]_                     |            [`TAU`](crate::decimal::Decimal::TAU)            |            [`TAU`](crate::decimal::UnsignedDecimal::TAU)            |
+|   `FRAC_1_PI`    |                                 _1 / [`π`]_                                  |      [`FRAC_1_PI`](crate::decimal::Decimal::FRAC_1_PI)      |      [`FRAC_1_PI`](crate::decimal::UnsignedDecimal::FRAC_1_PI)      |
+|   `FRAC_2_PI`    |                                 _2 / [`π`]_                                  |      [`FRAC_2_PI`](crate::decimal::Decimal::FRAC_2_PI)      |      [`FRAC_2_PI`](crate::decimal::UnsignedDecimal::FRAC_2_PI)      |
+|   `FRAC_PI_2`    |                                 _[`π`] / 2_                                  |      [`FRAC_PI_2`](crate::decimal::Decimal::FRAC_PI_2)      |      [`FRAC_PI_2`](crate::decimal::UnsignedDecimal::FRAC_PI_2)      |
+|   `FRAC_PI_3`    |                                 _[`π`] / 3_                                  |      [`FRAC_PI_3`](crate::decimal::Decimal::FRAC_PI_3)      |      [`FRAC_PI_3`](crate::decimal::UnsignedDecimal::FRAC_PI_3)      |
+|   `FRAC_PI_4`    |                                 _[`π`] / 4_                                  |      [`FRAC_PI_4`](crate::decimal::Decimal::FRAC_PI_4)      |      [`FRAC_PI_4`](crate::decimal::UnsignedDecimal::FRAC_PI_4)      |
+|   `FRAC_PI_6`    |                                 _[`π`] / 6_                                  |      [`FRAC_PI_6`](crate::decimal::Decimal::FRAC_PI_6)      |      [`FRAC_PI_6`](crate::decimal::UnsignedDecimal::FRAC_PI_6)      |
+|   `FRAC_PI_8`    |                                 _[`π`] / 8_                                  |      [`FRAC_PI_8`](crate::decimal::Decimal::FRAC_PI_8)      |      [`FRAC_PI_8`](crate::decimal::UnsignedDecimal::FRAC_PI_8)      |
+| `FRAC_2_SQRT_PI` |                              _2 / sqrt([`π`])_                               | [`FRAC_2_SQRT_PI`](crate::decimal::Decimal::FRAC_2_SQRT_PI) | [`FRAC_2_SQRT_PI`](crate::decimal::UnsignedDecimal::FRAC_2_SQRT_PI) |
+|      `LN_2`      |                                   _ln(2)_                                    |           [`LN_2`](crate::decimal::Decimal::LN_2)           |           [`LN_2`](crate::decimal::UnsignedDecimal::LN_2)           |
+|     `LN_10`      |                                   _ln(10)_                                   |          [`LN_10`](crate::decimal::Decimal::LN_10)          |          [`LN_10`](crate::decimal::UnsignedDecimal::LN_10)          |
+|     `LOG2_E`     |                             _log<sub>2</sub>(e)_                             |         [`LOG2_E`](crate::decimal::Decimal::LOG2_E)         |         [`LOG2_E`](crate::decimal::UnsignedDecimal::LOG2_E)         |
+|    `LOG10_E`     |                            _log<sub>10</sub>(e)_                             |        [`LOG10_E`](crate::decimal::Decimal::LOG10_E)        |        [`LOG10_E`](crate::decimal::UnsignedDecimal::LOG10_E)        |
+|     `SQRT_2`     |                                  _sqrt(2)_                                   |         [`SQRT_2`](crate::decimal::Decimal::SQRT_2)         |         [`SQRT_2`](crate::decimal::UnsignedDecimal::SQRT_2)         |
+| `FRAC_1_SQRT_2`  |                                _1 / sqrt(2)_                                 |  [`FRAC_1_SQRT_2`](crate::decimal::Decimal::FRAC_1_SQRT_2)  |  [`FRAC_1_SQRT_2`](crate::decimal::UnsignedDecimal::FRAC_1_SQRT_2)  |
+|    `LOG10_2`     |                            _log<sub>10</sub>(2)_                             |        [`LOG10_2`](crate::decimal::Decimal::LOG10_2)        |        [`LOG10_2`](crate::decimal::UnsignedDecimal::LOG10_2)        |
+|    `LOG2_10`     |                            _log<sub>2</sub>(10)_                             |        [`LOG2_10`](crate::decimal::Decimal::LOG2_10)        |        [`LOG2_10`](crate::decimal::UnsignedDecimal::LOG2_10)        |
+
+### Examples
+
+```                                                                                       
+use fastnum::{*, decimal::RoundingMode::*};     
+
+assert_eq!(D128::PI, dec128!(3.14159265358979323846264338327950288419));                       
+assert_eq!(D128::TAU, dec128!(2).with_rounding_mode(Down) * D128::PI);                       
+                                  
+```
 
 ## Formatting
 
