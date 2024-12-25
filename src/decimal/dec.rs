@@ -7,6 +7,7 @@ mod control_block;
 mod extras;
 mod format;
 mod impls;
+mod intrinsics;
 mod math;
 mod parse;
 mod scale;
@@ -17,8 +18,13 @@ use core::{cmp::Ordering, fmt, panic};
 
 use crate::{
     decimal::{
-        dec::consts::consts_impl, doc, Category, Context, DecimalError, Flags, ParseError,
-        RoundingMode, Sign, Signal, UnsignedDecimal,
+        dec::{
+            consts::consts_impl,
+            intrinsics::{clength, Intrinsics},
+            math::consts::Consts,
+        },
+        doc, Category, Context, DecimalError, Flags, ParseError, RoundingMode, Sign, Signal,
+        UnsignedDecimal,
     },
     int::UInt,
 };
@@ -27,6 +33,7 @@ use crate::{
 ///
 /// Generic signed N-bits decimal number.
 #[derive(Copy, Clone)]
+#[repr(C)]
 pub struct Decimal<const N: usize> {
     /// An N-bit unsigned integer coefficient. Represent significant decimal
     /// digits.
@@ -143,7 +150,7 @@ impl<const N: usize> Decimal<N> {
     #[must_use]
     #[inline]
     pub const fn digits_count(&self) -> usize {
-        math::utils::clength(self.digits) as usize
+        clength(self.digits) as usize
     }
 
     /// Return the scale of the `Decimal`, the total number of
@@ -1119,6 +1126,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// let c = a / b;
     /// ```
+    ///
     /// See more about [division](crate#division).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
@@ -1149,6 +1157,32 @@ impl<const N: usize> Decimal<N> {
     #[inline]
     pub const fn rem(self, rhs: Self) -> Self {
         math::rem::rem(self, rhs).check()
+    }
+
+    /// Raise a decimal number to an integer power.
+    ///
+    /// Using this function is generally faster than using `pow`
+    #[doc = doc::decimal_operation_panics!("power operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(2).powi(3), dec256!(8));
+    /// assert_eq!(dec256!(9).powi(2), dec256!(81));
+    /// assert_eq!(dec256!(1).powi(-2), dec256!(1));
+    /// assert_eq!(dec256!(10).powi(20), dec256!(1e20));
+    /// assert_eq!(dec256!(4).powi(-2), dec256!(0.0625));
+    /// ```
+    ///
+    /// See more about the [power](crate#power) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn powi(self, n: i32) -> Self {
+        math::pow::powi(self, n).check()
     }
 
     /// Returns the given decimal number rounded to `digits` precision after the
@@ -1284,6 +1318,53 @@ impl<const N: usize> Decimal<N> {
         } else {
             None
         }
+    }
+
+    /// Takes the reciprocal (inverse) of a number, `1/x`.
+    #[doc = doc::decimal_operation_panics!("inverse operation")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(2).recip(), dec256!(0.5));
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn recip(self) -> Self {
+        Self::ONE.div(self)
+    }
+
+    /// Converts radians to degrees.
+    #[doc = doc::decimal_operation_panics!("conversion")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::PI.to_degrees(), dec128!(180));
+    /// assert_eq!(D128::TAU.to_degrees(), dec128!(360));
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn to_degrees(self) -> Self {
+        self.div(Self::PI).mul(Consts::C_180)
+    }
+
+    /// Converts degrees to radians.
+    #[doc = doc::decimal_operation_panics!("conversion")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(180).to_radians(), D128::PI);
+    /// assert_eq!(dec128!(360).to_radians(), D128::PI + D128::PI);
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn to_radians(self) -> Self {
+        self.div(Consts::C_180).mul(Self::PI)
     }
 
     /// Create string of this decimal in scientific notation.

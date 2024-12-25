@@ -14,6 +14,16 @@ macro_rules! consts_impl {
             /// The largest value that can be represented by this decimal type (2<sup>N</sup> − 1)×10<sup>32'768</sup>.
             pub const MAX: Self = Self::new(Decimal::MAX);
             
+            /// The smallest positive, normalized value that this type can represent.
+            pub const MIN_POSITIVE: Self = Self::new(Decimal::MIN_POSITIVE);
+            
+            /// [Machine epsilon] value.
+            ///
+            /// This is the difference between `1.0` and the next larger representable number.
+            ///
+            /// [Machine epsilon]: https://en.wikipedia.org/wiki/Machine_epsilon
+            pub const EPSILON: Self = Self::new(Decimal::EPSILON);
+            
             consts_impl!(CONSTS ZERO 0, ONE 1, TWO 2, THREE 3, FOUR 4, FIVE 5, SIX 6, SEVEN 7, EIGHT 8, NINE 9, TEN 10);
             
             /// Euler's number (e).

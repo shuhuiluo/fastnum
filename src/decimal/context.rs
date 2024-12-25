@@ -14,6 +14,7 @@ use crate::{decimal::Signal, utils::assert_eq_size};
 /// the results of arithmetic operations (for example, the rounding mode when
 /// rounding occurs).
 #[derive(Copy, Clone, Hash, Eq, PartialEq)]
+#[repr(C)]
 pub struct Context {
     rounding_mode: RoundingMode,
     signal_traps: SignalsTraps,

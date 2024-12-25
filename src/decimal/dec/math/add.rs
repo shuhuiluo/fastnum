@@ -1,5 +1,6 @@
 use crate::decimal::{
     dec::{
+        intrinsics::Intrinsics,
         math::sub::sub_abs,
         scale::{extend_scale_to, rescale},
     },
@@ -79,7 +80,7 @@ const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
         lhs.compound(&rhs)
     } else {
         // TODO: forward to round
-        rhs.digits = D::<N>::COEFF_MEDIUM_PLUS_ONE;
+        rhs.digits = Intrinsics::<N>::COEFF_MEDIUM_PLUS_ONE;
         (rhs.scale, overflow) = rhs.scale.overflowing_sub(1);
 
         if overflow {

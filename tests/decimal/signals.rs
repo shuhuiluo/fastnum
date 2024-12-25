@@ -13,3 +13,8 @@ fn test_div_by_zero() {
     assert!(res.is_op_div_by_zero());
     assert!(res.is_op_invalid());
 }
+
+#[rstest(::trace)]
+fn test_x() {
+    
+}

@@ -8,6 +8,7 @@ include!(concat!(env!("OUT_DIR"), "/default_rounding_mode.rs"));
 ///
 /// Default rounding mode is `HalfUp`.
 #[derive(Clone, Copy, Hash, PartialEq, Eq)]
+#[repr(u8)]
 pub enum RoundingMode {
     /// Always round away from zero
     ///

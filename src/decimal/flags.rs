@@ -4,6 +4,7 @@ use crate::utils::assert_eq_size;
 
 /// Flags.
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct Flags(u8);
 
 #[doc(hidden)]

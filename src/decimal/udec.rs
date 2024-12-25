@@ -823,9 +823,9 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// let c = a * b;
     /// assert_eq!(c, udec256!(10));
     /// ```
-    /// 
+    ///
     /// Panics if overflowed:
-    /// 
+    ///
     /// ```should_panic
     /// use fastnum::*;
     ///
@@ -902,6 +902,32 @@ impl<const N: usize> UnsignedDecimal<N> {
     #[inline]
     pub const fn rem(self, rhs: Self) -> Self {
         Self::new(self.0.rem(rhs.0))
+    }
+
+    /// Raise an unsigned decimal number to an integer power.
+    ///
+    /// Using this function is generally faster than using `pow`
+    #[doc = doc::decimal_operation_panics!("power operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec256!(2).powi(3), udec256!(8));
+    /// assert_eq!(udec256!(9).powi(2), udec256!(81));
+    /// assert_eq!(udec256!(1).powi(-2), udec256!(1));
+    /// assert_eq!(udec256!(10).powi(20), udec256!(1e20));
+    /// assert_eq!(udec256!(4).powi(-2), udec256!(0.0625));
+    /// ```
+    ///
+    /// See more about the [power](crate#power) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn powi(self, n: i32) -> Self {
+        Self::new(self.0.powi(n))
     }
 
     /// Returns the given decimal number rounded to `digits` precision after the

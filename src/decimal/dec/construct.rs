@@ -1,7 +1,8 @@
 use crate::{
     decimal::{
         dec::{
-            math::utils::{clength, overflow, underflow},
+            intrinsics::{clength, Intrinsics, E_MAX, E_MIN},
+            math::utils::{overflow, underflow},
             ControlBlock,
         },
         Decimal, Signal,
@@ -18,19 +19,19 @@ pub(crate) const fn construct<const N: usize>(
     mut cb: ControlBlock,
 ) -> D<N> {
     // Overflow exp > Emax
-    if exp > D::<N>::E_MAX + (D::<N>::MAX_CLENGTH - 1) {
+    if exp > E_MAX + (Intrinsics::<N>::MAX_CLENGTH - 1) {
         return overflow(cb);
     }
 
     // Underflow exp < Emin
-    if exp < D::<N>::E_MIN {
+    if exp < E_MIN {
         return underflow(cb);
     }
 
     let c_length = clength(digits);
 
-    if exp <= D::<N>::E_MAX {
-        if exp < D::<N>::E_MIN + (c_length - 1) {
+    if exp <= E_MAX {
+        if exp < E_MIN + (c_length - 1) {
             cb = cb.raise_signal(Signal::OP_SUBNORMAL);
         }
 
@@ -41,8 +42,8 @@ pub(crate) const fn construct<const N: usize>(
         .raise_signal(Signal::OP_CLAMPED)
         .raise_signal(Signal::OP_ROUNDED);
 
-    while exp > D::<N>::E_MAX {
-        if digits.gt(&D::<N>::COEFF_MEDIUM) {
+    while exp > E_MAX {
+        if digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
             return D::INFINITY.with_cb(cb.raise_signal(Signal::OP_OVERFLOW));
         } else {
             digits = digits.strict_mul(UInt::<N>::TEN);

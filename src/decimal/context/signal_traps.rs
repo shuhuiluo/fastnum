@@ -8,6 +8,7 @@ use crate::decimal::Signal;
 ///  When a signal's trap enabler is set, the condition causes `panic!` in debug
 /// mode.
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct SignalsTraps(Signal);
 
 impl SignalsTraps {

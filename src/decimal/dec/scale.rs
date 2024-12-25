@@ -6,6 +6,7 @@ use crate::{
     },
     int::{math::div_rem, UInt},
 };
+use crate::decimal::dec::intrinsics::Intrinsics;
 
 type D<const N: usize> = Decimal<N>;
 
@@ -34,7 +35,7 @@ pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N>
     } else if new_scale > d.scale {
         // increase the number of zeros if it possible
         while new_scale > d.scale {
-            if d.digits.gt(&D::<N>::COEFF_MEDIUM) {
+            if d.digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
                 return d.raise_signal(Signal::OP_CLAMPED);
             } else {
                 d.digits = d.digits.strict_mul(UInt::<N>::TEN);

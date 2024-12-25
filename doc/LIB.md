@@ -747,15 +747,16 @@ assert_eq!(dec256!(1).with_ctx(ctx) / dec256!(-0).with_ctx(ctx), D256::NEG_INFIN
 
 All arithmetic operations over decimals are exact.
 
-| Operation |   Rust operator   |                   Unsigned                    |                                             Signed                                             |
-|-----------|:-----------------:|:---------------------------------------------:|:----------------------------------------------------------------------------------------------:|
-| abs       |         ➖         |                       ➖                       | [`abs`](crate::decimal::Decimal::abs), [`unsigned_abs`](crate::decimal::Decimal::unsigned_abs) |
-| add       | `a + b`, `a += b` | [`add`](crate::decimal::UnsignedDecimal::add) |                             [`add`](crate::decimal::Decimal::add)                              |
-| subtract  | `a - b`, `a -= b` | [`sub`](crate::decimal::UnsignedDecimal::sub) |                             [`sub`](crate::decimal::Decimal::sub)                              |
-| multiply  | `a * b`, `a *= b` | [`mul`](crate::decimal::UnsignedDecimal::mul) |                             [`mul`](crate::decimal::Decimal::mul)                              |
-| divide    | `a / b`, `a /= b` | [`div`](crate::decimal::UnsignedDecimal::div) |                             [`div`](crate::decimal::Decimal::div)                              |
-| remainder | `a % b`, `a %= b` | [`rem`](crate::decimal::UnsignedDecimal::rem) |                             [`rem`](crate::decimal::Decimal::rem)                              |
-| negation  |       `-a`        | [`neg`](crate::decimal::UnsignedDecimal::neg) |                             [`neg`](crate::decimal::Decimal::neg)                              |
+| Operation |   Rust operator   |                    Unsigned                    |                                             Signed                                             |
+|-----------|:-----------------:|:----------------------------------------------:|:----------------------------------------------------------------------------------------------:|
+| abs       |         ➖         |                       ➖                        | [`abs`](crate::decimal::Decimal::abs), [`unsigned_abs`](crate::decimal::Decimal::unsigned_abs) |
+| add       | `a + b`, `a += b` | [`add`](crate::decimal::UnsignedDecimal::add)  |                             [`add`](crate::decimal::Decimal::add)                              |
+| subtract  | `a - b`, `a -= b` | [`sub`](crate::decimal::UnsignedDecimal::sub)  |                             [`sub`](crate::decimal::Decimal::sub)                              |
+| multiply  | `a * b`, `a *= b` | [`mul`](crate::decimal::UnsignedDecimal::mul)  |                             [`mul`](crate::decimal::Decimal::mul)                              |
+| divide    | `a / b`, `a /= b` | [`div`](crate::decimal::UnsignedDecimal::div)  |                             [`div`](crate::decimal::Decimal::div)                              |
+| remainder | `a % b`, `a %= b` | [`rem`](crate::decimal::UnsignedDecimal::rem)  |                             [`rem`](crate::decimal::Decimal::rem)                              |
+| negation  |       `-a`        | [`neg`](crate::decimal::UnsignedDecimal::neg)  |                             [`neg`](crate::decimal::Decimal::neg)                              |
+| powi      |         ➖         | [`pow`](crate::decimal::UnsignedDecimal::powi) |                            [`powi`](crate::decimal::Decimal::powi)                             |
 
 #### Abs
 
@@ -899,6 +900,70 @@ assert_eq!(dec128!(7) * dec128!(3), dec128!(21));
 assert_eq!(dec128!(0.9) * dec128!(0.8), dec128!(0.72));
 assert_eq!(dec128!(0.9) * dec128!(-0), dec128!(-0.0));
 assert_eq!(dec128!(654321) * dec128!(654321), dec128!(4.28135971041E+11));
+```
+
+#### Power
+
+[Power]: #power
+
+[`powi(self, n)`](crate::decimal::Decimal::powi)
+
+If either operand is a [special value] then the [general rules] apply.
+
+The following rules apply:
+
+- If both operands are _zero_, or if the first operand is less than _zero_ and the second operand doesn't have an
+  integral value or is _infinite_, an [Invalid operation] condition is raised, the result is [`NaN`], and the
+  following rules don't apply.
+- If the first operand is _infinite_, the result will be exact and will be
+    - [`Infinity`] if the second operand is _positive_,
+    - `1` if the second operand is a _zero_, and
+    - `0` if the second operand is _negative_.
+- If the first operand is a _zero_, the result will be exact and will be
+    - [`Infinity`] if the second is negative or
+    - `0` if the second is positive.
+- If the second operand is a _zero_, the result will be `1` and exact.
+- In cases not covered above, the result will be inexact unless the second operator has an integral value and the result
+  is finite and can be expressed exactly within precision digits.
+  In this latter case, if the result is unrounded then its exponent will be that which would result if
+  the operation were calculated by repeated multiplication (if the second operand is negative then the reciprocal of the
+  first operand is used, with the absolute value of the second operand determining the multiplications).
+- Inexact finite results should be correctly rounded, but may be up to 1 ulp (unit in last place) in error.
+- The sign of the result will be `-` only if the second operand has an integral value and is odd (and is not _infinite_)
+  and also the sign of the first operand is `-`.
+  In all other cases, the sign of the result will be `0`.
+
+##### Notes:
+
+1. When the result is inexact, the cost of power at a given precision is likely to be at least twice as expensive as the
+   exp function (see notes under that function).
+2. An infinite result is always exact, as described in the general rules.
+3. [`powi()`](crate::decimal::Decimal::powi) is simpler power operation which only required support for integer powers.
+4. It can be argued that the special cases where one operand is zero and the other is
+   infinite (such as _power(`0`, [`Infinity`])_ and _power([`Infinity`], `0`)_) should return a [`NaN`],
+   whereas the specification above leads to results of `0` and `1` respectively for the two examples.
+   If [`NaN`] results are desired instead, then these special cases should be tested for before calling the
+   power operation.
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(dec256!(2).powi(3), dec256!(8));
+assert_eq!(dec256!(-2).powi(3), dec256!(-8));
+assert_eq!(dec256!(9).powi(2), dec256!(81));
+assert_eq!(dec256!(1).powi(-2), dec256!(1));
+assert_eq!(dec256!(10).powi(20), dec256!(1e20));
+assert_eq!(dec256!(4).powi(-2), dec256!(0.0625));
+assert_eq!(dec256!(2).powi(-3), dec256!(0.125));
+assert_eq!(D256::INFINITY.powi(-1), dec256!(0));
+assert_eq!(D256::INFINITY.powi(0), dec256!(1));
+assert_eq!(D256::INFINITY.powi(1), D256::INFINITY);
+assert_eq!(D256::NEG_INFINITY.powi(-1), dec256!(-0));
+assert_eq!(D256::NEG_INFINITY.powi(0), dec256!(1));
+assert_eq!(D256::NEG_INFINITY.powi(1), D256::NEG_INFINITY);
+assert_eq!(D256::NEG_INFINITY.powi(2), D256::INFINITY);
 ```
 
 ### Compare and ordering
@@ -1271,6 +1336,8 @@ incremented by `1` (rounded up) if its rightmost digit is odd (to make an even d
 
 [`τ = 2π`]: https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals
 
+[Machine epsilon]: https://en.wikipedia.org/wiki/Machine_epsilon
+
 |      Const       |                                    Value                                     |                           Signed                            |                              Unsigned                               |
 |:----------------:|:----------------------------------------------------------------------------:|:-----------------------------------------------------------:|:-------------------------------------------------------------------:|
 |      `NAN`       |                                   [`NaN`]                                    |            [`NAN`](crate::decimal::Decimal::NAN)            |            [`NAN`](crate::decimal::UnsignedDecimal::NAN)            |
@@ -1278,6 +1345,8 @@ incremented by `1` (rounded up) if its rightmost digit is odd (to make an even d
 |  `NEG_INFINITY`  |                                    [`-∞`]                                    |   [`NEG_INFINITY`](crate::decimal::Decimal::NEG_INFINITY)   |                                                                     |
 |      `MIN`       | _0_ for unsigned and _-(2<sup>N</sup> - 1) × 10<sup>32'768</sup>_ for signed |            [`MIN`](crate::decimal::Decimal::MIN)            |            [`MIN`](crate::decimal::UnsignedDecimal::MIN)            |
 |      `MAX`       |                 _(2<sup>N</sup> - 1) × 10<sup>32'768</sup>_                  |            [`MAX`](crate::decimal::Decimal::MAX)            |            [`MAX`](crate::decimal::UnsignedDecimal::MAX)            |
+|  `MIN_POSITIVE`  |                          _1 × 10<sup>-32'768</sup>_                          |   [`MIN_POSITIVE`](crate::decimal::Decimal::MIN_POSITIVE)   |   [`MIN_POSITIVE`](crate::decimal::UnsignedDecimal::MIN_POSITIVE)   |
+|    `EPSILON`     |                              [Machine epsilon]                               |        [`EPSILON`](crate::decimal::Decimal::EPSILON)        |        [`EPSILON`](crate::decimal::UnsignedDecimal::EPSILON)        |
 |      `ZERO`      |                                     _0_                                      |           [`ZERO`](crate::decimal::Decimal::ZERO)           |           [`ZERO`](crate::decimal::UnsignedDecimal::ZERO)           |
 |      `ONE`       |                                     _1_                                      |            [`ONE`](crate::decimal::Decimal::ONE)            |            [`ONE`](crate::decimal::UnsignedDecimal::ONE)            |
 |       ...        |                                                                              |                                                             |                                                                     |

@@ -194,6 +194,12 @@ impl ControlBlock {
         self
     }
 
+    #[inline(always)]
+    pub(crate) const fn with_flags(mut self, flags: Flags) -> Self {
+        self.flags = self.flags.combine(flags);
+        self
+    }
+
     #[inline]
     pub(crate) const fn compound(mut self, other: Self) -> Self {
         self.signals = self.signals.combine(other.signals);

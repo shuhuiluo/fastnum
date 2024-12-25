@@ -4,11 +4,31 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.7] – 2024-12-25
+
+### Fixed
+
+* Division by divisor with non-scalable coefficient.
+
+### Changed
+
+* More strict `#[repr]` for Decimal type.
+* Documentation improvements.
+
+### Added
+
+* Implement `num_traits::float::FloatCore` trait.
+* Add `MIN_POSITIVE` and `EPSILON` constants.
+* Add `.powi()`, `.recip()`, `.to_degrees()`, `.to_radians()` methods.
+
 ## [0.1.6] – 2024-12-24
 
 ### Changed
 
 * Documentation improvements.
+
+### Added
+
 * Add basic mathematical constants (`PI`, `E`, etc.).
 * Implement `num_traits::FloatConst` trait.
 

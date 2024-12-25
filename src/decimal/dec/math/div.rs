@@ -1,17 +1,16 @@
 use crate::{
     decimal::{
-        dec::{construct::construct, math::utils::overflow_exp},
+        dec::{construct::construct, intrinsics::Intrinsics, math::utils::overflow_exp},
         round::scale_round,
         Decimal, Signal,
     },
     int::{math::div_rem, UInt},
 };
-use crate::decimal::dec::math::utils::overflow_coeff;
 
 type D<const N: usize> = Decimal<N>;
 
 #[inline]
-pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
+pub(crate) const fn div<const N: usize>(dividend: D<N>, mut divisor: D<N>) -> D<N> {
     if dividend.is_nan() {
         return dividend.compound_and_raise(&divisor, Signal::OP_INVALID);
     }
@@ -20,7 +19,7 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
         return divisor.compound_and_raise(&dividend, Signal::OP_INVALID);
     }
 
-    let cb = dividend.cb.combine_mul(divisor.cb);
+    let mut cb = dividend.cb.combine_mul(divisor.cb);
 
     if dividend.is_infinite() && divisor.is_infinite() {
         return D::NAN.with_cb(cb.raise_signal(Signal::OP_INVALID));
@@ -46,17 +45,24 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
 
         if !remainder.is_zero() {
             let mut quotient;
+            let mut rounded;
 
             while !remainder.is_zero() {
-                (remainder, overflow) = remainder.overflowing_mul(UInt::TEN);
+                if remainder.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
+                    (divisor.digits, rounded) = scale_round(divisor.digits, cb.context());
 
-                if overflow {
-                    return overflow_coeff(exp, cb);
+                    if rounded {
+                        cb = cb
+                            .raise_signal(Signal::OP_INEXACT)
+                            .raise_signal(Signal::OP_ROUNDED);
+                    }
+                } else {
+                    remainder = remainder.strict_mul(UInt::TEN);
                 }
 
                 (quotient, remainder) = div_rem(remainder, divisor.digits);
 
-                if digits.gt(&D::<N>::COEFF_MEDIUM) {
+                if digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
                     // TODO: performance optimizations
                     let (digit, _) = scale_round(quotient, cb.context());
 

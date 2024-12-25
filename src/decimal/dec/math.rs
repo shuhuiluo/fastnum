@@ -1,8 +1,9 @@
 pub(crate) mod abs;
 pub(crate) mod add;
+pub(crate) mod consts;
 pub(crate) mod div;
 pub(crate) mod mul;
+pub(crate) mod pow;
 pub(crate) mod rem;
 pub(crate) mod sub;
 pub(crate) mod utils;
-pub(crate) mod consts;
