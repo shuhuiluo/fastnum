@@ -913,7 +913,7 @@ If either operand is a [special value] then the [general rules] apply.
 The following rules apply:
 
 - If both operands are _zero_, or if the first operand is less than _zero_ and the second operand doesn't have an
-  integral value or is _infinite_, an [Invalid operation] condition is raised, the result is [`NaN`], and the
+  integral value or is _infinite_, an [`Invalid operation`] condition is raised, the result is [`NaN`], and the
   following rules don't apply.
 - If the first operand is _infinite_, the result will be exact and will be
     - [`Infinity`] if the second operand is _positive_,

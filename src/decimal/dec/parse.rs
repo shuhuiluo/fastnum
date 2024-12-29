@@ -2,13 +2,14 @@ use core::str::from_utf8_unchecked;
 
 use crate::{
     decimal::{
-        dec::{construct::construct, ControlBlock},
+        dec::{construct::construct_with_clength, ControlBlock},
         Context, Decimal, DecimalError, ParseError, Sign,
     },
-    int::UInt,
+    int::{intrinsics::POWER, math::overflowing_mul10, UInt},
 };
 
 /// Creates and initializes a Decimal from string.
+#[inline]
 pub(crate) const fn from_slice<const N: usize>(
     buf: &[u8],
     ctx: Context,
@@ -48,9 +49,11 @@ pub(crate) const fn from_slice<const N: usize>(
         return Ok(Decimal::INFINITY.with_cb(cb));
     }
 
+    let mut clength = 0;
     let mut decimal_offset: Option<i32> = None;
     let mut exponent_value: Option<i32> = None;
     let mut dot = None;
+    let mut ovf;
 
     let mut is_first_digit = true;
 
@@ -99,10 +102,13 @@ pub(crate) const fn from_slice<const N: usize>(
                 }
             };
 
-            n = n * (RADIX as Digit) + d as Digit;
+            n = ((n + (n << 2)) << 1) + d as Digit;
+            // n = n * 10 + d as Digit;
             digits_count += 1;
             i += 1;
         }
+
+        clength += digits_count;
 
         if is_first_digit {
             if digits_count == 0 {
@@ -111,21 +117,22 @@ pub(crate) const fn from_slice<const N: usize>(
             value = UInt::from_digit(n);
             is_first_digit = false;
         } else if digits_count > 0 {
-            let multiplier = UInt::from_digit(base(digits_count as u64));
-            let Some(v) = value.checked_mul(multiplier) else {
+            (value, ovf) = overflowing_mul10(value, digits_count);
+
+            if ovf {
                 return Err(overflow(cb.sign()));
-            };
+            }
 
             let next = UInt::from_digit(n);
-            let Some(v) = v.checked_add(next) else {
-                return Err(overflow(cb.sign()));
-            };
+            (value, ovf) = value.overflowing_add(next);
 
-            value = v;
+            if ovf {
+                return Err(overflow(cb.sign()));
+            }
         }
 
         if let Some(current) = decimal_offset {
-            let Some(dig) = checked_usize_i32(digits_count) else {
+            let Some(dig) = checked_u32_i32(digits_count) else {
                 return Err(ParseError::ExponentOverflow);
             };
             let Some(current) = current.checked_add(dig) else {
@@ -133,10 +140,10 @@ pub(crate) const fn from_slice<const N: usize>(
             };
             decimal_offset = Some(current);
         } else if let Some(dot_pos) = dot {
-            let Some(dig) = checked_usize_i32(digits_count) else {
+            let Some(dig) = checked_u32_i32(digits_count) else {
                 return Err(ParseError::ExponentOverflow);
             };
-            let Some(pos) = checked_usize_i32(dot_pos) else {
+            let Some(pos) = checked_u32_i32(dot_pos) else {
                 return Err(ParseError::ExponentOverflow);
             };
             let Some(current) = dig.checked_sub(pos) else {
@@ -153,7 +160,7 @@ pub(crate) const fn from_slice<const N: usize>(
         }
     };
 
-    let dec = construct(value, exp, cb);
+    let dec = construct_with_clength(value, exp, cb, clength);
 
     if dec.is_nan() {
         return Err(ParseError::Unknown);
@@ -275,12 +282,9 @@ from_float_impl!(from_f64, f64);
 
 type Digit = u64;
 
-const RADIX: u8 = 10;
-const POWER: usize = 19;
-
 #[inline]
-const fn checked_usize_i32(u: usize) -> Option<i32> {
-    let max = i32::MAX as usize;
+const fn checked_u32_i32(u: u32) -> Option<i32> {
+    let max = i32::MAX as u32;
     if u > max {
         None
     } else {
@@ -331,33 +335,6 @@ const fn parse_exp(buf: &[u8], pos: usize) -> Result<i32, ParseError> {
                 _ => e,
             })
         }
-    }
-}
-
-#[inline]
-const fn base(n: Digit) -> Digit {
-    match n {
-        0 => 1,
-        1 => 10,
-        2 => 100,
-        3 => 1000,
-        4 => 10000,
-        5 => 100000,
-        6 => 1000000,
-        7 => 10000000,
-        8 => 100000000,
-        9 => 1000000000,
-        10 => 10000000000,
-        11 => 100000000000,
-        12 => 1000000000000,
-        13 => 10000000000000,
-        14 => 100000000000000,
-        15 => 1000000000000000,
-        16 => 10000000000000000,
-        17 => 100000000000000000,
-        18 => 1000000000000000000,
-        19 => 10000000000000000000,
-        _ => panic!("base number overflow"),
     }
 }
 

@@ -98,6 +98,7 @@ pub enum RoundingMode {
 }
 
 impl Default for RoundingMode {
+    #[inline(always)]
     fn default() -> Self {
         Self::default()
     }
@@ -105,6 +106,7 @@ impl Default for RoundingMode {
 
 impl RoundingMode {
     /// Returns default rounding mode.
+    #[inline(always)]
     pub const fn default() -> Self {
         DEFAULT_ROUNDING_MODE
     }

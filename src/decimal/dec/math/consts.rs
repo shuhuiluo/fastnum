@@ -79,6 +79,6 @@ const fn make_const<const N: usize>(str: &str) -> D<N> {
 }
 
 #[inline]
-const fn parse_const<const N: usize>(buf: &[u8], len: i32) -> Result<D<N>, ParseError> {
+const fn parse_const<const N: usize>(buf: &[u8], len: u32) -> Result<D<N>, ParseError> {
     parse::from_slice(buf.split_at(len as usize + 1).0, Context::default())
 }

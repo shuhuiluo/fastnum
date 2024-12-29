@@ -1,3 +1,9 @@
+mod ilog;
+mod mul;
+
+pub use ilog::ilog10;
+pub use mul::{overflowing_mul10, strict_mul10};
+
 use bnum::BUint;
 use core::cmp::Ordering;
 

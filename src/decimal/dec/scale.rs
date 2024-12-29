@@ -1,12 +1,18 @@
 use crate::{
     decimal::{
-        dec::{construct::construct, ControlBlock},
+        dec::{
+            construct::construct,
+            intrinsics::{clength, Intrinsics},
+            ControlBlock,
+        },
         round::scale_round,
         Context, Decimal, Signal,
     },
-    int::{math::div_rem, UInt},
+    int::{
+        math::{div_rem, strict_mul10},
+        UInt,
+    },
 };
-use crate::decimal::dec::intrinsics::Intrinsics;
 
 type D<const N: usize> = Decimal<N>;
 
@@ -33,16 +39,7 @@ pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N>
     if new_scale == d.scale {
         d
     } else if new_scale > d.scale {
-        // increase the number of zeros if it possible
-        while new_scale > d.scale {
-            if d.digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
-                return d.raise_signal(Signal::OP_CLAMPED);
-            } else {
-                d.digits = d.digits.strict_mul(UInt::<N>::TEN);
-                d.scale += 1;
-            }
-        }
-        d
+        rescale_up(d, new_scale)
     } else {
         // round
         d.cb = d.cb.raise_signal(Signal::OP_ROUNDED);
@@ -114,4 +111,38 @@ pub(crate) const fn quantize<const N: usize>(d: D<N>, other: D<N>) -> D<N> {
             res
         }
     }
+}
+
+#[inline]
+const fn rescale_up<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
+    debug_assert!(new_scale > d.scale);
+
+    let mpower = (new_scale as i32 - d.scale as i32) as u32;
+    let clength = clength(d.digits);
+    let max_gap = Intrinsics::<N>::MAX_CLENGTH - clength;
+
+    if max_gap < 1 {
+        return d.raise_signal(Signal::OP_CLAMPED);
+    }
+
+    if mpower < max_gap {
+        d.digits = strict_mul10(d.digits, mpower);
+        d.scale += mpower as i16;
+        return d;
+    }
+
+    if max_gap >= 2 {
+        d.digits = strict_mul10(d.digits, max_gap - 1);
+        d.scale += (max_gap - 1) as i16;
+    }
+
+    while new_scale > d.scale {
+        if d.digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
+            return d.raise_signal(Signal::OP_CLAMPED);
+        } else {
+            d.digits = d.digits.strict_mul(UInt::<N>::TEN);
+            d.scale += 1;
+        }
+    }
+    d
 }

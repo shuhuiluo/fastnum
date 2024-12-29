@@ -1,8 +1,9 @@
+pub(crate) mod intrinsics;
+pub(crate) mod math;
+
 /// Big unsigned integer generic type, of fixed size which must be known at
 /// compile time.
 pub type UInt<const N: usize> = bnum::BUint<N>;
-
-pub(crate) mod math;
 
 use crate::int::doc::int_type_doc;
 

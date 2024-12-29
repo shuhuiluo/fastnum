@@ -12,3 +12,4 @@ criterion_group!(parse, parse::from_str);
 criterion_group!(math, add::add, mul::mul, div::div, sub::sub);
 
 criterion_main!(allocation, parse, math);
+

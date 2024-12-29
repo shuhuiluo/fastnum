@@ -4,6 +4,18 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.8] – 2024-12-28
+
+### Fixed 
+
+* Fixed a performance issue with parsing and rescaling during arithmetic operations.
+
+### Changed
+
+* Replace `ilog10` method for integers with faster algorithm.
+* Replace `x 10` multiplication with a faster algorithm (const static lookup table).
+* Some performance improvements.
+
 ## [0.1.7] – 2024-12-25
 
 ### Fixed

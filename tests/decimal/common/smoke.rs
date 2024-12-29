@@ -31,6 +31,14 @@ macro_rules! test_impl {
     };
     (SIGNED:: 512, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(SIGNED:: 256, $dec, $D);
+
+        #[rstest(::trace)]
+        #[case($dec!(999999999999999999999999999999999999999999.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999), 154)]
+        #[case($dec!(100000000000000000000000000000000000000000.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000), 155)]
+        #[case($dec!(134078079299425970995740249982058461274793.65820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084095), 155)]
+        fn test_digits_count_512(#[case] d: $D, #[case] digits_count: usize) {
+            assert_eq!(d.digits_count(), digits_count);
+        }
     };
 
 
@@ -39,6 +47,14 @@ macro_rules! test_impl {
     };
     (COMMON:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(COMMON:: 128, $dec, $D);
+
+        #[rstest(::trace)]
+        #[case($dec!(999999999999999999999999999999999999999999.99999999999999999999999999999999999), 77)]
+        #[case($dec!(100000000000000000000000000000000000000000.000000000000000000000000000000000000), 78)]
+        #[case($dec!(115792089237316195423570985008687907853269.984665640564039457584007913129639935), 78)]
+        fn test_digits_count_256(#[case] d: $D, #[case] digits_count: usize) {
+            assert_eq!(d.digits_count(), digits_count);
+        }
     };
     (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(UNSIGNED:: 256, $dec, $D);
@@ -139,13 +155,42 @@ macro_rules! test_impl {
             assert_eq!(d.digits_count(), digits_count);
             assert_eq!(d.fractional_digits_count(), fractional_digits_count);
         }
-        
+
         #[rstest(::trace)]
         fn test_bug_shift() {
             let fee = $dec!(0e-22);
             let amount = $dec!(530188e-4);
             let res = amount / ($dec!(1) - fee);
             assert_eq!(res, $dec!(53.0188));
+        }
+
+        #[rstest(::trace)]
+        #[case($dec!(0), 1)]
+        #[case($dec!(1), 1)]
+        #[case($dec!(2), 1)]
+        #[case($dec!(10), 2)]
+        #[case($dec!(11), 2)]
+        #[case($dec!(1.1), 2)]
+        #[case($dec!(1.00), 3)]
+        #[case($dec!(1.23), 3)]
+        #[case($dec!(9.99), 3)]
+        #[case($dec!(1.000), 4)]
+        #[case($dec!(1.234), 4)]
+        #[case($dec!(9.999), 4)]
+        #[case($dec!(1.0000), 5)]
+        #[case($dec!(1.2345), 5)]
+        #[case($dec!(9.9999), 5)]
+        #[case($dec!(1.00000), 6)]
+        #[case($dec!(1.23456), 6)]
+        #[case($dec!(9.99999), 6)]
+        #[case($dec!(1.000000), 7)]
+        #[case($dec!(1.234567), 7)]
+        #[case($dec!(9.999999), 7)]
+        #[case($dec!(9999999999999999.9999999999999999999999), 38)]
+        #[case($dec!(1000000000000000.00000000000000000000000), 39)]
+        #[case($dec!(3402823669209384.63463374607431768211455), 39)]
+        fn test_digits_count(#[case] d: $D, #[case] digits_count: usize) {
+            assert_eq!(d.digits_count(), digits_count);
         }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
