@@ -1,7 +1,7 @@
 use core::num::FpCategory;
 use num_traits::{float::FloatCore, ToPrimitive};
 
-use crate::decimal::{Category, Decimal, RoundingMode};
+use crate::decimal::{Decimal, RoundingMode};
 
 impl<const N: usize> FloatCore for Decimal<N> {
     #[inline]
@@ -71,13 +71,7 @@ impl<const N: usize> FloatCore for Decimal<N> {
 
     #[inline]
     fn classify(self) -> FpCategory {
-        match Self::classify(&self) {
-            Category::Nan => FpCategory::Nan,
-            Category::Infinite => FpCategory::Infinite,
-            Category::Zero => FpCategory::Zero,
-            Category::Subnormal => FpCategory::Subnormal,
-            Category::Normal => FpCategory::Normal,
-        }
+        Self::classify(&self)
     }
 
     #[inline]

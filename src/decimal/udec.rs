@@ -2,18 +2,15 @@ mod consts;
 mod extras;
 mod impls;
 
-use core::cmp::Ordering;
+use core::{cmp::Ordering, num::FpCategory};
 
 use crate::{
     decimal::{
-        doc, udec::consts::consts_impl, Category, Context, Decimal, DecimalError, Flags,
-        ParseError, RoundingMode, Signal,
+        doc, udec::consts::consts_impl, Context, Decimal, DecimalError, Flags, ParseError,
+        RoundingMode, Sign, Signal,
     },
     int::UInt,
 };
-
-#[cfg(feature = "dev")]
-use crate::decimal::Sign;
 
 /// # Unsigned Decimal
 ///
@@ -34,7 +31,6 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// assert_eq!(UD256::from_parts(u256!(12345), -4, Context::default()), udec256!(1.2345));
     /// ```
-    #[cfg(feature = "dev")]
     #[must_use]
     #[inline]
     pub const fn from_parts(digits: UInt<N>, exp: i32, ctx: Context) -> Self {
@@ -293,17 +289,18 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::Category};
+    /// use core::num::FpCategory;
+    /// use fastnum::{udec256, UD256};
     ///
     /// let num = udec256!(12.4);
     /// let inf = UD256::INFINITY;
     ///
-    /// assert_eq!(num.classify(), Category::Normal);
-    /// assert_eq!(inf.classify(), Category::Infinite);
+    /// assert_eq!(num.classify(), FpCategory::Normal);
+    /// assert_eq!(inf.classify(), FpCategory::Infinite);
     /// ```
     #[must_use]
     #[inline]
-    pub const fn classify(&self) -> Category {
+    pub const fn classify(&self) -> FpCategory {
         self.0.classify()
     }
 
@@ -313,7 +310,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::Category};
+    /// use fastnum::*;
     ///
     /// let num = udec256!(12.4);
     /// let subnormal = udec256!(1E-30000) / udec256!(1E2768);
@@ -344,7 +341,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{udec256, UD256, decimal::Category};
+    /// use fastnum::*;
     ///
     /// let num = udec256!(12.4);
     /// let subnormal = udec256!(1E-30000) / udec256!(1E2768);

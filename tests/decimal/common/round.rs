@@ -8,7 +8,7 @@ macro_rules! test_impl {
     (UNSIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::RoundingMode};
+            use fastnum::{$dec, $D, decimal::RoundingMode::{self, *}};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(UNSIGNED:: $bits, $dec, $D, THIS);
@@ -17,7 +17,7 @@ macro_rules! test_impl {
     (SIGNED: $bits: tt, $dec: ident, $D: ident) => {
         mod $dec {
             use rstest::*;
-            use fastnum::{$dec, $D, decimal::RoundingMode};
+            use fastnum::{$dec, $D, decimal::RoundingMode::{self, *}};
 
             super::test_impl!(COMMON:: $bits, $dec, $D, THIS);
             super::test_impl!(SIGNED:: $bits, $dec, $D, THIS);
@@ -65,8 +65,8 @@ macro_rules! test_impl {
         #[case($dec!(0.1165085714285714285714285714285714285714), 5, $dec!(0.11651), $dec!(0.11650))]
         #[case($dec!(0.1165085714285714285714285714285714285714), 8, $dec!(0.11650857), $dec!(0.11650857))]
         fn test_round_256(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
-            assert_eq!(x.with_rounding_mode(RoundingMode::HalfUp).round(digits), y);
-            assert_eq!(x.with_rounding_mode(RoundingMode::Down).round(digits), z);
+            assert_eq!(x.with_rounding_mode(HalfUp).round(digits), y);
+            assert_eq!(x.with_rounding_mode(Down).round(digits), z);
         }
     };
     (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
@@ -90,11 +90,11 @@ macro_rules! test_impl {
         fn test_round_smoke() {
             let n = $dec!(129.41675);
 
-            assert_eq!(n.with_rounding_mode(RoundingMode::Up).round(2), $dec!(129.42));
-            assert_eq!(n.with_rounding_mode(RoundingMode::Down).round(-1), $dec!(120));
-            assert_eq!(n.with_rounding_mode(RoundingMode::HalfUp).round(4), $dec!(129.4168));
-            assert_eq!(n.with_rounding_mode(RoundingMode::HalfEven).round(4), $dec!(129.4168));
-            assert_eq!(n.with_rounding_mode(RoundingMode::HalfDown).round(4), $dec!(129.4167));
+            assert_eq!(n.with_rounding_mode(Up).round(2), $dec!(129.42));
+            assert_eq!(n.with_rounding_mode(Down).round(-1), $dec!(120));
+            assert_eq!(n.with_rounding_mode(HalfUp).round(4), $dec!(129.4168));
+            assert_eq!(n.with_rounding_mode(HalfEven).round(4), $dec!(129.4168));
+            assert_eq!(n.with_rounding_mode(HalfDown).round(4), $dec!(129.4167));
         }
 
         #[rstest(::trace)]
@@ -143,8 +143,70 @@ macro_rules! test_impl {
         #[case($dec!(0.5), 0, $dec!(1), $dec!(0))]
         #[case($dec!(0.49), 0, $dec!(1), $dec!(0))]
         fn test_round(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
-            assert_eq!(x.with_rounding_mode(RoundingMode::HalfUp).round(digits), y);
-            assert_eq!(x.with_rounding_mode(RoundingMode::Down).round(digits), z);
+            assert_eq!(x.with_rounding_mode(HalfUp).round(digits), y);
+            assert_eq!(x.with_rounding_mode(Down).round(digits), z);
+        }
+        
+        
+        #[rstest(::trace)]
+        //---------------------------------------
+        #[case($dec!(0.1), Up, $dec!(1))]
+        #[case($dec!(0.1), Ceiling, $dec!(1))]
+        //------
+        #[case($dec!(0.1), Down, $dec!(0))]
+        #[case($dec!(0.1), Floor, $dec!(0))]
+        #[case($dec!(0.1), HalfUp, $dec!(0))]
+        #[case($dec!(0.1), HalfDown, $dec!(0))]
+        #[case($dec!(0.1), HalfEven, $dec!(0))]
+        //---------------------------------------
+        #[case($dec!(0.5), Up, $dec!(1))]
+        #[case($dec!(0.5), Ceiling, $dec!(1))]
+        #[case($dec!(0.5), HalfUp, $dec!(1))]
+        //------
+        #[case($dec!(0.5), Down, $dec!(0))]
+        #[case($dec!(0.5), Floor, $dec!(0))]
+        #[case($dec!(0.5), HalfDown, $dec!(0))]
+        #[case($dec!(0.5), HalfEven, $dec!(0))]
+        //---------------------------------------
+        #[case($dec!(0.7), Up, $dec!(1))]
+        #[case($dec!(0.7), Ceiling, $dec!(1))]
+        #[case($dec!(0.7), HalfUp, $dec!(1))]
+        #[case($dec!(0.7), HalfDown, $dec!(1))]
+        #[case($dec!(0.7), HalfEven, $dec!(1))]
+        //------
+        #[case($dec!(0.7), Down, $dec!(0))]
+        #[case($dec!(0.7), Floor, $dec!(0))]
+        //---------------------------------------
+        #[case($dec!(9.5), Up, $dec!(10))]
+        #[case($dec!(9.5), Ceiling, $dec!(10))]
+        #[case($dec!(9.5), HalfUp, $dec!(10))]
+        #[case($dec!(9.5), HalfEven, $dec!(10))]
+        //------
+        #[case($dec!(9.5), Down, $dec!(9))]
+        #[case($dec!(9.5), Floor, $dec!(9))]
+        #[case($dec!(9.5), HalfDown, $dec!(9))]
+        //---------------------------------------
+        #[case($dec!(8.5), Up, $dec!(9))]
+        #[case($dec!(8.5), Ceiling, $dec!(9))]
+        #[case($dec!(8.5), HalfUp, $dec!(9))]
+        //------
+        #[case($dec!(8.5), Down, $dec!(8))]
+        #[case($dec!(8.5), Floor, $dec!(8))]
+        #[case($dec!(8.5), HalfDown, $dec!(8))]
+        #[case($dec!(8.5), HalfEven, $dec!(8))]
+        //---------------------------------------
+        #[case($dec!(3.0), Up, $dec!(3))]
+        #[case($dec!(3.0), Ceiling, $dec!(3))]
+        #[case($dec!(3.0), HalfUp, $dec!(3))]
+        #[case($dec!(3.0), Down, $dec!(3))]
+        #[case($dec!(3.0), Floor, $dec!(3))]
+        #[case($dec!(3.0), HalfDown, $dec!(3))]
+        #[case($dec!(3.0), HalfEven, $dec!(3))]
+        //---------------------------------------
+        fn test_round_modes(#[case] d: $D, #[case] mode: RoundingMode, #[case] expected: $D) {
+            let d = d.with_rounding_mode(mode).round(0);
+            assert_eq!(d, expected);
+            assert_eq!(d.fractional_digits_count(), expected.fractional_digits_count());
         }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
@@ -175,10 +237,63 @@ macro_rules! test_impl {
         #[case($dec!(-18.2697343863199184516), 18, $dec!(-18.269734386319918452), $dec!(-18.269734386319918451))]
         #[case($dec!(-0.0100000000000000000000000001), 18, $dec!(-0.010000000000000000), $dec!(-0.010000000000000000))]
         fn test_round_signed(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
-            assert_eq!(x.with_rounding_mode(RoundingMode::HalfUp).round(digits), y);
-            assert_eq!(x.with_rounding_mode(RoundingMode::Down).round(digits), z);
+            assert_eq!(x.with_rounding_mode(HalfUp).round(digits), y);
+            assert_eq!(x.with_rounding_mode(Down).round(digits), z);
+        }
+        
+        #[rstest(::trace)]
+        #[case($dec!(-0.1), Up, $dec!(-1))]
+        #[case($dec!(-0.1), Floor, $dec!(-1))]
+        //------
+        #[case($dec!(-0.1), Down, $dec!(-0))]
+        #[case($dec!(-0.1), Ceiling, $dec!(-0))]
+        #[case($dec!(-0.1), HalfUp, $dec!(-0))]
+        #[case($dec!(-0.1), HalfDown, $dec!(-0))]
+        #[case($dec!(-0.1), HalfEven, $dec!(-0))]
+        //---------------------------------------
+        #[case($dec!(-0.5), Up, $dec!(-1))]
+        #[case($dec!(-0.5), Floor, $dec!(-1))]
+        #[case($dec!(-0.5), HalfUp, $dec!(-1))]
+        //------
+        #[case($dec!(-0.5), Down, $dec!(-0))]
+        #[case($dec!(-0.5), Ceiling, $dec!(-0))]
+        #[case($dec!(-0.5), HalfDown, $dec!(-0))]
+        #[case($dec!(-0.5), HalfEven, $dec!(-0))]
+        //---------------------------------------
+        #[case($dec!(-0.7), Up, $dec!(-1))]
+        #[case($dec!(-0.7), Floor, $dec!(-1))]
+        #[case($dec!(-0.7), HalfUp, $dec!(-1))]
+        #[case($dec!(-0.7), HalfDown, $dec!(-1))]
+        #[case($dec!(-0.7), HalfEven, $dec!(-1))]
+        //------
+        #[case($dec!(-0.7), Down, $dec!(-0))]
+        #[case($dec!(-0.7), Ceiling, $dec!(-0))]
+        //---------------------------------------
+        #[case($dec!(-6.5), Up, $dec!(-7))]
+        #[case($dec!(-6.5), Floor, $dec!(-7))]
+        #[case($dec!(-6.5), HalfUp, $dec!(-7))]
+        //------
+        #[case($dec!(-6.5), Down, $dec!(-6))]
+        #[case($dec!(-6.5), Ceiling, $dec!(-6))]
+        #[case($dec!(-6.5), HalfDown, $dec!(-6))]
+        #[case($dec!(-6.5), HalfEven, $dec!(-6))]
+        //---------------------------------------
+        #[case($dec!(-2.0), Up, $dec!(-2))]
+        #[case($dec!(-2.0), Ceiling, $dec!(-2))]
+        #[case($dec!(-2.0), HalfUp, $dec!(-2))]
+        #[case($dec!(-2.0), Down, $dec!(-2))]
+        #[case($dec!(-2.0), Floor, $dec!(-2))]
+        #[case($dec!(-2.0), HalfDown, $dec!(-2))]
+        #[case($dec!(-2.0), HalfEven, $dec!(-2))]
+        //---------------------------------------
+        fn test_round_modes_signed(#[case] d: $D, #[case] mode: RoundingMode, #[case] expected: $D) {
+            let d = d.with_rounding_mode(mode).round(0);
+            assert_eq!(d, expected);
+            assert_eq!(d.fractional_digits_count(), expected.fractional_digits_count());
         }
     };
 }
 
 pub(crate) use test_impl;
+
+

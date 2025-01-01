@@ -49,7 +49,8 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, mut divisor: D<N>) -> D<
 
             while !remainder.is_zero() {
                 if remainder.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
-                    (divisor.digits, rounded) = scale_round(divisor.digits, cb.context());
+                    (divisor.digits, rounded) =
+                        scale_round(divisor.digits, cb.sign(), cb.context());
 
                     if rounded {
                         cb = cb
@@ -64,7 +65,7 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, mut divisor: D<N>) -> D<
 
                 if digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
                     // TODO: performance optimizations
-                    let (digit, _) = scale_round(quotient, cb.context());
+                    let (digit, _) = scale_round(quotient, cb.sign(), cb.context());
 
                     if digit.is_one() {
                         digits = digits.saturating_add(digit);

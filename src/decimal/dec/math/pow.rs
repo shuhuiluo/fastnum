@@ -83,7 +83,7 @@ const fn powi_integral<const N: usize>(
         cb = cb.raise_signal(Signal::OP_ROUNDED);
 
         while overflow {
-            (digits, inexact) = scale_round(digits, cb.context());
+            (digits, inexact) = scale_round(digits, cb.sign(), cb.context());
 
             if inexact {
                 cb = cb.raise_signal(Signal::OP_INEXACT);

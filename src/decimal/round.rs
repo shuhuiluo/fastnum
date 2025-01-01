@@ -6,54 +6,55 @@ use crate::{
         RoundingMode::{self, Ceiling, Down, Floor, HalfDown, HalfEven, HalfUp, Up},
         Sign,
     },
-    int::{math::div_rem, UInt},
+    int::{intrinsics::Digit, math::div_rem_digit, UInt},
 };
 
 #[inline]
 pub(crate) const fn scale_round<const N: usize>(
     mut value: UInt<N>,
+    sign: Sign,
     ctx: Context,
 ) -> (UInt<N>, bool) {
     let remainder;
 
-    (value, remainder) = div_rem(value, UInt::<N>::TEN);
+    (value, remainder) = div_rem_digit(value, 10);
 
-    if !remainder.is_zero() {
-        (round(value, remainder, ctx), true)
-    } else {
+    if remainder == 0 {
         (value, false)
+    } else {
+        (round(value, remainder, sign, ctx), true)
     }
 }
 
 #[inline]
 pub(crate) const fn round<const N: usize>(
     mut value: UInt<N>,
-    remainder: UInt<N>,
+    remainder: Digit,
+    sign: Sign,
     ctx: Context,
 ) -> UInt<N> {
-    // TODO: performance optimization
-    match (ctx.rounding_mode(), remainder.cmp(&UInt::FIVE)) {
-        (Up, _) | (Ceiling, _) => {
-            value = value.strict_add(UInt::ONE);
-        }
-        (Down, _) | (Floor, _) => {
-            // Do nothing
-        }
-        (_, Greater) | (HalfUp, Equal) => {
-            value = value.strict_add(UInt::ONE);
-        }
-        (_, Less) | (HalfDown, Equal) => {
-            // Do nothing
-        }
-        (HalfEven, Equal) => {
-            // TODO: performance optimization
-            if value.strict_rem(UInt::TWO).is_zero() {
-                // Do nothing
+    if match ctx.rounding_mode() {
+        Up => true,
+        Down => false,
+        Ceiling => !matches!(sign, Sign::Minus),
+        Floor => matches!(sign, Sign::Minus),
+        HalfUp => remainder >= 5,
+        HalfDown => remainder > 5,
+        HalfEven => {
+            if remainder > 5 {
+                true
+            } else if remainder == 5 {
+                let last_digit = value.digits()[0];
+                let last_bit = last_digit & 0x0000_0000_0000_0001_u64;
+                last_bit != 0
             } else {
-                value = value.strict_add(UInt::ONE);
+                false
             }
         }
+    } {
+        value = value.strict_add(UInt::ONE);
     }
+
     value
 }
 

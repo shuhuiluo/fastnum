@@ -14,7 +14,7 @@ mod scale;
 
 pub(crate) use control_block::ControlBlock;
 
-use core::{cmp::Ordering, fmt, panic};
+use core::{cmp::Ordering, fmt, num::FpCategory, panic};
 
 use crate::{
     decimal::{
@@ -23,8 +23,7 @@ use crate::{
             intrinsics::{clength, Intrinsics},
             math::consts::Consts,
         },
-        doc, Category, Context, DecimalError, Flags, ParseError, RoundingMode, Sign, Signal,
-        UnsignedDecimal,
+        doc, Context, DecimalError, Flags, ParseError, RoundingMode, Sign, Signal, UnsignedDecimal,
     },
     int::UInt,
 };
@@ -63,7 +62,6 @@ impl<const N: usize> Decimal<N> {
     ///
     /// assert_eq!(D256::from_parts(u256!(12345), -4, Sign::Minus, Context::default()),dec256!(-1.2345));
     /// ```
-    #[cfg(feature = "dev")]
     #[track_caller]
     #[must_use]
     #[inline]
@@ -296,27 +294,28 @@ impl<const N: usize> Decimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{dec256, D256, decimal::Category};
+    /// use core::num::FpCategory;
+    /// use fastnum::{dec256, D256};
     ///
     /// let num = dec256!(12.4);
     /// let inf = D256::INFINITY;
     ///
-    /// assert_eq!(num.classify(), Category::Normal);
-    /// assert_eq!(inf.classify(), Category::Infinite);
+    /// assert_eq!(num.classify(), FpCategory::Normal);
+    /// assert_eq!(inf.classify(), FpCategory::Infinite);
     /// ```
     #[must_use]
     #[inline]
-    pub const fn classify(&self) -> Category {
+    pub const fn classify(&self) -> FpCategory {
         if self.cb.is_nan() {
-            Category::Nan
+            FpCategory::Nan
         } else if self.cb.is_infinity() {
-            Category::Infinite
+            FpCategory::Infinite
         } else if self.digits.is_zero() {
-            Category::Zero
+            FpCategory::Zero
         } else if self.is_subnormal() {
-            Category::Subnormal
+            FpCategory::Subnormal
         } else {
-            Category::Normal
+            FpCategory::Normal
         }
     }
 
@@ -326,7 +325,7 @@ impl<const N: usize> Decimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{dec256, D256, decimal::Category};
+    /// use fastnum::*;
     ///
     /// let num = dec256!(12.4);
     /// let subnormal = dec256!(1E-30000) / dec256!(1E2768);
@@ -349,7 +348,7 @@ impl<const N: usize> Decimal<N> {
     #[must_use]
     #[inline]
     pub const fn is_normal(&self) -> bool {
-        matches!(self.classify(), Category::Normal)
+        matches!(self.classify(), FpCategory::Normal)
     }
 
     /// Return `true` if the number is [subnormal] and `false` otherwise.
@@ -357,7 +356,7 @@ impl<const N: usize> Decimal<N> {
     /// # Examples
     ///
     /// ```
-    /// use fastnum::{dec256, D256, decimal::Category};
+    /// use fastnum::*;
     ///
     /// let num = dec256!(12.4);
     /// let subnormal = dec256!(1E-30000) / dec256!(1E2768);

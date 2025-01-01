@@ -45,7 +45,7 @@ pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N>
         d.cb = d.cb.raise_signal(Signal::OP_ROUNDED);
         let mut is_inexact;
         while new_scale < d.scale {
-            (d.digits, is_inexact) = scale_round(d.digits, d.cb.context());
+            (d.digits, is_inexact) = scale_round(d.digits, d.cb.sign(), d.cb.context());
             d.scale -= 1;
 
             if is_inexact {

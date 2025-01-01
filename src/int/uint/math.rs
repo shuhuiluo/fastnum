@@ -4,14 +4,9 @@ mod mul;
 pub use ilog::ilog10;
 pub use mul::{overflowing_mul10, strict_mul10};
 
-use bnum::BUint;
 use core::cmp::Ordering;
 
-type Digit = u64;
-type DoubleDigit = u128;
-type ExpType = u32;
-
-type Digits<const N: usize> = [Digit; N];
+use crate::int::{uint::intrinsics::*, UInt};
 
 const BITS: ExpType = Digit::BITS;
 const BITS_MINUS_1: ExpType = BITS - 1;
@@ -22,7 +17,7 @@ macro_rules! to_int {
         $(
             #[allow(dead_code)]
             #[inline]
-            pub const fn $name<const N: usize>(this: BUint<N>) -> Option<$int> {
+            pub const fn $name<const N: usize>(this: UInt<N>) -> Option<$int> {
                 let digits = this.digits();
                 let mut out = 0;
                 let mut i = 0;
@@ -82,23 +77,20 @@ to_int! {
 // This Hell is here because of the div_rem methods are not public in the bnum.
 
 #[inline]
-pub const fn div_rem<const N: usize>(
-    dividend: BUint<N>,
-    divisor: BUint<N>,
-) -> (BUint<N>, BUint<N>) {
+pub const fn div_rem<const N: usize>(dividend: UInt<N>, divisor: UInt<N>) -> (UInt<N>, UInt<N>) {
     match dividend.cmp(&divisor) {
-        Ordering::Less => (BUint::<N>::ZERO, dividend),
-        Ordering::Equal => (BUint::<N>::ONE, BUint::<N>::ZERO),
+        Ordering::Less => (UInt::<N>::ZERO, dividend),
+        Ordering::Equal => (UInt::<N>::ONE, UInt::<N>::ZERO),
         Ordering::Greater => {
             let ldi = last_digit_index(divisor.digits());
             if ldi == 0 {
                 let digits = divisor.digits();
-                let (div, rem) = div_rem_digit(*(dividend.digits()), digits[0]);
-                (BUint::<N>::from_digits(div), BUint::<N>::from_digit(rem))
+                let (div, rem) = div_rem_digit(dividend, digits[0]);
+                (div, UInt::<N>::from_digit(rem))
             } else {
                 let (div, rem) =
                     basecase_div_rem(*(dividend.digits()), *(divisor.digits()), ldi + 1);
-                (BUint::<N>::from_digits(div), BUint::<N>::from_digits(rem))
+                (UInt::<N>::from_digits(div), UInt::<N>::from_digits(rem))
             }
         }
     }
@@ -113,6 +105,24 @@ pub const fn div_rem_wide(low: Digit, high: Digit, rhs: Digit) -> (Digit, Digit)
     )
 }
 
+#[inline]
+pub const fn div_rem_digit<const N: usize>(value: UInt<N>, rhs: Digit) -> (UInt<N>, Digit) {
+    let mut out = [0; N];
+
+    let mut rem: Digit = 0;
+    let mut i = N;
+    
+    let digits = value.digits();
+
+    while i > 0 {
+        i -= 1;
+        let (q, r) = div_rem_wide(digits[i], rem, rhs);
+        rem = r;
+        out[i] = q;
+    }
+    (UInt::from_digits(out), rem)
+}
+
 const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
     let mut index = 0;
     let mut i = 1;
@@ -124,21 +134,6 @@ const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
         i += 1;
     }
     index
-}
-
-const fn div_rem_digit<const N: usize>(digits: Digits<N>, rhs: Digit) -> (Digits<N>, Digit) {
-    let mut out = [0; N];
-
-    let mut rem: Digit = 0;
-    let mut i = N;
-
-    while i > 0 {
-        i -= 1;
-        let (q, r) = div_rem_wide(digits[i], rem, rhs);
-        rem = r;
-        out[i] = q;
-    }
-    (out, rem)
 }
 
 const fn basecase_div_rem<const N: usize>(
@@ -371,9 +366,9 @@ const fn wrapping_shr<const N: usize>(digits: Digits<N>, rhs: ExpType) -> Digits
 
 #[inline]
 const fn overflowing_shr<const N: usize>(digits: Digits<N>, rhs: ExpType) -> (Digits<N>, bool) {
-    if rhs >= BUint::<N>::BITS {
+    if rhs >= UInt::<N>::BITS {
         (
-            unchecked_shr_internal(digits, rhs & (BUint::<N>::BITS - 1)),
+            unchecked_shr_internal(digits, rhs & (UInt::<N>::BITS - 1)),
             true,
         )
     } else {

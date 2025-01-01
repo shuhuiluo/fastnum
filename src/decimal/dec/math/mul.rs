@@ -86,7 +86,7 @@ pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
 
         if rem != 0 {
             cb = cb.raise_signal(Signal::OP_INEXACT);
-            low = round(low, UInt::from_digit(rem), cb.context());
+            low = round(low, rem, cb.sign(), cb.context());
         }
     }
 

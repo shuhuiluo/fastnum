@@ -1,5 +1,11 @@
 use crate::int::UInt;
 
+pub type Digit = u64;
+pub type DoubleDigit = u128;
+pub type ExpType = u32;
+
+pub type Digits<const N: usize> = [Digit; N];
+
 pub const POWER: u32 = 19;
 
 #[repr(transparent)]

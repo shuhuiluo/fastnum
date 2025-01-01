@@ -4,6 +4,25 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.9] – 2025-01-01
+
+### Breaking changes
+
+* Replace `decimal::Category` with `core::num::FpCategory`.
+
+### Changed
+
+* Micro-optimizations in rounding.
+* Make `.from_parts()` constructor public (Way to directly create decimals with scale without dividing? #3).
+
+### Added
+
+* Implement `TryFrom<Decimal>` for `UnsignedDecimal` and `From<UnsignedDecimal>` for `Decimal` traits.
+
+### Fixed
+
+* Fixed minor issues with ceil/floor rounding.
+
 ## [0.1.8] – 2024-12-28
 
 ### Fixed 

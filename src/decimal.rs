@@ -12,7 +12,6 @@ pub(crate) mod doc;
 pub(crate) mod round;
 pub(crate) mod udec;
 
-mod category;
 mod context;
 mod sign;
 mod flags;
@@ -29,7 +28,6 @@ pub(crate) mod errors;
 #[macro_use]
 mod macros;
 
-pub use category::Category;
 pub use context::{Context, RoundingMode, SignalsTraps};
 pub use dec::Decimal;
 pub use errors::{ParseError, DecimalError};

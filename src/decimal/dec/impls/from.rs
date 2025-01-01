@@ -6,10 +6,12 @@ use crate::{
     int::UInt,
 };
 
+type D<const N: usize> = Decimal<N>;
+
 macro_rules! from_uint {
     ($($uint: tt),*) => {
         $(
-            impl<const N: usize> From<$uint> for Decimal<N>
+            impl<const N: usize> From<$uint> for D<N>
             {
                 #[inline]
                 fn from(n: $uint) -> Self {
@@ -23,7 +25,7 @@ macro_rules! from_uint {
 macro_rules! from_int {
     ($($int: tt),*) => {
         $(
-            impl<const N: usize> From<$int> for Decimal<N> {
+            impl<const N: usize> From<$int> for D<N> {
                 #[inline]
                 fn from(n: $int) -> Self {
                     let cb =
@@ -43,7 +45,7 @@ macro_rules! from_int {
 from_uint!(u8, u16, u32, u64, u128, usize);
 from_int!(i8, i16, i32, i64, i128, isize);
 
-impl<const N: usize> TryFrom<f32> for Decimal<N> {
+impl<const N: usize> TryFrom<f32> for D<N> {
     type Error = ParseError;
 
     #[inline]
@@ -52,7 +54,7 @@ impl<const N: usize> TryFrom<f32> for Decimal<N> {
     }
 }
 
-impl<const N: usize> TryFrom<f64> for Decimal<N> {
+impl<const N: usize> TryFrom<f64> for D<N> {
     type Error = ParseError;
 
     #[inline]
