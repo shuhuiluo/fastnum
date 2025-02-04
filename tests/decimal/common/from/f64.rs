@@ -503,6 +503,14 @@ macro_rules! test_impl {
             assert_eq!(d, expected);
             assert_eq!(d.op_signals(), signals);
         }
+        
+        #[rstest(::trace)]
+        // Overflow issues when converting from floats #5
+        #[case(0.000000010505447622932707, $dec!(0.0000000105054476229327065084362402558326721191))]
+        fn test_from_f64_128_bugfixes(#[case] n: f64, #[case] expected: $D) {
+            let d = $D::try_from(n).unwrap();
+            assert_eq!(d, expected);
+        }
 
         #[rstest(::trace)]
         #[case(1.0e-308,                            $dec!(0.99999999999999990932662533724846199547e-308))]
@@ -646,7 +654,6 @@ macro_rules! test_impl {
         #[case(1.0071511038254808437860504e+38, $dec!(100715110382548084378605044109527744512))]
         #[case(1.0135219760805361657667885e+38, $dec!(101352197608053616576678853301340471296))]
         #[case(1.0150248637523932737707174e+38, $dec!(101502486375239327377071737620993671168))]
-        // --------------------------------------
         // --------------------------------------
         fn test_from_f64(#[case] n: f64, #[case] expected: $D) {
             assert!(n.is_normal());

@@ -142,6 +142,8 @@ macro_rules! test_impl {
         #[case($dec!(0.68), 0, $dec!(1), $dec!(0))]
         #[case($dec!(0.5), 0, $dec!(1), $dec!(0))]
         #[case($dec!(0.49), 0, $dec!(0), $dec!(0))]
+        #[case($dec!(0.648), 1, $dec!(0.6), $dec!(0.6))]
+        #[case($dec!(0.648), 2, $dec!(0.65), $dec!(0.64))]
         fn test_round(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.with_rounding_mode(HalfUp).round(digits), y);
             assert_eq!(x.with_rounding_mode(Down).round(digits), z);
@@ -236,6 +238,8 @@ macro_rules! test_impl {
         #[case($dec!(-12345678987654321.123456789), 8, $dec!(-12345678987654321.12345679), $dec!(-12345678987654321.12345678))]
         #[case($dec!(-18.2697343863199184516), 18, $dec!(-18.269734386319918452), $dec!(-18.269734386319918451))]
         #[case($dec!(-0.0100000000000000000000000001), 18, $dec!(-0.010000000000000000), $dec!(-0.010000000000000000))]
+        #[case($dec!(-0.648), 1, $dec!(-0.6), $dec!(-0.6))]
+        #[case($dec!(-0.648), 2, $dec!(-0.65), $dec!(-0.64))]
         fn test_round_signed(#[case] x: $D, #[case] digits: i16, #[case] y: $D, #[case] z: $D) {
             assert_eq!(x.with_rounding_mode(HalfUp).round(digits), y);
             assert_eq!(x.with_rounding_mode(Down).round(digits), z);

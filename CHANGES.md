@@ -4,30 +4,60 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## [0.1.10] – 2025-01-
+## [0.1.10] – 2025-02-04
 
+This release primarily focuses on:
 
+- Implementing a full range of advanced mathematical functions (exponential, roots, power, logarithmic, and
+  trigonometric functions) for working with exact precision decimal numbers.
+- Increasing the accuracy of approximated mathematical calculations due to the use of extra precision digits and the
+  absence of intermediate rounding.
+- Fixing and improving conversions between Float and Decimal types.
 
-### Changed
-
-* Re-implement `.recip()` method without division.
-* Micro-optimizations in rounding.
-* Remove `libm` dependency for no-std environment.
-* Fix _long_ rounding.
-* Add extended precision digits for .
-* Add `INEXACT` flag for mathematical constants.
-* Mark some methods as `inexact` by design.
+Expect better performance, precision handling, and expanded documentation covering new methods, constants, and examples.
+Highlights include removing `libm` dependency and major refinements for `no-std` environments.
 
 ### Added
 
-* Implement `num_traits::float::Float` trait.
-* Add `.pow()`, `.exp()`, `.ln()`, `` methods.
-* Extend tests coverage.
+- Implement exponential `exp` and binary exponential `exp2` functions for decimals.
+- Implement logarithmic `ln`, `log10`, `log2`, `log` functions for decimals.
+- Implement `sqrt`, `cbrt`, and `nth_root` roots functions for decimals.
+- Refactor and extend `pow` to support non-integer exponents.
+- Implement base trigonometric functions: `sin`, `cos`, `tan`, `sin_cos` for decimals.
+- Implement inverse trigonometric functions: `asin`, `acos`, `atan`, `atan2` for decimals.
+- Implement hyperbolic functions: `sinh`, `cosh`, `tanh` for decimals.
+- Implement inverse hyperbolic functions: `asinh`, `acosh`, `atanh` for decimals.
+- Implement hypotenuse calculation `hypot` function for decimals.
+- Introduce fused multiply-add `mul_add` operation without intermediate rounding.
+- Introduce `transmute` operation for N-to-M bit decimal conversion.
+- Add integer and unsigned integer conversion utilities (`from_int`, `from_uint`).
+- Implement `num_traits::float::Float` trait.
+
+### Changed
+
+- Improved arithmetic precision of approximated mathematical calculations due to the use of extra precision digits and
+  the
+  absence of intermediate rounding.
+- Overhauled mathematical constants. Add `INEXACT` flag and extra precision digits.
+- Mark some methods as `inexact` by design.
+- Micro-optimizations in rounding.
+- Inline optimizations and better precision handling for mathematical rounding.
+- Re-implement `recip` method without division.
+- Improve test coverage for mathematical operations (e.g., `sqrt`, `ln`, `exp`).
+- Remove `libm` dependency for `no-std` environment.
 
 ### Fixed
 
-* Fixed float f32/f64 conversions to/from `Decimal`.
+- Corrected edge cases for float (`f32`/`f64`) from/to `Decimal` conversions (
+  fix [#5](https://github.com/neogenie/fastnum/issues/5#issue-2813957559)).
+- Fix _long_ rounding issues with improved context precision.
+- General code quality improvements and bug fixes, including better inexact flag handling.
 
+### Documentation
+
+- Expanded documentation for all major operations with examples.
+- Added comprehensive examples and descriptions to `LIB.md`.
+- Minor fixes.
 
 ## [0.1.9] – 2025-01-01
 
@@ -50,7 +80,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ## [0.1.8] – 2024-12-28
 
-### Fixed 
+### Fixed
 
 * Fixed a performance issue with parsing and rescaling during arithmetic operations.
 
