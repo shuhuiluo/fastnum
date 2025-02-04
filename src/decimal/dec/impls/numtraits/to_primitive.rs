@@ -6,7 +6,10 @@ macro_rules! to_int_impl {
     ($to_int: ident, $int: ty) => {
         #[inline]
         fn $to_int(&self) -> Option<$int> {
-            convert::$to_int(*self)
+            match convert::$to_int(*self) {
+                Ok(i) => Some(i),
+                Err(_) => None,
+            }
         }
     };
 }
@@ -15,7 +18,10 @@ macro_rules! to_uint_impl {
     ($to_uint: ident, $uint: ty) => {
         #[inline]
         fn $to_uint(&self) -> Option<$uint> {
-            convert::$to_uint(*self)
+            match convert::$to_uint(*self) {
+                Ok(u) => Some(u),
+                Err(_) => None,
+            }
         }
     };
 }

@@ -19,7 +19,7 @@ pub(crate) const fn exp2<const N: usize>(n: D<N>) -> D<N> {
     }
 
     if n.is_integral() {
-        if let Some(n) = to_i32(n) {
+        if let Ok(n) = to_i32(n) {
             return powi(D::TWO, n);
         }
     }

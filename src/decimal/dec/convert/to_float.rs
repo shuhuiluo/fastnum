@@ -103,26 +103,26 @@ macro_rules! to_float_impl {
             let mut mant = if U::<N>::BITS > $u::BITS {
                 if bits < MANTISSA_DIGITS {
                     b_exp -= 1;
-                    if let Some(m) = $to_uint(digits) {
+                    if let Ok(m) = $to_uint(digits) {
                         m << (MANTISSA_DIGITS - bits)
                     } else {
                         panic!(err_msg!("mantissa is too large"));
                     }
                 } else {
-                    if let Some(m) = $to_uint(digits.shr(bits - MANTISSA_DIGITS)) {
+                    if let Ok(m) = $to_uint(digits.shr(bits - MANTISSA_DIGITS)) {
                         m
                     } else {
                         panic!(err_msg!("mantissa is too large"));
                     }
                 }
             } else if bits < MANTISSA_DIGITS {
-                if let Some(m) = $to_uint(digits) {
+                if let Ok(m) = $to_uint(digits) {
                     m << (MANTISSA_DIGITS - bits)
                 } else {
                     panic!(err_msg!("mantissa is too large"));
                 }
             } else {
-                if let Some(m) = $to_uint(digits) {
+                if let Ok(m) = $to_uint(digits) {
                     m >> (bits - MANTISSA_DIGITS)
                 } else {
                     panic!(err_msg!("mantissa is too large"));

@@ -12,7 +12,7 @@ type D<const N: usize> = Decimal<N>;
 #[inline]
 pub(crate) const fn pow<const N: usize>(d: D<N>, n: D<N>) -> D<N> {
     if n.is_integral() {
-        if let Some(n) = to_i32(n) {
+        if let Ok(n) = to_i32(n) {
             return powi(d, n);
         }
     }

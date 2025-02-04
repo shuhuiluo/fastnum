@@ -1,3 +1,5 @@
+use core::num::IntErrorKind;
+
 use crate::int::{intrinsics::*, UInt};
 
 type U<const N: usize> = UInt<N>;
@@ -5,7 +7,7 @@ type U<const N: usize> = UInt<N>;
 macro_rules! to_int_impl {
     ($to_int: ident, $int: ident) => {
         #[inline]
-        pub const fn $to_int<const N: usize>(int: U<N>) -> Option<$int> {
+        pub const fn $to_int<const N: usize>(int: U<N>) -> Result<$int, IntErrorKind> {
             let digits = int.digits();
             let mut out = 0;
             let mut i = 0;
@@ -14,7 +16,7 @@ macro_rules! to_int_impl {
                 let small = digits[i] as $int;
                 let trunc = small as Digit;
                 if digits[i] != trunc {
-                    return None;
+                    return Err(IntErrorKind::PosOverflow);
                 }
                 out = small;
                 i = 1;
@@ -31,17 +33,17 @@ macro_rules! to_int_impl {
 
             #[allow(unused_comparisons)]
             if out < 0 {
-                return None;
+                return Err(IntErrorKind::PosOverflow);
             }
 
             while i < N {
                 if digits[i] != 0 {
-                    return None;
+                    return Err(IntErrorKind::PosOverflow);
                 }
                 i += 1;
             }
 
-            Some(out)
+            Ok(out)
         }
     };
 }
