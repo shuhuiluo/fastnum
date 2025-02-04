@@ -31,7 +31,7 @@ where
     }
 }
 
-impl<'expr, const N: usize> AsExpression<Numeric> for &'expr D<N> {
+impl<const N: usize> AsExpression<Numeric> for &D<N> {
     type Expression = Bound<Numeric, Self>;
 
     fn as_expression(self) -> Self::Expression {
@@ -39,7 +39,7 @@ impl<'expr, const N: usize> AsExpression<Numeric> for &'expr D<N> {
     }
 }
 
-impl<'expr, const N: usize> AsExpression<Nullable<Numeric>> for &'expr D<N> {
+impl<const N: usize> AsExpression<Nullable<Numeric>> for &D<N> {
     type Expression = Bound<Nullable<Numeric>, Self>;
 
     fn as_expression(self) -> Self::Expression {

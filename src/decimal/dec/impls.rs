@@ -7,6 +7,7 @@ mod hash;
 mod iter;
 mod ops;
 mod ord;
+mod to;
 
 #[cfg(feature = "numtraits")]
 mod numtraits;

@@ -3,7 +3,7 @@ use crate::{
         dec::{
             intrinsics::{clength, Intrinsics, E_LIMIT, E_MIN},
             math::utils::{overflow, underflow},
-            ControlBlock,
+            ControlBlock, ExtraPrecision,
         },
         Decimal, Signal,
     },
@@ -12,9 +12,14 @@ use crate::{
 
 type D<const N: usize> = Decimal<N>;
 
-#[inline]
-pub(crate) const fn construct<const N: usize>(digits: UInt<N>, exp: i32, cb: ControlBlock) -> D<N> {
-    construct_with_clength(digits, exp, cb, clength(digits))
+#[inline(always)]
+pub(crate) const fn construct<const N: usize>(
+    digits: UInt<N>,
+    exp: i32,
+    cb: ControlBlock,
+    extra_precision: ExtraPrecision,
+) -> D<N> {
+    construct_with_clength(digits, exp, cb, extra_precision, clength(digits))
 }
 
 #[inline]
@@ -22,6 +27,7 @@ pub(crate) const fn construct_with_clength<const N: usize>(
     mut digits: UInt<N>,
     mut exp: i32,
     mut cb: ControlBlock,
+    extra_precision: ExtraPrecision,
     clength: u32,
 ) -> D<N> {
     // Overflow exp > Emax
@@ -39,7 +45,7 @@ pub(crate) const fn construct_with_clength<const N: usize>(
             cb = cb.raise_signal(Signal::OP_SUBNORMAL);
         }
 
-        return D::new(digits, -exp as i16, cb);
+        return D::new(digits, -exp as i16, cb, extra_precision);
     }
 
     cb = cb
@@ -55,5 +61,5 @@ pub(crate) const fn construct_with_clength<const N: usize>(
         }
     }
 
-    D::new(digits, -exp as i16, cb)
+    D::new(digits, -exp as i16, cb, extra_precision)
 }

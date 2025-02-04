@@ -4,6 +4,31 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.10] – 2025-01-
+
+
+
+### Changed
+
+* Re-implement `.recip()` method without division.
+* Micro-optimizations in rounding.
+* Remove `libm` dependency for no-std environment.
+* Fix _long_ rounding.
+* Add extended precision digits for .
+* Add `INEXACT` flag for mathematical constants.
+* Mark some methods as `inexact` by design.
+
+### Added
+
+* Implement `num_traits::float::Float` trait.
+* Add `.pow()`, `.exp()`, `.ln()`, `` methods.
+* Extend tests coverage.
+
+### Fixed
+
+* Fixed float f32/f64 conversions to/from `Decimal`.
+
+
 ## [0.1.9] – 2025-01-01
 
 ### Breaking changes

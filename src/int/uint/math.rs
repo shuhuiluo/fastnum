@@ -8,10 +8,6 @@ use core::cmp::Ordering;
 
 use crate::int::{uint::intrinsics::*, UInt};
 
-const BITS: ExpType = Digit::BITS;
-const BITS_MINUS_1: ExpType = BITS - 1;
-const BIT_SHIFT: ExpType = BITS.trailing_zeros();
-
 macro_rules! to_int {
     { $($name: ident -> $int: ty), * }  => {
         $(

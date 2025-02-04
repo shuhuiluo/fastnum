@@ -1,4 +1,14 @@
-use crate::decimal::{dec::ControlBlock, Decimal, Signal};
+use crate::{
+    decimal::{
+        dec::{
+            math::{add::add, sub::sub},
+            scale::reduce,
+            ControlBlock, ExtraPrecision,
+        },
+        Decimal, Signal,
+    },
+    int::UInt,
+};
 
 type D<const N: usize> = Decimal<N>;
 
@@ -22,5 +32,93 @@ pub(crate) const fn overflow_exp<const N: usize>(exp: i32, cb: ControlBlock) -> 
         underflow(cb)
     } else {
         overflow(cb)
+    }
+}
+
+#[inline]
+pub(crate) const fn magnitude_inc<const N: usize>(d: D<N>) -> D<N> {
+    if d.is_negative() {
+        sub(
+            d,
+            D::new(
+                UInt::ONE,
+                d.scale,
+                ControlBlock::default(),
+                ExtraPrecision::new(),
+            ),
+        )
+    } else {
+        add(
+            d,
+            D::new(
+                UInt::ONE,
+                d.scale,
+                ControlBlock::default(),
+                ExtraPrecision::new(),
+            ),
+        )
+    }
+}
+
+#[inline]
+pub(crate) const fn magnitude_dec<const N: usize>(d: D<N>) -> D<N> {
+    if d.is_negative() {
+        add(
+            d,
+            D::new(
+                UInt::ONE,
+                d.scale,
+                ControlBlock::default(),
+                ExtraPrecision::new(),
+            ),
+        )
+    } else {
+        sub(
+            d,
+            D::new(
+                UInt::ONE,
+                d.scale,
+                ControlBlock::default(),
+                ExtraPrecision::new(),
+            ),
+        )
+    }
+}
+
+#[inline(always)]
+pub(crate) const fn is_even<const N: usize>(d: &D<N>) -> bool {
+    if d.scale < 0 {
+        true
+    } else {
+        d.digits.digits()[0] & 1 == 0
+    }
+}
+
+#[inline(always)]
+pub(crate) const fn is_odd<const N: usize>(d: &D<N>) -> bool {
+    if d.scale < 0 {
+        false
+    } else {
+        d.digits.digits()[0] & 1 == 1
+    }
+}
+
+#[inline(always)]
+pub(crate) const fn is_integral<const N: usize>(d: &D<N>) -> bool {
+    reduce(*d).scale <= 0
+}
+
+#[inline(always)]
+pub(crate) const fn correct<const N: usize>(d: D<N>, correction: D<N>) -> D<N> {
+    if correction.is_zero() || correction.is_op_underflow() {
+        return d;
+    }
+
+    let result = add(d, correction);
+
+    if result.is_op_underflow() {
+        d
+    } else {
+        result
     }
 }

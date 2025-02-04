@@ -10,6 +10,7 @@ use crate::{
     },
     int::UInt,
 };
+use crate::decimal::dec::math::utils::{magnitude_dec};
 
 type D<const N: usize> = Decimal<N>;
 
@@ -79,14 +80,45 @@ pub(crate) const fn sub_abs<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N
 const fn sub_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
     debug_assert!(lhs.scale == rhs.scale);
 
+    let overflow;
+    
     match lhs.digits.cmp(&rhs.digits) {
         Ordering::Less => {
             rhs.digits = rhs.digits.strict_sub(lhs.digits);
+
+            (rhs.extra_precision, overflow) = rhs.extra_precision.overflowing_sub(lhs.extra_precision);
+
+            if overflow {
+                rhs = magnitude_dec(rhs);
+            }
+            
             rhs.compound(&lhs).neg()
         }
-        Ordering::Equal => D::new(UInt::ZERO, rhs.scale, lhs.cb.compound(rhs.cb)),
+        Ordering::Equal => {
+            (lhs.extra_precision, overflow) = lhs.extra_precision.overflowing_sub(rhs.extra_precision);
+
+            let mut d = D::new(
+                UInt::ZERO,
+                lhs.scale,
+                lhs.cb.compound(rhs.cb),
+                lhs.extra_precision,
+            );
+            
+            if overflow {
+                d = magnitude_dec(d);
+            }
+            
+            d
+        },
         Ordering::Greater => {
             lhs.digits = lhs.digits.strict_sub(rhs.digits);
+
+            (lhs.extra_precision, overflow) = lhs.extra_precision.overflowing_sub(rhs.extra_precision);
+
+            if overflow {
+                lhs = magnitude_dec(lhs);
+            }
+            
             lhs.compound(&rhs)
         }
     }

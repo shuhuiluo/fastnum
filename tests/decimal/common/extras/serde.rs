@@ -263,7 +263,7 @@ impl Display for WithDecimalPoint {
             has_decimal_point: bool,
         }
 
-        impl<'f, 'a> fmt::Write for LookForDecimalPoint<'f, 'a> {
+        impl fmt::Write for LookForDecimalPoint<'_, '_> {
             fn write_str(&mut self, fragment: &str) -> fmt::Result {
                 self.has_decimal_point |= fragment.contains('.');
                 self.formatter.write_str(fragment)

@@ -290,7 +290,7 @@ cargo criterion
 This crate is tested with the [`rstest`](https://docs.rs/rstest/latest/rstest/) crate as well as with specific edge
 cases.
 
-We have more than `10'000` tests, so we recommend running it using [`nextest`](https://nexte.st/):
+We have more than `25'000` tests, so we recommend running it using [`nextest`](https://nexte.st/):
 
 ```shell
 cargo nextest run --all-features

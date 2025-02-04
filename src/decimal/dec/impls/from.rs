@@ -1,64 +1,31 @@
-use crate::{
-    decimal::{
-        dec::{parse, ControlBlock},
-        Decimal, ParseError,
-    },
-    int::UInt,
-};
+use crate::decimal::{dec::parse, Decimal};
 
 type D<const N: usize> = Decimal<N>;
 
-macro_rules! from_uint {
-    ($($uint: tt),*) => {
-        $(
-            impl<const N: usize> From<$uint> for D<N>
-            {
-                #[inline]
-                fn from(n: $uint) -> Self {
-                    Self::new(UInt::from(n), 0, ControlBlock::default())
-                }
+macro_rules! from_impl {
+    ($n: ident, $ty: ty) => {
+        impl<const N: usize> From<$ty> for D<N> {
+            #[inline]
+            fn from(n: $ty) -> Self {
+                parse::$n(n)
             }
-        )*
-    }
+        }
+    };
 }
 
-macro_rules! from_int {
-    ($($int: tt),*) => {
-        $(
-            impl<const N: usize> From<$int> for D<N> {
-                #[inline]
-                fn from(n: $int) -> Self {
-                    let cb =
-                    if n.is_negative() {
-                        ControlBlock::default().neg()
-                    } else {
-                        ControlBlock::default()
-                    };
+from_impl!(from_u8, u8);
+from_impl!(from_u16, u16);
+from_impl!(from_u32, u32);
+from_impl!(from_u64, u64);
+from_impl!(from_u128, u128);
+from_impl!(from_usize, usize);
 
-                    Self::new(UInt::from(n.unsigned_abs()), 0, cb)
-                }
-            }
-        )*
-    }
-}
+from_impl!(from_i8, i8);
+from_impl!(from_i16, i16);
+from_impl!(from_i32, i32);
+from_impl!(from_i64, i64);
+from_impl!(from_i128, i128);
+from_impl!(from_isize, isize);
 
-from_uint!(u8, u16, u32, u64, u128, usize);
-from_int!(i8, i16, i32, i64, i128, isize);
-
-impl<const N: usize> TryFrom<f32> for D<N> {
-    type Error = ParseError;
-
-    #[inline]
-    fn try_from(n: f32) -> Result<Self, Self::Error> {
-        parse::from_f32(n)
-    }
-}
-
-impl<const N: usize> TryFrom<f64> for D<N> {
-    type Error = ParseError;
-
-    #[inline]
-    fn try_from(n: f64) -> Result<Self, Self::Error> {
-        parse::from_f64(n)
-    }
-}
+from_impl!(from_f32, f32);
+from_impl!(from_f64, f64);

@@ -1,4 +1,4 @@
-use crate::int::UInt;
+use crate::{int::UInt, utils::err_msg};
 
 pub type Digit = u64;
 pub type DoubleDigit = u128;
@@ -7,6 +7,9 @@ pub type ExpType = u32;
 pub type Digits<const N: usize> = [Digit; N];
 
 pub const POWER: u32 = 19;
+pub const BITS: ExpType = Digit::BITS;
+pub const BITS_MINUS_1: ExpType = BITS - 1;
+pub const BIT_SHIFT: ExpType = BITS.trailing_zeros();
 
 #[repr(transparent)]
 pub struct PowersOf10<const N: usize>([[UInt<N>; POWER as usize + 1]; N]);
@@ -43,7 +46,7 @@ impl<const N: usize> PowersOf10<N> {
         let j = (power / (POWER + 1)) as usize;
 
         if j >= N {
-            panic!("power is too large");
+            panic!(err_msg!("power is too large"));
         }
 
         let i = (power % (POWER + 1)) as usize;

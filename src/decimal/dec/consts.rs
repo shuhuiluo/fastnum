@@ -3,31 +3,34 @@ macro_rules! consts_impl {
         impl<const N: usize> Decimal<N> {
             
             /// **N**ot **A** **N**umber value. More about [`NaN`](crate#special-values).
-            pub const NAN: Self = Self::new(UInt::ZERO, 0, ControlBlock::nan());
+            pub const NAN: Self = Self::new(UInt::ZERO, 0, ControlBlock::nan(), ExtraPrecision::new());
             
             /// Infinity (∞). More about [`±Infinity`](crate#special-values).
-            pub const INFINITY: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::infinity());
+            pub const INFINITY: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::infinity(), ExtraPrecision::new());
             
             /// Negative infinity (−∞). More about [`±Infinity`](crate#special-values).
-            pub const NEG_INFINITY: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::neg_infinity());
+            pub const NEG_INFINITY: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::neg_infinity(), ExtraPrecision::new());
             
             /// The smallest value that can be represented by this decimal type - (2<sup>N</sup> - 1) × 10<sup>32'768</sup>.
-            pub const MIN: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::default().neg());
+            pub const MIN: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::default().neg(), ExtraPrecision::new());
             
             /// The maximum value that this type can represent (2<sup>N</sup> - 1) × 10<sup>32'768</sup>.
-            pub const MAX: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::default());
+            pub const MAX: Self = Self::new(UInt::MAX, i16::MIN, ControlBlock::default(), ExtraPrecision::new());
             
             /// The smallest positive, normalized value that this type can represent.
-            pub const MIN_POSITIVE: Self = Self::new(UInt::ONE, i16::MAX, ControlBlock::default());
+            pub const MIN_POSITIVE: Self = Self::new(UInt::ONE, i16::MAX, ControlBlock::default(), ExtraPrecision::new());
             
             /// [Machine epsilon] value.
             ///
             /// This is the difference between `1.0` and the next larger representable number.
             ///
             /// [Machine epsilon]: https://en.wikipedia.org/wiki/Machine_epsilon
-            pub const EPSILON: Self = Self::new(UInt::ONE, Intrinsics::<N>::MAX_CLENGTH as i16 - 1, ControlBlock::default());
+            pub const EPSILON: Self = Self::new(UInt::ONE, Intrinsics::<N>::MAX_CLENGTH as i16 - 1, ControlBlock::default(), ExtraPrecision::new());
     
             consts_impl!(CONSTS ZERO 0, ONE 1, TWO 2, THREE 3, FOUR 4, FIVE 5, SIX 6, SEVEN 7, EIGHT 8, NINE 9, TEN 10);
+            
+            /// The value of `0.5` represented by this decimal type.
+            pub const HALF: Self = Self::ONE.div(Self::TWO);
             
             /// Euler's number (e).
             pub const E: Self = math::consts::Consts::<N>::E;
@@ -92,7 +95,7 @@ macro_rules! consts_impl {
     (CONSTS $($name: ident $num: literal), *) => {
         $(
             #[doc = concat!("The value of `", $num, "` represented by this decimal type.")]
-            pub const $name: Self = Self::new(UInt::$name, 0, ControlBlock::default());
+            pub const $name: Self = Self::new(UInt::$name, 0, ControlBlock::default(), ExtraPrecision::new());
         )*
     }
 }

@@ -7,6 +7,7 @@ use crate::{
         UInt,
     },
 };
+use crate::decimal::dec::ExtraPrecision;
 
 type D<const N: usize> = Decimal<N>;
 
@@ -185,6 +186,6 @@ impl<const N: usize> TryFrom<NBase> for D<N> {
             Ordering::Equal => {}
         }
 
-        Ok(D::new(uint, scale, flags))
+        Ok(D::new(uint, scale, flags, ExtraPrecision::new()))
     }
 }

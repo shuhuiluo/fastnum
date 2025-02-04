@@ -1,7 +1,7 @@
 use core::num::FpCategory;
-use num_traits::{Float, ToPrimitive};
+use num_traits::Float;
 
-use crate::decimal::{Decimal, RoundingMode};
+use crate::decimal::{dec::convert, Decimal, RoundingMode};
 
 impl<const N: usize> Float for Decimal<N> {
     #[inline]
@@ -121,7 +121,7 @@ impl<const N: usize> Float for Decimal<N> {
 
     #[inline]
     fn mul_add(self, a: Self, b: Self) -> Self {
-        todo!()
+        self.mul_add(a, b)
     }
 
     #[inline]
@@ -136,42 +136,42 @@ impl<const N: usize> Float for Decimal<N> {
 
     #[inline]
     fn powf(self, n: Self) -> Self {
-        todo!()
+        self.pow(n)
     }
 
     #[inline]
     fn sqrt(self) -> Self {
-        todo!()
+        self.sqrt()
     }
 
     #[inline]
     fn exp(self) -> Self {
-        todo!()
+        self.exp()
     }
 
     #[inline]
     fn exp2(self) -> Self {
-        todo!()
+        self.exp2()
     }
 
     #[inline]
     fn ln(self) -> Self {
-        todo!()
+        self.ln()
     }
 
     #[inline]
     fn log(self, base: Self) -> Self {
-        todo!()
+        self.log(base)
     }
 
     #[inline]
     fn log2(self) -> Self {
-        todo!()
+        self.log2()
     }
 
     #[inline]
     fn log10(self) -> Self {
-        todo!()
+        self.log10()
     }
 
     #[inline]
@@ -201,106 +201,110 @@ impl<const N: usize> Float for Decimal<N> {
 
     #[inline]
     fn abs_sub(self, other: Self) -> Self {
-        todo!()
+        self.abs_sub(other)
     }
 
     #[inline]
     fn cbrt(self) -> Self {
-        todo!()
+        self.cbrt()
     }
 
     #[inline]
     fn hypot(self, other: Self) -> Self {
-        todo!()
+        self.hypot(other)
     }
 
     #[inline]
     fn sin(self) -> Self {
-        todo!()
+        self.sin()
     }
 
     #[inline]
     fn cos(self) -> Self {
-        todo!()
+        self.cos()
     }
 
     #[inline]
     fn tan(self) -> Self {
-        todo!()
+        self.tan()
     }
 
     #[inline]
     fn asin(self) -> Self {
-        todo!()
+        self.asin()
     }
 
     #[inline]
     fn acos(self) -> Self {
-        todo!()
+        self.acos()
     }
 
     #[inline]
     fn atan(self) -> Self {
-        todo!()
+        self.atan()
     }
 
     #[inline]
     fn atan2(self, other: Self) -> Self {
-        todo!()
+        self.atan2(other)
     }
 
     #[inline]
     fn sin_cos(self) -> (Self, Self) {
-        todo!()
+        self.sin_cos()
     }
 
     #[inline]
     fn exp_m1(self) -> Self {
-        todo!()
+        self.exp_m1()
     }
 
     #[inline]
     fn ln_1p(self) -> Self {
-        todo!()
+        self.ln_1p()
     }
 
     #[inline]
     fn sinh(self) -> Self {
-        todo!()
+        self.sinh()
     }
 
     #[inline]
     fn cosh(self) -> Self {
-        todo!()
+        self.cosh()
     }
 
     #[inline]
     fn tanh(self) -> Self {
-        todo!()
+        self.tanh()
     }
 
     #[inline]
     fn asinh(self) -> Self {
-        todo!()
+        self.asinh()
     }
 
     #[inline]
     fn acosh(self) -> Self {
-        todo!()
+        self.acosh()
     }
 
     #[inline]
     fn atanh(self) -> Self {
-        todo!()
+        self.atanh()
     }
 
     #[inline]
     fn integer_decode(self) -> (u64, i16, i8) {
-        self.to_f64().unwrap_or(f64::NAN).integer_decode()
+        convert::to_f64(self).integer_decode()
     }
 
     #[inline]
     fn copysign(self, sign: Self) -> Self {
-        todo!()
+        if self.is_negative() == sign.is_negative() {
+            self
+        } else {
+            self.neg()
+        }
     }
 }

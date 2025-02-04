@@ -113,7 +113,7 @@ macro_rules! test_impl {
         #[case($dec!(12), $dec!(1e+3), $dec!(0E+3), signals![!ROUND, !INEXACT])]
         #[case($dec!(12), $dec!(1e+2), $dec!(0E+2), signals![!ROUND, !INEXACT])]
         #[case($dec!(12), $dec!(1e+1), $dec!(1E+1), signals![!ROUND, !INEXACT])]
-        #[case($dec!(1.2345), $dec!(1e-2), $dec!(1.24), signals![!ROUND, !INEXACT])]
+        #[case($dec!(1.2345), $dec!(1e-2), $dec!(1.23), signals![!ROUND, !INEXACT])]
         #[case($dec!(1.2335), $dec!(1e-2), $dec!(1.23), signals![!ROUND, !INEXACT])]
         #[case($dec!(1.2345), $dec!(1e-6), $dec!(1.234500), Signal::empty())]
         #[case($dec!(9.9999), $dec!(1e-2), $dec!(10.00), signals![!ROUND, !INEXACT])]

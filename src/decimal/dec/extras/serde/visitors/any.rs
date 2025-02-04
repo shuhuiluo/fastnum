@@ -13,7 +13,7 @@ impl<const N: usize> Visitor<N> {
     }
 }
 
-impl<'de, const N: usize> de::Visitor<'de> for Visitor<N> {
+impl<const N: usize> de::Visitor<'_> for Visitor<N> {
     type Value = D<N>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -52,14 +52,14 @@ impl<'de, const N: usize> de::Visitor<'de> for Visitor<N> {
     where
         E: de::Error,
     {
-        D::<N>::try_from(value).map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        D::<N>::try_from(value).map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>

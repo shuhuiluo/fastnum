@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast decimal numbers library"
@@ -35,7 +35,6 @@ diesel = { version = ">=2.2.4", default-features = false, features = ["numeric"]
 sqlx = { version = ">=0.8.0", default-features = false, optional = true }
 bytes = { version = "1.1.0", default-features = false, optional = true }
 utoipa = { version = ">= 5.0.0", default-features = false, optional = true }
-libm = { version = "0.2", default-features = false, optional = true }
 
 [dev-dependencies]
 rstest = { version = "0.23.0" }
@@ -49,7 +48,6 @@ autocfg = "1"
 [features]
 default = ["std"]
 std = []
-libm = ["dep:libm"]
 
 numtraits = ["num-traits", "bnum/numtraits"]
 
@@ -71,7 +69,7 @@ utoipa = ["dep:utoipa", "utoipa/macros"]
 dev = []
 
 # For internal use only
-test-util = []
+test-util = ["num-traits"]
 
 [profile.release]
 lto = true # enable link-time optimisation for faster runtime, but slower compile time

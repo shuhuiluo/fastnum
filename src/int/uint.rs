@@ -1,5 +1,6 @@
 pub(crate) mod intrinsics;
 pub(crate) mod math;
+pub(crate) mod convert;
 
 /// Big unsigned integer generic type, of fixed size which must be known at
 /// compile time.

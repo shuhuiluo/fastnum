@@ -99,7 +99,6 @@ macro_rules! test_impl {
         #[case($dec!(340282366920938463463374607431768211455), $dec!(1.0), $dec!(340282366920938463463374607431768211455), signals![!ROUND])]
         #[case($dec!(995052931372975485719.533153137), $dec!(4.523087321), $dec!(4500711297616988541501.8369669931160760), signals![!ROUND, !INEXACT])]
         #[case($dec!(8.37664968), $dec!(1.9086963714056968482094712882596748), $dec!(15.9884808487526916537308762397695926703), signals![!ROUND, !INEXACT])]
-        #[case($dec!(1e-2), $dec!(1e-32765), $dec!(1e-32767), signals![])]
         #[case($dec!(1e-2), $dec!(1.23e-32763), $dec!(1.23e-32765), signals![!SN])]
         #[case($dec!(1e-2), $dec!(1e-32767), $D::ZERO, signals![!INEXACT, !ROUND, !SN, !UFW])]
         #[case($dec!(1e5), $dec!(1e32765), $dec!(100e32768), signals![!CP, !ROUND])]
@@ -148,6 +147,7 @@ macro_rules! test_impl {
         #[case($D::INFINITY, $D::INFINITY, $D::INFINITY)]
         #[case($D::INFINITY, $dec!(1000), $D::INFINITY)]
         #[case($dec!(1000), $D::INFINITY, $D::INFINITY)]
+        #[case($dec!(1e-2), $dec!(1e-32765), $dec!(1e-32767))]
         fn test_mul(#[case] a: $D, #[case] b: $D, #[case] expected: $D) {
             let prod = a * b;
 

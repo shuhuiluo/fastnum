@@ -1,8 +1,3 @@
-use crate::decimal::common::from::test_impl;
-
-test_impl!(UD, 128);
-test_impl!(UD, 256);
-test_impl!(UD, 512);
-test_impl!(D, 128);
-test_impl!(D, 256);
-test_impl!(D, 512);
+mod f32;
+mod f64;
+mod int;

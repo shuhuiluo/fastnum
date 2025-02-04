@@ -10,6 +10,10 @@ pub(crate) mod quantize;
 pub(crate) mod quantum;
 pub(crate) mod round;
 pub(crate) mod smoke;
+pub(crate) mod to;
+
+// TODO
+// pub(crate) mod transmute;
 
 #[cfg(feature = "numtraits")]
 pub(crate) mod numtraits;

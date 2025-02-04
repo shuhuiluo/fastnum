@@ -4,15 +4,20 @@ mod cmp;
 mod construct;
 mod consts;
 mod control_block;
+mod convert;
+mod extra_precision;
 mod extras;
 mod format;
 mod impls;
 mod intrinsics;
-mod math;
 mod parse;
+mod round;
 mod scale;
+mod transmute;
 
+pub(crate) mod math;
 pub(crate) use control_block::ControlBlock;
+pub(crate) use extra_precision::ExtraPrecision;
 
 use core::{cmp::Ordering, fmt, num::FpCategory, panic};
 
@@ -47,7 +52,7 @@ pub struct Decimal<const N: usize> {
     cb: ControlBlock,
 
     #[doc(hidden)]
-    _padding: u8,
+    extra_precision: ExtraPrecision,
 }
 
 consts_impl!();
@@ -72,7 +77,7 @@ impl<const N: usize> Decimal<N> {
             cb = cb.neg();
         }
 
-        construct::construct(digits, exp, cb).check()
+        construct::construct(digits, exp, cb, ExtraPrecision::new()).check()
     }
 
     /// Creates and initializes decimal from string.
@@ -878,6 +883,29 @@ impl<const N: usize> Decimal<N> {
         }
     }
 
+    /// The positive difference of two decimal numbers.
+    ///
+    /// # Examples
+    ///
+    /// * If `self <= other`: `0:0`
+    /// * Else: `self - other`
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(1).abs_sub(dec256!(3)), dec256!(0));
+    /// assert_eq!(dec256!(3).abs_sub(dec256!(1)), dec256!(2));
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn abs_sub(self, other: Self) -> Self {
+        if self.le(&other) {
+            Self::ZERO
+        } else {
+            math::sub::sub(self, other)
+        }
+    }
+
     /// Tests signed decimal `self` less than `other` and is used by the `<`
     /// operator.
     ///
@@ -1021,7 +1049,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn add(self, rhs: Self) -> Self {
-        math::add::add(self, rhs).check()
+        math::add::add(self, rhs).round_extra_precision().check()
     }
 
     /// Calculates `self` – `rhs`.
@@ -1057,7 +1085,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn sub(self, rhs: Self) -> Self {
-        math::sub::sub(self, rhs).check()
+        math::sub::sub(self, rhs).round_extra_precision().check()
     }
 
     /// Calculates `self` × `rhs`.
@@ -1094,7 +1122,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn mul(self, rhs: Self) -> Self {
-        math::mul::mul(self, rhs).check()
+        math::mul::mul(self, rhs).round_extra_precision().check()
     }
 
     /// Calculates `self` ÷ `rhs`.
@@ -1131,7 +1159,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn div(self, rhs: Self) -> Self {
-        math::div::div(self, rhs).check()
+        math::div::div(self, rhs).round_extra_precision().check()
     }
 
     /// Calculates `self` % `rhs`.
@@ -1155,7 +1183,33 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn rem(self, rhs: Self) -> Self {
-        math::rem::rem(self, rhs).check()
+        math::rem::rem(self, rhs).round_extra_precision().check()
+    }
+
+    /// Raise a decimal number to decimal power.
+    ///
+    /// Using this function is generally slower than using `powi` for integer
+    /// powers or `sqrt` method for `1/2` exponent.
+    #[doc = doc::decimal_inexact!("power operation")]
+    ///
+    #[doc = doc::decimal_operation_panics!("power operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(4).pow(dec256!(0.5)), dec256!(2));
+    /// assert_eq!(dec256!(8).pow(dec256!(1) / dec256!(3)), dec256!(2));
+    /// ```
+    ///
+    /// See more about the [power](crate#power) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn pow(self, n: Self) -> Self {
+        math::pow::pow(self, n).round_extra_precision().check()
     }
 
     /// Raise a decimal number to an integer power.
@@ -1181,7 +1235,311 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn powi(self, n: i32) -> Self {
-        math::pow::powi(self, n).check()
+        math::powi::powi(self, n).round_extra_precision().check()
+    }
+
+    /// Take the square root of the decimal number using
+    /// [Heron's method](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Heron's_method),
+    /// a special case of [Newton's](https://en.wikipedia.org/wiki/Newton%27s_method) method.
+    ///
+    /// Returns [`NaN`](crate#nan) if `self` is a negative number other than
+    /// `-0.0`.
+    #[doc = doc::decimal_inexact!("square root operation")]
+    ///
+    #[doc = doc::decimal_operation_panics!("square root operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(4).sqrt(), dec128!(2));
+    /// assert_eq!(dec128!(1).sqrt(), dec128!(1));
+    /// assert_eq!(dec128!(16).sqrt(), dec128!(4));
+    /// assert_eq!(dec128!(2).sqrt(), D128::SQRT_2);
+    /// ```
+    ///
+    /// See more about the [square-root](crate#square-root) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn sqrt(self) -> Self {
+        math::sqrt::sqrt(self).round_extra_precision().check()
+    }
+
+    /// Take the cubic root of a decimal number using
+    /// [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).
+    #[doc = doc::decimal_inexact!("cubic root operation")]
+    ///
+    #[doc = doc::decimal_operation_panics!("cubic root operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(8).cbrt(), dec128!(2));
+    /// ```
+    ///
+    /// See more about the [N-th root](crate#n-th-roots) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn cbrt(self) -> Self {
+        math::cbrt::cbrt(self).round_extra_precision().check()
+    }
+
+    /// Take the N-th root of the decimal number using
+    /// [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).
+    #[doc = doc::decimal_inexact!("N-th root operation")]
+    ///
+    #[doc = doc::decimal_operation_panics!("N-th root operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(16).nth_root(4), dec128!(2));
+    /// ```
+    ///
+    /// See more about the [N-th root](crate#n-th-roots) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn nth_root(self, n: u32) -> Self {
+        math::nth_root::nth_root(self, n)
+            .round_extra_precision()
+            .check()
+    }
+
+    /// Returns _e<sup>self</sup>_, (the exponential function).
+    #[doc = doc::decimal_inexact!("exponential function")]
+    ///
+    #[doc = doc::decimal_operation_panics!("exponent calculation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(1).exp(), D128::E);
+    /// ```
+    ///
+    /// See more about the [exponential function](crate#exponential-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn exp(self) -> Self {
+        math::exp::exp(self).round_extra_precision().check()
+    }
+
+    /// Returns _e<sup>self</sup> – 1_.
+    #[doc = doc::decimal_inexact!("exponential function")]
+    ///
+    #[doc = doc::decimal_operation_panics!("exponent calculation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(7.0).ln().exp_m1(), D128::SIX);
+    /// ```
+    ///
+    /// See more about the [exponential function](crate#exponential-function).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn exp_m1(self) -> Self {
+        math::exp::exp_m1(self).round_extra_precision().check()
+    }
+
+    /// Returns _2<sup>self</sup>_, (the binary exponential function).
+    #[doc = doc::decimal_inexact!("binary exponential function")]
+    ///
+    #[doc = doc::decimal_operation_panics!("binary exponential function")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(0).exp2(), dec128!(1));
+    /// assert_eq!(dec128!(1).exp2(), dec128!(2));
+    /// assert_eq!(dec128!(2).exp2(), dec128!(4));
+    /// assert_eq!(dec128!(3).exp2(), dec128!(8));
+    /// ```
+    /// See more about the [binary exponential
+    /// function](crate#binary-exponential-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn exp2(self) -> Self {
+        math::exp2::exp2(self).round_extra_precision().check()
+    }
+
+    /// Returns the natural logarithm of the decimal number.
+    #[doc = doc::decimal_inexact!("natural logarithm")]
+    ///
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(2).ln(), D256::LN_2);
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn ln(self) -> Self {
+        math::ln::ln(self).round_extra_precision().check()
+    }
+
+    /// Returns _ln(1 + n)_ (natural logarithm).
+    #[doc = doc::decimal_inexact!("natural logarithm")]
+    ///
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!((D128::E - dec128!(1)).ln_1p(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn ln_1p(self) -> Self {
+        math::ln::ln_1p(self).round_extra_precision().check()
+    }
+
+    /// Returns the _base_ logarithm of the decimal number.
+    #[doc = doc::decimal_inexact!("logarithm")]
+    ///
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(64).log(dec256!(2)), dec256!(6));
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn log(self, base: Self) -> Self {
+        math::log::log(self, base).round_extra_precision().check()
+    }
+
+    /// Returns the binary logarithm of the decimal number.
+    #[doc = doc::decimal_inexact!("binary logarithm")]
+    ///
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(32).log2(), dec256!(5));
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn log2(self) -> Self {
+        math::log2::log2(self).round_extra_precision().check()
+    }
+
+    /// Returns the decimal logarithm of the given number.
+    #[doc = doc::decimal_inexact!("decimal logarithm")]
+    ///
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(100).log10(), dec256!(2));
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn log10(self) -> Self {
+        math::log10::log10(self).round_extra_precision().check()
+    }
+
+    /// Calculate the length of the hypotenuse of a right-angle triangle given
+    /// legs of length `x` and `y`.
+    #[doc = doc::decimal_operation_panics!("hypotenuse calculate operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// let x = dec256!(2);
+    /// let y = dec256!(3);
+    ///
+    /// // sqrt(x^2 + y^2)
+    /// assert_eq!(x.hypot(y), (x.powi(2) + y.powi(2)).sqrt());
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn hypot(self, other: Self) -> Self {
+        math::hypot::hypot(self, other)
+            .round_extra_precision()
+            .check()
+    }
+
+    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
+    /// error, yielding a more accurate result than an unfused multiply-add.
+    #[doc = doc::decimal_operation_panics!("multiply-add operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(10.0).mul_add(dec128!(4.0), dec128!(60)), dec128!(100));
+    /// ```
+    ///
+    /// See more about the [fused multiply-add
+    /// function](crate#fused-multiply-add).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn mul_add(self, a: Self, b: Self) -> Self {
+        math::add::add(self.mul(a), b)
+            .round_extra_precision()
+            .check()
     }
 
     /// Returns the given decimal number rounded to `digits` precision after the
@@ -1248,7 +1606,9 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn rescale(self, new_scale: i16) -> Self {
-        scale::rescale(self, new_scale).check()
+        scale::rescale(self, new_scale)
+            .round_extra_precision()
+            .check()
     }
 
     /// Returns a value equal to `self` (rounded), having the exponent of
@@ -1290,7 +1650,7 @@ impl<const N: usize> Decimal<N> {
     #[track_caller]
     #[inline]
     pub const fn quantize(self, other: Self) -> Self {
-        scale::quantize(self, other).check()
+        scale::quantize(self, other).round_extra_precision().check()
     }
 
     /// Returns:
@@ -1320,7 +1680,8 @@ impl<const N: usize> Decimal<N> {
     }
 
     /// Takes the reciprocal (inverse) of a number, `1/x`.
-    #[doc = doc::decimal_operation_panics!("inverse operation")]
+    #[doc = doc::decimal_inexact!("reciprocal")]
+    #[doc = doc::decimal_operation_panics!("reciprocal operation")]
     /// # Examples
     ///
     /// ```
@@ -1329,9 +1690,10 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(2).recip(), dec256!(0.5));
     /// ```
     #[must_use = doc::must_use_op!()]
+    #[track_caller]
     #[inline]
     pub const fn recip(self) -> Self {
-        Self::ONE.div(self)
+        math::recip::recip(self).round_extra_precision().check()
     }
 
     /// Converts radians to degrees.
@@ -1347,7 +1709,9 @@ impl<const N: usize> Decimal<N> {
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn to_degrees(self) -> Self {
-        self.div(Self::PI).mul(Consts::C_180)
+        math::mul::mul(math::div::div(self, Self::PI), Consts::C_180)
+            .round_extra_precision()
+            .check()
     }
 
     /// Converts degrees to radians.
@@ -1358,12 +1722,14 @@ impl<const N: usize> Decimal<N> {
     /// use fastnum::*;
     ///
     /// assert_eq!(dec128!(180).to_radians(), D128::PI);
-    /// assert_eq!(dec128!(360).to_radians(), D128::PI + D128::PI);
+    /// assert_eq!(dec128!(360).to_radians(), D128::TAU);
     /// ```
     #[must_use = doc::must_use_op!()]
     #[inline]
     pub const fn to_radians(self) -> Self {
-        self.div(Consts::C_180).mul(Self::PI)
+        math::div::div(math::mul::mul(self, Self::PI), Consts::C_180)
+            .round_extra_precision()
+            .check()
     }
 
     /// Create string of this decimal in scientific notation.
@@ -1406,17 +1772,426 @@ impl<const N: usize> Decimal<N> {
             .expect("Could not write to string");
         output
     }
+
+    /// Transmute the given n-bits decimal number to m-bits decimal number.
+    #[doc = doc::decimal_operation_panics!("transmute operation")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// let d = dec256!(1.2345);
+    ///
+    /// assert_eq!(d.transmute(), dec128!(1.2345));
+    /// assert_eq!(d.transmute(), dec512!(1.2345));
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn transmute<const M: usize>(self) -> Decimal<M> {
+        transmute::transmute(self).round_extra_precision().check()
+    }
+
+    /// Returns `true` if the decimal number is even.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(3).is_even(), false);
+    /// assert_eq!(dec256!(4).is_even(), true);
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn is_even(&self) -> bool {
+        math::utils::is_even(self)
+    }
+
+    /// Returns `true` if the decimal number is odd.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(3).is_odd(), true);
+    /// assert_eq!(dec256!(4).is_odd(), false);
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn is_odd(&self) -> bool {
+        math::utils::is_odd(self)
+    }
+
+    /// Returns `true` if the decimal number is integral.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::dec256;
+    ///
+    /// assert_eq!(dec256!(3.3).is_integral(), false);
+    /// assert_eq!(dec256!(4).is_integral(), true);
+    /// assert_eq!(dec256!(1.0).is_integral(), true);
+    /// assert_eq!(dec256!(10.0).is_integral(), true);
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn is_integral(&self) -> bool {
+        math::utils::is_integral(self)
+    }
+
+    /// Computes _sin(self)_ (trigonometric sine of decimal number in radians).
+    #[doc = doc::decimal_inexact!("trigonometric sine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric sine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::FRAC_PI_2.sin(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn sin(self) -> Self {
+        math::sin::sin(self).round_extra_precision().check()
+    }
+
+    /// Computes _cos(self)_ (trigonometric cosine of decimal number in
+    /// radians).
+    #[doc = doc::decimal_inexact!("trigonometric cosine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric cosine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::TAU.cos(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn cos(self) -> Self {
+        math::cos::cos(self).round_extra_precision().check()
+    }
+
+    /// Computes _tan(self)_ (trigonometric tangent of decimal number in
+    /// radians).
+    #[doc = doc::decimal_inexact!("trigonometric tangent")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric tangent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::FRAC_PI_4.tan(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn tan(self) -> Self {
+        math::tan::tan(self).round_extra_precision().check()
+    }
+
+    /// Computes _arcsin(self)_ (trigonometric arcsine of decimal number).
+    ///
+    /// Return value is in radians in the range [-π/2, π/2] or `NaN`
+    /// if the number is outside the range [-1, 1].
+    #[doc = doc::decimal_inexact!("trigonometric arcsine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric arcsine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::FRAC_PI_2.sin().asin(), D128::FRAC_PI_2);
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn asin(self) -> Self {
+        math::asin::asin(self).round_extra_precision().check()
+    }
+
+    /// Computes _arccos(self)_ (trigonometric arccosine of decimal number).
+    ///
+    /// Return value is in radians in the range [0, π] or `NaN`
+    /// if the number is outside the range [-1, 1].
+    #[doc = doc::decimal_inexact!("trigonometric arccosine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric arccosine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::FRAC_PI_4.cos().acos(), D128::FRAC_PI_4);
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn acos(self) -> Self {
+        math::acos::acos(self).round_extra_precision().check()
+    }
+
+    /// Computes _arctan(self)_ (trigonometric arctangent of decimal number).
+    ///
+    /// Return value is in radians in the range [-π/2, π/2].
+    #[doc = doc::decimal_inexact!("trigonometric arctangent")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric arctangent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::ZERO.atan(), D128::ZERO);
+    /// assert_eq!(D128::ONE.atan(), D128::FRAC_PI_4);
+    /// assert_eq!(D128::ONE.neg().atan(), D128::FRAC_PI_4.neg());
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn atan(self) -> Self {
+        math::atan::atan(self).round_extra_precision().check()
+    }
+
+    /// Computes the [_four quadrant_ arctangent](https://en.wikipedia.org/wiki/Atan2)
+    /// of `self` (`y`) and `other` (`x`).
+    ///
+    /// * `x = 0`, `y = 0`: `0`
+    /// * `x >= 0`: `arctan(y/x)` -> `[-π/2, π/2]`
+    /// * `y >= 0`: `arctan(y/x) + π` -> `(pi/2, π]`
+    /// * `y < 0`: `arctan(y/x) - π` -> `(-π, -π/2)`
+    #[doc = doc::decimal_inexact!("trigonometric 2-argument arctangent")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric 2-argument arctangent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(-3.0).atan2(dec128!(3.0)), D128::FRAC_PI_4.neg());
+    /// assert_eq!(dec128!(3.0).atan2(dec128!(-3.0)), D128::FRAC_PI_4 * D128::THREE);
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn atan2(self, other: Self) -> Self {
+        math::atan2::atan2(self, other)
+            .round_extra_precision()
+            .check()
+    }
+
+    /// Simultaneously computes the sine and cosine of the number, `x`.
+    /// Returns `(sin(x), cos(x))`.
+    #[doc = doc::decimal_inexact!("trigonometric sine and cosine function")]
+    ///
+    #[doc = doc::decimal_operation_panics!("trigonometric sine and cosine computation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D128::FRAC_PI_2.sin_cos(), (dec128!(1), dec128!(0)));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn sin_cos(self) -> (Self, Self) {
+        let (sin, cos) = math::sin_cos::sin_cos(self);
+        (
+            sin.round_extra_precision().check(),
+            cos.round_extra_precision().check(),
+        )
+    }
+
+    /// Computes _sinh(self)_ (hyperbolic sine of decimal number).
+    #[doc = doc::decimal_inexact!("hyperbolic sine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("hyperbolic sine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(1).sinh(), (D128::E * D128::E - dec128!(1.0)) / (dec128!(2.0) * D128::E));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn sinh(self) -> Self {
+        math::sinh::sinh(self).round_extra_precision().check()
+    }
+
+    /// Computes _cosh(self)_ (hyperbolic cosine of decimal number).
+    #[doc = doc::decimal_inexact!("hyperbolic cosine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("hyperbolic cosine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(1).cosh(), (D256::E * D256::E + dec256!(1.0)) / (dec256!(2.0) * D256::E));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn cosh(self) -> Self {
+        math::cosh::cosh(self).round_extra_precision().check()
+    }
+
+    /// Computes _tanh(self)_ (hyperbolic tangent of decimal number).
+    #[doc = doc::decimal_inexact!("hyperbolic tangent")]
+    ///
+    #[doc = doc::decimal_operation_panics!("hyperbolic tangent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// let e2 = D128::E * D128::E;
+    /// assert_eq!(dec128!(1).tanh(), (e2 - dec128!(1.0)) / (e2 + dec128!(1.0)));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn tanh(self) -> Self {
+        math::tanh::tanh(self).round_extra_precision().check()
+    }
+
+    /// Computes _arsinh(self)_ (inverse hyperbolic sine of decimal number).
+    #[doc = doc::decimal_inexact!("inverse hyperbolic sine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("inverse hyperbolic sine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(1).sinh().asinh(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn asinh(self) -> Self {
+        math::asinh::asinh(self).round_extra_precision().check()
+    }
+
+    /// Computes _arcosh(self)_ (inverse hyperbolic cosine of decimal number).
+    #[doc = doc::decimal_inexact!("inverse hyperbolic cosine")]
+    ///
+    #[doc = doc::decimal_operation_panics!("inverse hyperbolic cosine operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec128!(1).cosh().acosh(), dec128!(1));
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn acosh(self) -> Self {
+        math::acosh::acosh(self).round_extra_precision().check()
+    }
+
+    /// Computes _artanh(self)_ (inverse hyperbolic tangent of decimal number).
+    #[doc = doc::decimal_inexact!("inverse hyperbolic tangent")]
+    ///
+    #[doc = doc::decimal_operation_panics!("inverse hyperbolic tangent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(D256::ZERO.tanh().atanh(), D256::ZERO);
+    /// ```
+    ///
+    /// See more about the [trigonometric
+    /// functions](crate#trigonometric-functions).
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn atanh(self) -> Self {
+        math::atanh::atanh(self).round_extra_precision().check()
+    }
 }
 
 #[doc(hidden)]
 impl<const N: usize> Decimal<N> {
     #[inline(always)]
-    pub(crate) const fn new(digits: UInt<N>, scale: i16, cb: ControlBlock) -> Self {
+    pub(crate) const fn new(
+        digits: UInt<N>,
+        scale: i16,
+        cb: ControlBlock,
+        extra_precision: ExtraPrecision,
+    ) -> Self {
         Self {
             digits,
             scale,
             cb,
-            _padding: 0,
+            extra_precision,
         }
     }
 
@@ -1499,6 +2274,43 @@ impl<const N: usize> Decimal<N> {
         } else {
             Err(DecimalError::from_signals(trapped))
         }
+    }
+
+    #[inline]
+    pub(crate) const fn extra_precision(&self) -> ExtraPrecision {
+        self.extra_precision
+    }
+
+    #[inline(always)]
+    pub(crate) const fn round_extra_precision(self) -> Self {
+        round::round(self)
+    }
+
+    #[inline]
+    pub(crate) const fn extra_digits(&self) -> Self {
+        let mut extra_digits = self.extra_precision.as_decimal();
+        if !extra_digits.is_zero() {
+            let overflow;
+            (extra_digits.scale, overflow) = extra_digits.scale.overflowing_add(self.scale);
+            if overflow {
+                extra_digits = Self::ZERO;
+            }
+        } else {
+            extra_digits.scale = 0;
+        }
+
+        extra_digits
+    }
+
+    #[inline]
+    pub(crate) const fn without_extra_digits(mut self) -> Self {
+        self.extra_precision = ExtraPrecision::new();
+        self
+    }
+
+    #[inline]
+    pub(crate) const fn eq_with_extra_precision(&self, other: &Self) -> bool {
+        cmp::eq(self, other) && self.extra_precision.eq(other.extra_precision)
     }
 
     /// Write unsigned decimal in scientific notation to writer `w`.

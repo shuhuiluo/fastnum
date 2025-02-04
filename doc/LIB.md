@@ -902,18 +902,42 @@ assert_eq!(dec128!(0.9) * dec128!(-0), dec128!(-0.0));
 assert_eq!(dec128!(654321) * dec128!(654321), dec128!(4.28135971041E+11));
 ```
 
+#### Fused multiply-add
+
+[Fused multiply-add]: #fused-multiply-add
+
+[`mul_add(self, a, b)`](crate::decimal::Decimal::mul_add)
+
+Operation takes three operands.
+The first two are multiplied together, using [Multiplication],
+with sufficient precision and exponent range that the result is exact and unrounded.
+No flags are set by the multiplication unless one of the first two operands is a signaling `NaN`, or one is a zero and
+the other is an [`Infinity`].
+Unless the multiplication failed, the third operand is then added to the result of that multiplication, using add, under
+the current context.
+
+In other words, `mul_add(x, y, z)` delivers a result which is `(x × y) + z` with only the one, final, rounding.
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(dec128!(1.0).mul_add(dec128!(2), dec128!(0.5)), dec128!(2.5));
+```
+
 #### Power
 
 [Power]: #power
 
-[`powi(self, n)`](crate::decimal::Decimal::powi)
+[`powi(self, n)`](crate::decimal::Decimal::powi) | [`pow(self, n)`](crate::decimal::Decimal::pow)
 
 If either operand is a [special value] then the [general rules] apply.
 
 The following rules apply:
 
 - If both operands are _zero_, or if the first operand is less than _zero_ and the second operand doesn't have an
-  integral value or is _infinite_, an [`Invalid operation`] condition is raised, the result is [`NaN`], and the
+  integral value or is _infinite_, an ['Invalid operation'] condition is raised, the result is [`NaN`], and the
   following rules don't apply.
 - If the first operand is _infinite_, the result will be exact and will be
     - [`Infinity`] if the second operand is _positive_,
@@ -965,6 +989,252 @@ assert_eq!(D256::NEG_INFINITY.powi(0), dec256!(1));
 assert_eq!(D256::NEG_INFINITY.powi(1), D256::NEG_INFINITY);
 assert_eq!(D256::NEG_INFINITY.powi(2), D256::INFINITY);
 ```
+
+#### Square root
+
+[Square root]: #square-root
+
+[`sqrt(self)`](crate::decimal::Decimal::sqrt)
+
+If the operand is a [special value] then the [general rules] apply.
+Otherwise, the ideal exponent of the result is defined to be half the exponent of the operand (rounded to an integer,
+towards [`–Infinity`], if necessary) and then:
+
+* If the operand is less than zero, an ['Invalid operation'] condition is raised.
+* If the operand is greater than zero, the result is the square root of the operand.
+* Otherwise (the operand is equal to zero), the result will be the zero with the same sign as the operand and with the
+* ideal exponent.
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(dec128!(0).sqrt(), dec128!(0));
+assert_eq!(dec128!(-0).sqrt(), dec128!(-0));
+assert_eq!(dec128!(0.39).sqrt(), dec128!(0.62449979983983982058468931209397944611));
+assert_eq!(dec128!(4).sqrt(), dec128!(2));
+assert_eq!(dec128!(100).sqrt(), dec128!(10));
+assert_eq!(dec128!(1).sqrt(), dec128!(1));
+assert_eq!(dec128!(1.0).sqrt(), dec128!(1.0));
+assert_eq!(dec128!(1.00).sqrt(), dec128!(1.0));
+assert_eq!(dec128!(7).sqrt(), dec128!(2.64575131106459059050161575363926042571));
+assert_eq!(dec128!(10).sqrt(), dec128!(3.16227766016837933199889354443271853372));
+```
+
+##### Notes:
+
+A negative zero is allowed as an operand as per [IEEE 754] §5.4.1.
+Square-root can also be calculated by using the power operation (with a second operand of 0.5).
+
+#### N-th roots
+
+[N-th roots]: #n-th-roots
+
+[`nth_root(self, n)`](crate::decimal::Decimal::nth_root)
+
+If the operand is a [special value] then the [general rules] apply.
+Otherwise, the ideal exponent of the result is defined to be half the exponent of the operand (rounded to an integer,
+towards [`–Infinity`], if necessary) and then:
+
+* If the operand is less than zero and `n` is even, an ['Invalid operation'] condition is raised.
+* If the operand is equal to zero, the result will be the zero with the same sign as the operand and with the
+* ideal exponent.
+* Otherwise, the result is the N-th root of the operand.
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(dec128!(16).nth_root(4), dec128!(2));
+```
+
+##### Notes:
+
+N-th root can also be calculated by using the power operation (with a second operand of `1/n`).
+
+#### Exponential function
+
+[Exponential function]: #exponential-function
+
+[`exp(self)`](crate::decimal::Decimal::exp)
+
+If the operand is a [special value] then the [general rules] apply.
+Otherwise,
+the result is [`e`](https://en.wikipedia.org/wiki/E_(mathematical_constant)) raised to the power of the operand,
+with the following cases:
+
+* If the operand is [`–Infinity`], the result is `0` and exact.
+* If the operand is a zero, the result is `1` and exact.
+* If the operand is [`Infinity`], the result is [`Infinity`] and exact.
+* Otherwise, the result is inexact and will be rounded using the context rounding mode.
+* The coefficient will have exactly precision digits (unless the result is subnormal).
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(D128::NEG_INFINITY.exp(), dec128!(0));
+assert!(D128::INFINITY.exp().is_infinite());
+assert_eq!(dec128!(0).exp(), dec128!(1));
+assert_eq!(dec128!(1).exp(), D128::E);
+assert_eq!(dec128!(-1).exp(), dec128!(0.36787944117144232159552377016146086744));
+assert_eq!(D128::LN_2.exp().round(20), dec128!(2));
+```
+
+##### Notes:
+
+The standard Taylor series expansion method is used for calculation _e<sup>x</sup>_.
+
+#### Binary exponential function
+
+[Binary exponential function]: #binary-exponential-function
+
+[`exp2(self)`](crate::decimal::Decimal::exp2)
+
+If the operand is a [special value] then the [general rules] apply.
+Otherwise, the result is `2` raised to the power of the operand, with the following cases:
+
+* If the operand is [`–Infinity`], the result is `0` and exact.
+* If the operand is a zero, the result is `1` and exact.
+* If the operand is [`Infinity`], the result is [`Infinity`] and exact.
+* Otherwise, the result is inexact and will be rounded using the context rounding mode.
+* The coefficient will have exactly precision digits (unless the result is subnormal).
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(D128::NEG_INFINITY.exp2(), dec128!(0));
+assert!(D128::INFINITY.exp2().is_infinite());
+assert_eq!(dec128!(0).exp2(), dec128!(1));
+assert_eq!(dec128!(1).exp2(), dec128!(2));
+assert_eq!(dec128!(2).exp2(), dec128!(4));
+```
+
+##### Notes:
+
+The standard Taylor series expansion method is used for calculation _2<sup>x</sup>_.
+
+#### Logarithm function
+
+[Logarithm function]: #logarithm-function
+
+|                              Base                              |                      Method                       |                                                 Associated constants                                                 |
+|:--------------------------------------------------------------:|:-------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|
+| [`e`](https://en.wikipedia.org/wiki/E_(mathematical_constant)) |     [`ln(self)`](crate::decimal::Decimal::ln)     |                 ['ln(2)'](crate::decimal::Decimal::LN_2), ['ln(10)'](crate::decimal::Decimal::LN_10)                 |
+|                              `2`                               |   [`log2(self)`](crate::decimal::Decimal::log2)   |  ['log<sub>2</sub>(e)'](crate::decimal::Decimal::LOG2_E), ['log<sub>2</sub>(10)'](crate::decimal::Decimal::LOG2_10)  |
+|                              `10`                              |  [`log10(self)`](crate::decimal::Decimal::log10)  | ['log<sub>10</sub>(e)'](crate::decimal::Decimal::LOG10_E), ['log<sub>10</sub>(2)'](crate::decimal::Decimal::LOG10_2) |
+|                             _base_                             | [`log(self, base)`](crate::decimal::Decimal::log) |                                                                                                                      |
+
+If the operand is a [special value] then the [general rules] apply.
+Otherwise, the operand must be a zero or positive, and the result is the logarithm base _base_ of the operand, with
+the following cases:
+
+* If the operand is a zero, the result is [`–Infinity`] and exact.
+* If the operand is [`+Infinity`], the result is [`+Infinity`] and exact.
+* If the operand equals one, the result is `0` and exact.
+* Otherwise, the result is inexact and will be correctly rounded using the [Context] rounding setting.
+
+##### Examples:
+
+```
+use fastnum::*;
+
+assert_eq!(dec256!(2).ln(), D256::LN_2);
+assert_eq!(dec256!(10).ln(), D256::LN_10);
+
+assert_eq!(dec256!(100).log10(), D256::TWO);
+assert_eq!(dec256!(512).log2(), dec256!(9));
+
+```
+
+#### Trigonometric functions
+
+[Trigonometric functions]: #trigonometric-functions
+
+##### Base trigonometric functions
+
+[_sin(x)_]: https://en.wikipedia.org/wiki/Sine_and_cosine
+
+[`sin(self)`]: crate::decimal::Decimal::sin
+
+[_cos(x)_]: https://en.wikipedia.org/wiki/Sine_and_cosine
+
+[`cos(self)`]: crate::decimal::Decimal::cos
+
+[_tan(x)_]: https://en.wikipedia.org/wiki/Trigonometric_functions
+
+[`tan(self)`]: crate::decimal::Decimal::tan
+
+|    _ƒ_     |    Method     |    Domain	    | Set of principal values |
+|:----------:|:-------------:|:-------------:|:-----------------------:|
+| [_sin(x)_] | [`sin(self)`] | _-∞ < x < +∞_ |      _-1 ≤ x ≤ 1_       |
+| [_cos(x)_] | [`cos(self)`] | _-∞ < x < +∞_ |      _-1 ≤ x ≤ 1_       |
+| [_tan(x)_] | [`tan(self)`] | _-∞ < x < +∞_ |      _-∞ < x < +∞_      |
+
+##### Inverse trigonometric functions
+
+[_asin(x)_]: https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+
+[`asin(self)`]: crate::decimal::Decimal::asin
+
+[_acos(x)_]: https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+
+[`acos(self)`]: crate::decimal::Decimal::acos
+
+[_atan(x)_]: https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+
+[`atan(self)`]: crate::decimal::Decimal::atan
+
+|     _ƒ_     |     Method     |    Domain	    | Set of principal values |
+|:-----------:|:--------------:|:-------------:|:-----------------------:|
+| [_asin(x)_] | [`asin(self)`] | _-1 ≤ x ≤ 1_  |    _-π/2 ≤ x ≤ π/2_     |
+| [_acos(x)_] | [`acos(self)`] | _-1 ≤ x ≤ 1_  |       _0 ≤ x ≤ π_       |
+| [_atan(x)_] | [`atan(self)`] | _-∞ < x < +∞_ |    _-π/2 ≤ x ≤ π/2_     |
+
+##### Hyperbolic functions
+
+[_sinh(x)_]: https://en.wikipedia.org/wiki/Hyperbolic_functions
+
+[`sinh(self)`]: crate::decimal::Decimal::sinh
+
+[_cosh(x)_]: https://en.wikipedia.org/wiki/Hyperbolic_functions
+
+[`cosh(self)`]: crate::decimal::Decimal::cosh
+
+[_tanh(x)_]: https://en.wikipedia.org/wiki/Hyperbolic_functions
+
+[`tanh(self)`]: crate::decimal::Decimal::tanh
+
+|     _ƒ_     |     Method     |    Domain	    | Set of principal values |
+|:-----------:|:--------------:|:-------------:|:-----------------------:|
+| [_sinh(x)_] | [`sinh(self)`] | _-∞ < x < +∞_ |      _-∞ < x < +∞_      |
+| [_cosh(x)_] | [`cosh(self)`] | _-∞ < x < +∞_ |      _1 ≤ x < +∞_       |
+| [_tanh(x)_] | [`tanh(self)`] | _-∞ < x < +∞_ |      _-1 < x < 1_       |
+
+##### Inverse hyperbolic functions
+
+[_asinh(x)_]: https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions
+
+[`asinh(self)`]: crate::decimal::Decimal::asinh
+
+[_acosh(x)_]: https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions
+
+[`acosh(self)`]: crate::decimal::Decimal::acosh
+
+[_atanh(x)_]: https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions
+
+[`atanh(self)`]: crate::decimal::Decimal::atanh
+
+|     _ƒ_      |     Method      |    Domain	    | Set of principal values |
+|:------------:|:---------------:|:-------------:|:-----------------------:|
+| [_asinh(x)_] | [`asinh(self)`] | _-∞ < x < +∞_ |      _-∞ < x < +∞_      |
+| [_acosh(x)_] | [`acosh(self)`] | _1 ≤ x < +∞_  |      _-∞ < x < +∞_      |
+| [_atanh(x)_] | [`atanh(self)`] | _-1 < x < 1_  |      _-∞ < x < +∞_      |
 
 ### Compare and ordering
 
@@ -1376,7 +1646,7 @@ incremented by `1` (rounded up) if its rightmost digit is odd (to make an even d
 ```                                                                                       
 use fastnum::{*, decimal::RoundingMode::*};     
 
-assert_eq!(D128::PI, dec128!(3.14159265358979323846264338327950288419));                       
+assert_eq!(D128::PI, dec128!(3.14159265358979323846264338327950288420));                       
 assert_eq!(D128::TAU, dec128!(2).with_rounding_mode(Down) * D128::PI);                       
                                   
 ```
@@ -1514,7 +1784,6 @@ let my_struct: MyStruct = serde_json::from_str(&json_src).unwrap();
 | Feature           | Default | Description                                                                                                                                                                                         |
 |-------------------|:-------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `std`             |    ✅    |                                                                                                                                                                                                     |
-| `libm`            |         | Must be used with `no-std` configuration.                                                                                                                                                           |
 | `numtraits`       |         | Includes implementations of traits from the [`num_traits`](https://docs.rs/num-traits/latest/num_traits/) crate.                                                                                    |
 | `rand`            |         | Allows creation of random `fastnum` decimals via the [`rand`](https://docs.rs/rand/latest/rand/) crate.                                                                                             |
 | `zeroize`         |         | Enables the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) trait implementation from the [`zeroize`](https://docs.rs/zeroize/latest/zeroize/) crate for `fastnum` decimals. |

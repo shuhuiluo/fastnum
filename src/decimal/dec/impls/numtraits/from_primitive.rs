@@ -65,11 +65,11 @@ impl<const N: usize> FromPrimitive for Decimal<N> {
 
     #[inline]
     fn from_f32(n: f32) -> Option<Self> {
-        Self::try_from(n).ok()
+        Some(Self::from(n))
     }
 
     #[inline]
     fn from_f64(n: f64) -> Option<Self> {
-        Self::try_from(n).ok()
+        Some(Self::from(n))
     }
 }

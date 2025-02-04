@@ -13,7 +13,7 @@ impl<const N: usize> Visitor<N> {
     }
 }
 
-impl<'de, const N: usize> de::Visitor<'de> for Visitor<N> {
+impl<const N: usize> de::Visitor<'_> for Visitor<N> {
     type Value = D<N>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -24,32 +24,28 @@ impl<'de, const N: usize> de::Visitor<'de> for Visitor<N> {
     where
         E: de::Error,
     {
-        D::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_i128<E>(self, value: i128) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        D::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        D::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_u128<E>(self, value: u128) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        D::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+        Ok(D::<N>::from(value))
     }
 
     fn visit_f32<E>(self, value: f32) -> Result<Self::Value, E>

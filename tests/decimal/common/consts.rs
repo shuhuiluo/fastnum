@@ -42,7 +42,7 @@ macro_rules! test_impl {
     
     (@ 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
-        #[case($D::PI, $dec!(3.14159265358979323846264338327950288419))]
+        #[case($D::PI, $dec!(3.1415926535897932384626433832795028842))]
         fn test_math_consts(#[case] d: $D, #[case] expected: $D) {
             assert_eq!(d, expected);
         }

@@ -13,7 +13,7 @@ impl<const N: usize> Visitor<N> {
     }
 }
 
-impl<'de, const N: usize> de::Visitor<'de> for Visitor<N> {
+impl<const N: usize> de::Visitor<'_> for Visitor<N> {
     type Value = UD<N>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

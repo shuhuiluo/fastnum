@@ -37,3 +37,19 @@ macro_rules! decimal_operation_panics {
 }
 
 pub(crate) use decimal_operation_panics;
+
+macro_rules! decimal_inexact {
+    ($op: literal) => {
+        concat!(
+            "\n\n# Precision\n\n", 
+            "Since the result of ", 
+            $op,
+            " is irrational number, it can usually only be computed to some finite precision ",
+            "from a series of increasingly accurate approximations.\n\n",
+            "The result of this operation is mostly inexact and raises [`OP_INEXACT`](crate#signaling-flags-and-trap-enablers) signal.",
+            "\n\n"
+        )
+    };
+}
+
+pub(crate) use decimal_inexact;

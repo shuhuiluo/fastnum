@@ -1,4 +1,4 @@
-// mod float;
+mod float;
 mod float_const;
 mod float_core;
 mod from_primitive;

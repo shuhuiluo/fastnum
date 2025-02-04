@@ -60,13 +60,11 @@ impl<const N: usize> FromSql<Numeric, Mysql> for Decimal<N> {
             }
             MysqlType::Float => {
                 let i = f32::from_ne_bytes(raw.try_into()?);
-                i.try_into()
-                    .map_err(|_| format!("{i} is not valid decimal number").into())
+                Ok(i.into())
             }
             MysqlType::Double => {
                 let i = f64::from_ne_bytes(raw.try_into()?);
-                i.try_into()
-                    .map_err(|_| format!("{i} is not valid decimal number").into())
+                Ok(i.into())
             }
             MysqlType::Numeric => {
                 let s = core::str::from_utf8(raw)?;

@@ -901,6 +901,47 @@ impl<const N: usize> UnsignedDecimal<N> {
         Self::new(self.0.rem(rhs.0))
     }
 
+    /// Takes the reciprocal (inverse) of a number, `1/x`.
+    #[doc = doc::decimal_operation_panics!("reciprocal operation")]
+    #[doc = doc::decimal_inexact!("reciprocal")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(dec256!(2).recip(), dec256!(0.5));
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn recip(self) -> Self {
+        Self::new(self.0.recip())
+    }
+
+    /// Raise an unsigned decimal number to decimal power.
+    ///
+    /// Using this function is generally slower than using `powi` for integer
+    /// exponents or `sqrt` method for `1/2` exponent.
+    #[doc = doc::decimal_operation_panics!("power operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec256!(4).pow(dec256!(0.5)), udec256!(2));
+    /// assert_eq!(udec256!(8).pow(dec256!(1) / dec256!(3)), udec256!(2));
+    /// ```
+    ///
+    /// See more about the [power](crate#power) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn pow(self, n: Decimal<N>) -> Self {
+        Self::new(self.0.pow(n))
+    }
+
     /// Raise an unsigned decimal number to an integer power.
     ///
     /// Using this function is generally faster than using `pow`
@@ -925,6 +966,93 @@ impl<const N: usize> UnsignedDecimal<N> {
     #[inline]
     pub const fn powi(self, n: i32) -> Self {
         Self::new(self.0.powi(n))
+    }
+
+    /// Take the square root of the unsigned decimal number.
+    ///
+    /// Square-root can also be calculated by using the `power` operation (with
+    /// a second operand of `0.5`). The result in that case will not be exact
+    /// and may not be correctly rounded.
+    #[doc = doc::decimal_operation_panics!("sqrt operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec128!(4).sqrt(), udec128!(2));
+    /// assert_eq!(udec128!(1).sqrt(), udec128!(1));
+    /// assert_eq!(udec128!(16).sqrt(), udec128!(4));
+    /// ```
+    ///
+    /// See more about the [square-root](crate#square-root) operation.
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn sqrt(self) -> Self {
+        Self::new(self.0.sqrt())
+    }
+
+    /// Returns _e<sup>self</sup>_, (the exponential function).
+    #[doc = doc::decimal_operation_panics!("exponent operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec128!(1).exp(), UD128::E);
+    /// ```
+    ///
+    /// See more about the [exponential function](crate#exponential-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn exp(self) -> Self {
+        Self::new(self.0.exp())
+    }
+
+    /// Returns the natural logarithm of the unsigned decimal number.
+    #[doc = doc::decimal_operation_panics!("logarithm operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec256!(2).ln(), D256::LN_2);
+    /// ```
+    ///
+    /// See more about the [logarithm function](crate#logarithm-function).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn ln(self) -> Decimal<N> {
+        self.0.ln()
+    }
+
+    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
+    /// error, yielding a more accurate result than an unfused multiply-add.
+    #[doc = doc::decimal_operation_panics!("multiply-add operation")]
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// assert_eq!(udec128!(10.0).mul_add(udec128!(4.0), udec128!(60)), udec128!(100));
+    /// ```
+    ///
+    /// See more about the [fused multiply-add function](crate#multiply-add).
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn mul_add(self, a: Self, b: Self) -> Self {
+        Self::new(self.0.mul_add(a.0, b.0))
     }
 
     /// Returns the given decimal number rounded to `digits` precision after the
@@ -1108,9 +1236,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     #[inline]
     pub(crate) const fn from_signed(mut dec: Decimal<N>) -> Self {
         if dec.is_negative() {
-            dec = Decimal::NAN
-                .compound_and_raise(&dec, Signal::OP_INVALID)
-                .check();
+            dec = dec.signaling_nan().check();
         }
 
         Self::new(dec)

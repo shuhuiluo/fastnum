@@ -4,6 +4,7 @@ use crate::{
     decimal::{dec::scale::reduce, Decimal},
     int::UInt,
 };
+use crate::int::math::ilog10;
 
 type D<const N: usize> = Decimal<N>;
 
@@ -73,8 +74,8 @@ const fn cmp_magnitude<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
         return a.digits.cmp(&b.digits);
     }
 
-    let a_exp = a.digits.ilog10() as i16 - a.scale;
-    let b_exp = b.digits.ilog10() as i16 - b.scale;
+    let a_exp = ilog10(a.digits) as i32 - a.scale as i32;
+    let b_exp = ilog10(b.digits) as i32 - b.scale as i32;
 
     if a_exp == b_exp {
         if a.scale > b.scale {

@@ -1,7 +1,7 @@
 use core::num::FpCategory;
-use num_traits::{float::FloatCore, ToPrimitive};
+use num_traits::float::FloatCore;
 
-use crate::decimal::{Decimal, RoundingMode};
+use crate::decimal::{dec::convert, Decimal, RoundingMode};
 
 impl<const N: usize> FloatCore for Decimal<N> {
     #[inline]
@@ -156,6 +156,6 @@ impl<const N: usize> FloatCore for Decimal<N> {
 
     #[inline]
     fn integer_decode(self) -> (u64, i16, i8) {
-        self.to_f64().unwrap_or(f64::NAN).integer_decode()
+        convert::to_f64(self).integer_decode()
     }
 }

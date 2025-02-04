@@ -1,7 +1,6 @@
 use crate::decimal::{
     dec::{
-        intrinsics::Intrinsics,
-        math::sub::sub_abs,
+        math::{sub::sub_abs, utils::magnitude_inc},
         scale::{extend_scale_to, rescale},
     },
     Decimal, Signal,
@@ -69,32 +68,27 @@ const fn add_rescale<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
 }
 
 #[inline]
-const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
+const fn add_aligned<const N: usize>(mut lhs: D<N>, rhs: D<N>) -> D<N> {
     debug_assert!(lhs.scale == rhs.scale);
 
     let mut overflow;
+    let digits;
 
-    (lhs.digits, overflow) = lhs.digits.overflowing_add(rhs.digits);
+    (digits, overflow) = lhs.digits.overflowing_add(rhs.digits);
 
     if !overflow {
+        lhs.digits = digits;
+
+        (lhs.extra_precision, overflow) = lhs.extra_precision.overflowing_add(rhs.extra_precision);
+
+        if overflow {
+            lhs = magnitude_inc(lhs);
+        }
+
         lhs.compound(&rhs)
+    } else if let (scale, false) = lhs.scale.overflowing_sub(1) {
+        add_aligned(rescale(lhs, scale), rescale(rhs, scale))
     } else {
-        // TODO: forward to round
-        rhs.digits = Intrinsics::<N>::COEFF_MEDIUM_PLUS_ONE;
-        (rhs.scale, overflow) = rhs.scale.overflowing_sub(1);
-
-        if overflow {
-            return lhs.compound_and_raise(&rhs, Signal::OP_OVERFLOW);
-        }
-
-        let scale;
-        (scale, overflow) = lhs.scale.overflowing_sub(1);
-
-        if overflow {
-            return lhs.compound_and_raise(&rhs, Signal::OP_OVERFLOW);
-        }
-
-        lhs = rescale(lhs, scale);
-        add_aligned(lhs, rhs)
+        lhs.compound_and_raise(&rhs, Signal::OP_OVERFLOW)
     }
 }

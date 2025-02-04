@@ -3,16 +3,16 @@ use crate::{
         dec::{
             construct::construct,
             intrinsics::{clength, Intrinsics},
-            ControlBlock,
+            ControlBlock, ExtraPrecision,
         },
-        round::scale_round,
         Context, Decimal, Signal,
     },
     int::{
-        math::{div_rem, strict_mul10},
+        math::{div_rem, div_rem_digit, strict_mul10},
         UInt,
     },
 };
+use crate::decimal::dec::math::add::add;
 
 type D<const N: usize> = Decimal<N>;
 
@@ -31,6 +31,7 @@ pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N>
         return d.signaling_nan();
     }
 
+    // FIXME: extra precision <->
     if d.digits.is_zero() {
         d.scale = new_scale;
         return d;
@@ -39,32 +40,19 @@ pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N>
     if new_scale == d.scale {
         d
     } else if new_scale > d.scale {
+        // Re-scale up. Multiply Coefficient by 10, increase scale: 10 -> 100e-1
         rescale_up(d, new_scale)
     } else {
-        // round
-        d.cb = d.cb.raise_signal(Signal::OP_ROUNDED);
-        let mut is_inexact;
-        while new_scale < d.scale {
-            (d.digits, is_inexact) = scale_round(d.digits, d.cb.sign(), d.cb.context());
-            d.scale -= 1;
-
-            if is_inexact {
-                d.cb = d.cb.raise_signal(Signal::OP_INEXACT);
-            }
-
-            if d.digits.is_zero() {
-                d.scale = new_scale;
-                return d;
-            }
-        }
-        d
+        // Re-scale down. Divide Coefficient by 10 with rounding, decrease scale: 1234
+        // -> 123e+1
+        rescale_down(d, new_scale)
     }
 }
 
 #[inline]
 pub(crate) const fn quantum<const N: usize>(exp: i32, ctx: Context) -> D<N> {
     let cb = ControlBlock::default().set_context(ctx);
-    construct(UInt::ONE, exp, cb)
+    construct(UInt::ONE, exp, cb, ExtraPrecision::new())
 }
 
 #[inline]
@@ -124,16 +112,25 @@ const fn rescale_up<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
     if max_gap < 1 {
         return d.raise_signal(Signal::OP_CLAMPED);
     }
+    
+    let mut correction;
 
     if mpower < max_gap {
         d.digits = strict_mul10(d.digits, mpower);
         d.scale += mpower as i16;
-        return d;
+
+        (d.extra_precision, correction)= d.extra_precision.overflowing_scale(mpower as i16);
+        correction.scale += d.scale;
+        return add(d, correction);
     }
 
     if max_gap >= 2 {
         d.digits = strict_mul10(d.digits, max_gap - 1);
         d.scale += (max_gap - 1) as i16;
+
+        (d.extra_precision, correction)= d.extra_precision.overflowing_scale((max_gap - 1) as i16);
+        correction.scale += d.scale;
+        d = add(d, correction);
     }
 
     while new_scale > d.scale {
@@ -142,7 +139,37 @@ const fn rescale_up<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
         } else {
             d.digits = d.digits.strict_mul(UInt::<N>::TEN);
             d.scale += 1;
+
+            (d.extra_precision, correction)= d.extra_precision.overflowing_scale(1);
+            correction.scale += d.scale;
+            d = add(d, correction);
         }
     }
+    d
+}
+
+#[inline]
+const fn rescale_down<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
+    debug_assert!(new_scale < d.scale);
+    d.cb = d.cb.raise_signal(Signal::OP_ROUNDED);
+
+    // TODO: performance optimization
+    let mut extra_digit;
+    while new_scale < d.scale {
+        if !d.digits.is_zero() {
+            (d.digits, extra_digit) = div_rem_digit(d.digits, 10);
+
+            if extra_digit != 0 {
+                d.cb = d.cb.raise_signal(Signal::OP_INEXACT);
+            }
+
+            d.extra_precision = d.extra_precision.push(extra_digit);
+        } else {
+            d.extra_precision = d.extra_precision.push(0);
+        }
+
+        d.scale -= 1;
+    }
+
     d
 }

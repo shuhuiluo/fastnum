@@ -64,7 +64,7 @@ impl<const N: usize> TryFrom<f32> for UD<N> {
         if n.is_sign_negative() {
             return Err(ParseError::Signed);
         }
-        Ok(Self::new(Decimal::try_from(n)?))
+        Ok(Self::new(Decimal::from(n)))
     }
 }
 
@@ -76,6 +76,6 @@ impl<const N: usize> TryFrom<f64> for UD<N> {
         if n.is_sign_negative() {
             return Err(ParseError::Signed);
         }
-        Ok(Self::new(Decimal::try_from(n)?))
+        Ok(Self::new(Decimal::from(n)))
     }
 }

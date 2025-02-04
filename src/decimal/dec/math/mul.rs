@@ -1,7 +1,14 @@
 use crate::{
     decimal::{
-        dec::{construct::construct, math::utils::overflow, scale::extend_scale_to},
-        round::round,
+        dec::{
+            construct::construct,
+            math::{
+                add::add,
+                utils::{correct, overflow},
+            },
+            scale::extend_scale_to,
+            ExtraPrecision,
+        },
         Decimal, Signal,
     },
     int::{math::div_rem_wide, UInt},
@@ -43,11 +50,17 @@ pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
         return overflow(cb);
     }
 
+    let correction = mul_correction(&lhs, &rhs);
+
     let (mut low, mut high) = lhs.digits.widening_mul(rhs.digits);
 
+    let mut extra_precision = ExtraPrecision::new();
+
     if high.is_zero() {
-        return construct(low, exp, cb);
+        return correct(construct(low, exp, cb, extra_precision), correction);
     }
+
+    cb = cb.raise_signal(Signal::OP_ROUNDED);
 
     let mut out;
     let mut rem;
@@ -86,9 +99,30 @@ pub(crate) const fn mul<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
 
         if rem != 0 {
             cb = cb.raise_signal(Signal::OP_INEXACT);
-            low = round(low, rem, cb.sign(), cb.context());
         }
+
+        extra_precision = extra_precision.push(rem);
     }
 
-    construct(low, exp, cb.raise_signal(Signal::OP_ROUNDED))
+    let result = construct(low, exp, cb, extra_precision);
+    correct(result, correction)
+}
+
+#[inline]
+const fn mul_correction<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> D<N> {
+    let xi_lhs = lhs.extra_digits();
+    let xi_rhs = rhs.extra_digits();
+
+    if xi_lhs.is_zero() && xi_rhs.is_zero() {
+        D::ZERO
+    } else if xi_lhs.is_zero() {
+        mul(lhs.without_extra_digits(), xi_rhs)
+    } else if xi_rhs.is_zero() {
+        mul(rhs.without_extra_digits(), xi_lhs)
+    } else {
+        add(
+            mul(lhs.without_extra_digits(), xi_rhs),
+            add(mul(rhs.without_extra_digits(), xi_lhs), mul(xi_rhs, xi_lhs)),
+        )
+    }
 }
