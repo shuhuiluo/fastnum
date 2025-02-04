@@ -44,6 +44,8 @@ get rid of one indirect addressing, which improves cache-friendliness and reduce
 - **`no-std` compatible**: `fastnum` can be used in `no_std` environments.
 - **`const` evaluation**: nearly all methods defined on `fastnum` integers and decimals are `const`, which allows
   complex compile-time calculations and checks.
+- **Full range of advanced mathematical functions**: exponential, roots, power, logarithmic, and trigonometric functions
+  for working with exact precision decimals.
 
 ## Installation
 

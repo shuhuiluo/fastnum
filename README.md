@@ -9,6 +9,8 @@
 Fixed-size decimal numbers implemented in pure Rust. Suitable for
 financial, crypto and any other fixed-precision calculations.
 
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
+
 [API Docs](https://docs.rs/fastnum/latest/fastnum)
 
 ## Overview
@@ -86,6 +88,8 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 - **`no-std` compatible**: `fastnum` can be used in `no_std` environments.
 - **`const` evaluation**: nearly all methods defined on `fastnum` integers and decimals are `const`, which allows
   complex compile-time calculations and checks.
+- **Full range of advanced mathematical functions**: exponential, roots, power, logarithmic, and trigonometric functions
+  for working with exact precision decimals.
 
 ## Installation
 
@@ -95,7 +99,7 @@ To install and use `fastnum`, simply add the following line to your `Cargo.toml`
 fastnum = "0.1"
 ```
 
-Or, to enable various `fastnum` features as well, add for example this line instead:
+Or, to enable various `fastnum` features as well, add, for example, this line instead:
 
 ```toml
 fastnum = { version = "0.1", features = ["serde"] } # enables the "serde" feature

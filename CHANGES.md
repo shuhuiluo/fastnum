@@ -4,6 +4,18 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.12] – unreleased
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Documentation
+
+- Minor fixes.
+
 ## [0.1.11] – 2025-02-04
 
 ### Fixed
@@ -42,8 +54,7 @@ Highlights include removing `libm` dependency and major refinements for `no-std`
 ### Changed
 
 - Improved arithmetic precision of approximated mathematical calculations due to the use of extra precision digits and
-  the
-  absence of intermediate rounding.
+  the absence of intermediate rounding.
 - Overhauled mathematical constants. Add `INEXACT` flag and extra precision digits.
 - Mark some methods as `inexact` by design.
 - Micro-optimizations in rounding.
