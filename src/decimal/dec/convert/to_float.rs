@@ -69,7 +69,9 @@ macro_rules! to_float_impl {
 
             let mut coefficient: UInt<19> = d.transmute().digits;
             let rem;
+            let mut exp_shift = false;
 
+            // TODO: 2^k multiplication/div replace by shift
             if d_exp >= 0 {
                 coefficient = coefficient.mul(UInt::FIVE.pow(d_exp as u32));
                 if b_exp >= d_exp {
@@ -77,7 +79,7 @@ macro_rules! to_float_impl {
                         div_rem(coefficient, UInt::TWO.pow((b_exp - d_exp) as u32));
                     if !rem.is_zero() {
                         coefficient = coefficient.mul(UInt::TWO).add(UInt::ONE);
-                        b_exp -= 1;
+                        exp_shift = true;
                     }
                 } else {
                     coefficient = coefficient.mul(UInt::TWO.pow(-(b_exp - d_exp) as u32));
@@ -88,7 +90,7 @@ macro_rules! to_float_impl {
                         div_rem(coefficient, UInt::TWO.pow((b_exp - d_exp) as u32));
                     if !rem.is_zero() {
                         coefficient = coefficient.mul(UInt::TWO).add(UInt::ONE);
-                        b_exp -= 1;
+                        exp_shift = true;
                     }
                 } else {
                     coefficient = coefficient.mul(UInt::TWO.pow(-(b_exp - d_exp) as u32));
@@ -96,6 +98,11 @@ macro_rules! to_float_impl {
 
                 coefficient = coefficient.div(UInt::FIVE.pow(-d_exp as u32));
             };
+            
+            if exp_shift && !coefficient.bit(0) {
+                coefficient = coefficient.shr(1);
+                exp_shift = false;
+            }
 
             let digits = coefficient;
             let bits = digits.bits();
@@ -129,8 +136,12 @@ macro_rules! to_float_impl {
                 }
             };
 
+            if exp_shift {
+                b_exp -= 1;
+            }
+            
             let mut exp = b_exp + (MANTISSA_DIGITS - 1) as i32;
-
+            
             if exp > MAX_EXP - 1 {
                 return $f::INFINITY;
             }

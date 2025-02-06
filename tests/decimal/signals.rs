@@ -1,4 +1,3 @@
-use num_traits::float::FloatCore;
 use rstest::*;
 
 use fastnum::{decimal::*, *};

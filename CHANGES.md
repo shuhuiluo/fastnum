@@ -4,17 +4,16 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## [0.1.12] – unreleased
-
-### Added
-
-### Changed
+## [0.1.12] – 2025-02-06
 
 ### Fixed
+
+- Incorrect to_f64 impl on Decimal: [#7](https://github.com/neogenie/fastnum/issues/7).
 
 ### Documentation
 
 - Minor fixes.
+
 
 ## [0.1.11] – 2025-02-04
 

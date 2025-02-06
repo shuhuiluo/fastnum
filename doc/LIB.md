@@ -7,6 +7,30 @@ Suitable for financial, crypto and any other fixed-precision calculations.
 
 [IEEE 854]: https://en.wikipedia.org/wiki/IEEE_854-1987
 
+[`D128`]: crate::D128
+
+[`UD128`]: crate::UD128
+
+[`D256`]: crate::D256
+
+[`UD256`]: crate::UD256
+
+[`D512`]: crate::D512
+
+[`UD512`]: crate::UD512
+
+[`U128`]: crate::U128
+
+[`U128`]: crate::U128
+
+[`U256`]: crate::U256
+
+[`U256`]: crate::U256
+
+[`U512`]: crate::U512
+
+[`U512`]: crate::U512
+
 ## Overview
 
 `fastnum` provides signed and unsigned exact precision decimal numbers suitable for financial calculations that
@@ -79,18 +103,12 @@ advance. This allows you to perform all the necessary checks at the compile time
 
 | Decimal type | Integer part | Bits | Signed | Helper macro    |
 |--------------|--------------|------|:------:|-----------------|
-| `D128`       | `U128`       | 128  |   ✅    | `dec128!(0.1)`  |
-| `UD128`      | `U128`       | 128  |        | `udec128!(0.1)` |
-| `D256`       | `U256`       | 256  |   ✅    | `dec256!(0.1)`  |
-| `UD256`      | `U256`       | 256  |        | `udec256!(0.1)` |
-| `D512`       | `U512`       | 512  |   ✅    | `dec512!(0.1)`  |
-| `UD512`      | `U512`       | 512  |        | `udec512!(0.1)` |
-| `D128`       | `U128`       | 128  |   ✅    | `dec128!(0.1)`  |
-| `UD128`      | `U128`       | 128  |        | `udec128!(0.1)` |
-| `D256`       | `U256`       | 256  |   ✅    | `dec256!(0.1)`  |
-| `UD256`      | `U256`       | 256  |        | `udec256!(0.1)` |
-| `D512`       | `U512`       | 512  |   ✅    | `dec512!(0.1)`  |
-| `UD512`      | `U512`       | 512  |        | `udec512!(0.1)` |
+| [`D128`]     | [`U128`]     | 128  |   ✅    | `dec128!(0.1)`  |
+| [`UD128`]    | [`U128`]     | 128  |        | `udec128!(0.1)` |
+| [`D256`]     | [`U256`]     | 256  |   ✅    | `dec256!(0.1)`  |
+| [`UD256`]    | [`U256`]     | 256  |        | `udec256!(0.1)` |
+| [`D512`]     | [`U512`]     | 512  |   ✅    | `dec512!(0.1)`  |
+| [`UD512`]    | [`U512`]     | 512  |        | `udec512!(0.1)` |
 
 ### Examples
 
