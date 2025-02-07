@@ -11,6 +11,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 - Add `tokio-postgres` feature which enables serialization and deserialization of `fastnum` decimals for [
   `tokio-postgres`](https://docs.rs/tokio-postgres/latest/tokio_postgres/)
   crate [#8](https://github.com/neogenie/fastnum/issues/8).
+- Add `tokio-postgres` and `sqlx_postgres` examples.
 
 ### Documentation
 
