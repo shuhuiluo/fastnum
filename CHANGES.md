@@ -4,6 +4,18 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.13] – unreleased
+
+### Added
+
+- Add `tokio-postgres` feature which enables serialization and deserialization of `fastnum` decimals for [
+  `tokio-postgres`](https://docs.rs/tokio-postgres/latest/tokio_postgres/)
+  crate [#8](https://github.com/neogenie/fastnum/issues/8).
+
+### Documentation
+
+- Minor fixes.
+
 ## [0.1.12] – 2025-02-06
 
 ### Fixed
@@ -13,7 +25,6 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 ### Documentation
 
 - Minor fixes.
-
 
 ## [0.1.11] – 2025-02-04
 

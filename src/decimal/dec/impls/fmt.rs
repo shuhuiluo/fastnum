@@ -57,7 +57,7 @@ impl<const N: usize> Debug for Decimal<N> {
                 alert,
                 self.sign(),
                 self.digits,
-                (self.scale as i32).saturating_neg()
+                self.exponent(),
             )
         } else {
             write!(
@@ -65,10 +65,10 @@ impl<const N: usize> Debug for Decimal<N> {
                 "{}(digits=[{:?}], exp=[{}], flags=[{}], signals=[{}], ctx=[{}], extra=[{}])",
                 Self::type_name(),
                 self.digits,
-                (self.scale as i32).saturating_neg(),
+                self.exponent(),
                 self.flags(),
                 self.signals(),
-                self.context(), 
+                self.context(),
                 self.extra_precision
             )
         }
