@@ -1,5 +1,5 @@
-use bytes::BytesMut;
-use core::{error::Error, ops::DerefMut};
+use bytes::{BufMut, BytesMut};
+use core::{error::Error};
 use tokio_postgres::types::{accepts, to_sql_checked, FromSql, IsNull, ToSql, Type};
 
 use crate::decimal::{
@@ -35,7 +35,7 @@ impl<const N: usize> ToSql for UD<N> {
             .0
             .try_into()
             .map_err(|e| pretty_error_msg(D::<N>::type_name().as_str(), e))?;
-        nbase.encode(&mut out.deref_mut())?;
+        nbase.encode(&mut out.writer())?;
 
         Ok(IsNull::No)
     }
