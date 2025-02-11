@@ -13,25 +13,27 @@ pub(crate) const fn round<const N: usize>(mut d: D<N>) -> D<N> {
         d.cb =
             d.cb.raise_signal(Signal::OP_INEXACT.combine(Signal::OP_ROUNDED));
 
-        if match d.cb.context().rounding_mode() {
-            Up => true,
-            Down => false,
-            Ceiling => !d.cb.is_negative(),
-            Floor => d.cb.is_negative(),
-            HalfUp => digit >= 5,
-            HalfDown => digit > 5,
-            HalfEven => {
-                if digit > 5 {
-                    true
-                } else if digit == 5 {
-                    let last_digit = d.digits.digits()[0];
-                    let last_bit = last_digit & 0x0000_0000_0000_0001_u64;
-                    last_bit != 0
-                } else {
-                    false
+        if digit != 0
+            && match d.cb.context().rounding_mode() {
+                Up => true,
+                Down => false,
+                Ceiling => !d.cb.is_negative(),
+                Floor => d.cb.is_negative(),
+                HalfUp => digit >= 5,
+                HalfDown => digit > 5,
+                HalfEven => {
+                    if digit > 5 {
+                        true
+                    } else if digit == 5 {
+                        let last_digit = d.digits.digits()[0];
+                        let last_bit = last_digit & 0x0000_0000_0000_0001_u64;
+                        last_bit != 0
+                    } else {
+                        false
+                    }
                 }
             }
-        } {
+        {
             if d.digits.eq(&UInt::MAX) {
                 d.digits = d.digits.strict_div(UInt::TEN);
                 d.scale -= 1;

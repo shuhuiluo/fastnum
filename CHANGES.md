@@ -4,6 +4,12 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.1.14] – unreleased
+
+### Fixed
+
+- Incorrect ceiling rounding: [#9](https://github.com/neogenie/fastnum/issues/9).
+
 ## [0.1.13] – 2025-02-07
 
 ### Added
