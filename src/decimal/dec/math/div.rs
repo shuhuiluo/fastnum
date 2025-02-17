@@ -3,14 +3,11 @@ use crate::{
         dec::{
             construct::construct,
             intrinsics::Intrinsics,
-            math::{
-                mul::mul,
-                sub::sub,
-                utils::{correct, overflow_exp},
-            },
+            math::{mul::mul, sub::sub, utils::correct},
             ExtraPrecision,
         },
-        Decimal, Signal,
+        signals::Signals,
+        Context, Decimal,
     },
     int::{
         math::{div_rem, div_rem_digit},
@@ -24,37 +21,41 @@ type U<const N: usize> = UInt<N>;
 #[inline]
 pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
     if dividend.is_nan() {
-        return dividend.compound_and_raise(&divisor, Signal::OP_INVALID);
+        return dividend.compound(&divisor).op_invalid();
     }
 
     if divisor.is_nan() {
-        return divisor.compound_and_raise(&dividend, Signal::OP_INVALID);
+        return divisor.compound(&dividend).op_invalid();
     }
 
-    let cb = dividend.cb.combine_mul(divisor.cb);
+    let sign = dividend.sign().div(divisor.sign());
+    let mut signals = Signals::combine(dividend.cb.get_signals(), divisor.cb.get_signals());
+    let ctx = Context::merge(dividend.cb.get_context(), divisor.cb.get_context());
 
     if dividend.is_infinite() && divisor.is_infinite() {
-        return D::NAN.with_cb(cb.raise_signal(Signal::OP_INVALID));
+        return D::SIGNALING_NAN.raise_signals(signals).set_ctx(ctx);
     }
 
     if divisor.is_zero() {
-        D::INFINITY.with_cb(cb.raise_signal(Signal::div_by_zero()))
+        D::INFINITY
+            .raise_signals(signals)
+            .set_ctx(ctx)
+            .set_sign(sign)
+            .raise_signals(Signals::OP_DIV_BY_ZERO)
+            .op_invalid()
     } else if dividend.is_zero() || divisor.is_one() {
-        dividend.compound(&divisor)
+        dividend.compound(&divisor).set_sign(sign)
     } else if dividend.is_infinite() {
-        D::INFINITY.with_cb(cb)
+        D::INFINITY
+            .raise_signals(signals)
+            .set_ctx(ctx)
+            .set_sign(sign)
     } else if divisor.is_infinite() {
-        D::ZERO.with_cb(cb)
+        D::ZERO.raise_signals(signals).set_ctx(ctx).set_sign(sign)
     } else {
-        let (mut exp, mut overflow) =
-            (dividend.scale as i32 - divisor.scale as i32).overflowing_neg();
+        let correction = div_correction(dividend, divisor);
 
-        if overflow {
-            return overflow_exp(exp, cb);
-        }
-
-        let correction = div_correction(&dividend, &divisor);
-
+        let mut exp = dividend.cb.get_exponent() - divisor.cb.get_exponent();
         let (mut digits, mut remainder) = div_rem(dividend.digits, divisor.digits);
 
         if !remainder.is_zero() {
@@ -65,33 +66,25 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
                 (quotient, remainder) = div_rem_next(remainder, divisor.digits);
 
                 if digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
-                    let result = construct(
-                        digits,
-                        exp,
-                        cb.raise_signal(Signal::OP_INEXACT)
-                            .raise_signal(Signal::OP_ROUNDED),
-                        extra_precision(quotient, remainder, divisor.digits),
-                    );
+                    let extra_digits = extra_precision(quotient, remainder, divisor.digits);
 
+                    signals.raise(Signals::OP_INEXACT);
+                    signals.raise(Signals::OP_ROUNDED);
+
+                    let result = construct(digits, exp, sign, signals, ctx, extra_digits);
                     return correct(result, correction);
                 }
 
                 digits_prev = digits.strict_mul(UInt::TEN);
-
-                (exp, overflow) = exp.overflowing_sub(1);
-                if overflow {
-                    return overflow_exp(exp, cb);
-                }
+                exp -= 1;
 
                 if digits_prev.gt(&UInt::MAX.strict_sub(quotient)) {
-                    let result = construct(
-                        UInt::MAX,
-                        exp,
-                        cb.raise_signal(Signal::OP_INEXACT)
-                            .raise_signal(Signal::OP_ROUNDED),
-                        extra_precision(quotient, remainder, divisor.digits),
-                    );
+                    let extra_digits = extra_precision(quotient, remainder, divisor.digits);
 
+                    signals.raise(Signals::OP_INEXACT);
+                    signals.raise(Signals::OP_ROUNDED);
+
+                    let result = construct(UInt::MAX, exp, sign, signals, ctx, extra_digits);
                     return correct(result, correction);
                 }
 
@@ -99,57 +92,44 @@ pub(crate) const fn div<const N: usize>(dividend: D<N>, divisor: D<N>) -> D<N> {
             }
         }
 
-        let result = construct(digits, exp, cb, ExtraPrecision::new());
+        let result = construct(digits, exp, sign, signals, ctx, ExtraPrecision::new());
         correct(result, correction)
     }
 }
 
+// TODO: Move to extra precision
 #[inline]
 const fn extra_precision<const N: usize>(
     mut quotient: U<N>,
     mut remainder: U<N>,
     divisor: U<N>,
 ) -> ExtraPrecision {
-    let (mut digits, mut count) = extra_digits(quotient);
+    let mut ep = extra_digits(quotient);
 
-    while !remainder.is_zero() && count < 4 {
+    while !remainder.is_zero() && ep.count() < ExtraPrecision::EXTRA_PRECISION_DIGITS {
         (quotient, remainder) = div_rem_next(remainder, divisor);
-        let (d, c) = extra_digits(quotient);
+        let ep_next = extra_digits(quotient);
 
-        if count == 3 {
-            digits += d / 1000;
-        } else if count == 2 {
-            digits += d / 100;
-        } else if count == 1 {
-            digits += d / 10;
-        } else {
-            debug_assert!(count == 0);
-            digits = d;
-        }
-
-        count += c;
+        ep.push_back(ep_next);
     }
 
-    ExtraPrecision::from_digits(digits)
+    ep
 }
 
 #[inline]
-const fn extra_digits<const N: usize>(mut quotient: U<N>) -> (u16, u16) {
-    let mut ep = 0;
-    let mut count = 0;
+const fn extra_digits<const N: usize>(mut quotient: U<N>) -> ExtraPrecision {
+    let mut ep = ExtraPrecision::new();
     let mut digit;
 
     (quotient, digit) = div_rem_digit(quotient, 10);
-    ep = digit as u16 * 1000 + ep / 10;
-    count += 1;
+    ep.push_digit(digit);
 
     while !quotient.is_zero() {
         (quotient, digit) = div_rem_digit(quotient, 10);
-        ep = digit as u16 * 1000 + ep / 10;
-        count += 1;
+        ep.push_digit(digit);
     }
 
-    (ep, count)
+    ep
 }
 
 #[inline]
@@ -216,14 +196,14 @@ const fn div_rem_wide<const N: usize>(low: U<N>, high: U<N>, divisor: U<N>) -> (
 }
 
 #[inline]
-const fn div_correction<const N: usize>(dividend: &D<N>, divisor: &D<N>) -> D<N> {
-    let xi_dividend = dividend.extra_digits();
-    let xi_divisor = divisor.extra_digits();
+const fn div_correction<const N: usize>(mut dividend: D<N>, mut divisor: D<N>) -> D<N> {
+    let xi_dividend = dividend.cb.take_extra_precision_decimal();
+    let xi_divisor = divisor.cb.take_extra_precision_decimal();
 
     if xi_dividend.is_zero() && xi_divisor.is_zero() {
         D::ZERO
     } else if xi_divisor.is_zero() {
-        let x = div(xi_dividend, divisor.without_extra_digits());
+        let x = div(xi_dividend, divisor);
 
         if x.is_op_underflow() {
             D::ZERO
@@ -232,20 +212,18 @@ const fn div_correction<const N: usize>(dividend: &D<N>, divisor: &D<N>) -> D<N>
         }
     } else {
         let x = if xi_dividend.is_zero() {
-            mul(dividend.without_extra_digits(), xi_divisor)
-                .without_extra_digits()
-                .neg()
+            mul(dividend, xi_divisor).without_extra_digits().neg()
         } else {
             sub(
-                mul(divisor.without_extra_digits(), xi_dividend).without_extra_digits(),
-                mul(dividend.without_extra_digits(), xi_divisor).without_extra_digits(),
+                mul(divisor, xi_dividend).without_extra_digits(),
+                mul(dividend, xi_divisor).without_extra_digits(),
             )
         };
 
         if x.is_zero() || x.is_op_underflow() {
             D::ZERO
         } else {
-            let z = mul(divisor.without_extra_digits(), *divisor).without_extra_digits();
+            let z = mul(divisor, divisor).without_extra_digits();
             let y = div(x, z);
 
             if y.is_op_underflow() {

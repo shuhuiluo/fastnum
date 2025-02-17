@@ -4,9 +4,10 @@ use crate::{
             construct::construct,
             intrinsics::{clength, Intrinsics},
             math::add::add,
-            ControlBlock, ExtraPrecision,
+            ExtraPrecision,
         },
-        Context, Decimal, Signal,
+        signals::Signals,
+        Context, Decimal, Sign,
     },
     int::{
         math::{div_rem, div_rem_digit, strict_mul10},
@@ -17,63 +18,67 @@ use crate::{
 type D<const N: usize> = Decimal<N>;
 
 #[inline]
-pub(crate) const fn extend_scale_to<const N: usize>(d: D<N>, new_scale: i16) -> D<N> {
-    if new_scale > d.scale {
-        rescale(d, new_scale)
-    } else {
-        d
+pub(crate) const fn extend_scale_to<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
+    if new_scale > d.cb.get_scale() {
+        rescale(&mut d, new_scale)
     }
+    d
 }
 
 #[inline]
-pub(crate) const fn rescale<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
+pub(crate) const fn rescale<const N: usize>(d: &mut D<N>, new_scale: i16) {
     if d.cb.is_special() {
-        return d.signaling_nan();
+        d.cb.signaling_nan();
+        return;
     }
 
-    // FIXME: extra precision <->
-    if d.digits.is_zero() {
-        d.scale = new_scale;
-        return d;
-    }
+    let scale = d.cb.get_scale();
 
-    if new_scale == d.scale {
-        d
-    } else if new_scale > d.scale {
+    if new_scale > scale {
         // Re-scale up. Multiply Coefficient by 10, increase scale: 10 -> 100e-1
-        rescale_up(d, new_scale)
-    } else {
+        rescale_up(d, new_scale);
+    } else if new_scale < scale {
         // Re-scale down. Divide Coefficient by 10 with rounding, decrease scale: 1234
         // -> 123e+1
-        rescale_down(d, new_scale)
+        rescale_down(d, new_scale);
     }
 }
 
 #[inline]
 pub(crate) const fn quantum<const N: usize>(exp: i32, ctx: Context) -> D<N> {
-    let cb = ControlBlock::default().set_context(ctx);
-    construct(UInt::ONE, exp, cb, ExtraPrecision::new())
+    construct(
+        UInt::ONE,
+        exp,
+        Sign::Plus,
+        Signals::empty(),
+        ctx,
+        ExtraPrecision::new(),
+    )
 }
 
 #[inline]
 pub(crate) const fn reduce<const N: usize>(mut d: D<N>) -> D<N> {
     if d.cb.is_special() {
-        return d.raise_signal(Signal::OP_INVALID);
+        return d.signaling_nan();
+    }
+
+    if d.has_extra_precision() {
+        return d;
     }
 
     if d.digits.is_zero() {
-        d.scale = 0;
+        d.cb.set_scale(0);
     } else {
         let mut digits;
         let mut remainder;
         while !d.digits.is_zero() {
             (digits, remainder) = div_rem(d.digits, UInt::TEN);
             if remainder.is_zero() {
-                if d.scale > i16::MIN {
+                if d.cb.get_scale() > i16::MIN {
                     d.digits = digits;
-                    d.scale -= 1;
+                    d.cb.dec_scale(1);
                 } else {
-                    return d.raise_signal(Signal::OP_SUBNORMAL);
+                    return d.raise_signals(Signals::OP_SUBNORMAL);
                 }
             } else {
                 break;
@@ -85,91 +90,119 @@ pub(crate) const fn reduce<const N: usize>(mut d: D<N>) -> D<N> {
 }
 
 #[inline]
-pub(crate) const fn quantize<const N: usize>(d: D<N>, other: D<N>) -> D<N> {
+pub(crate) const fn quantize<const N: usize>(mut d: D<N>, other: D<N>) -> D<N> {
     if d.is_infinite() && other.is_infinite() {
         d
     } else if d.cb.is_special() || other.cb.is_special() {
         d.signaling_nan()
     } else {
-        let res = rescale(d, other.scale).quiet_signal(Signal::OP_UNDERFLOW);
+        let scale = other.cb.get_scale();
 
-        if res.scale != other.scale {
+        rescale(&mut d, scale);
+        d.cb.quiet_signals(Signals::OP_UNDERFLOW);
+
+        if d.cb.get_scale() != scale {
             d.signaling_nan()
         } else {
-            res
+            d
         }
     }
 }
 
 #[inline]
-const fn rescale_up<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
-    debug_assert!(new_scale > d.scale);
+const fn rescale_up<const N: usize>(d: &mut D<N>, new_scale: i16) {
+    debug_assert!(new_scale > d.cb.get_scale());
 
-    let mpower = (new_scale as i32 - d.scale as i32) as u32;
+    let mpower = (new_scale as i32 - d.cb.get_scale() as i32) as u32;
+
+    if d.digits.is_zero() {
+        d.cb.set_scale(new_scale);
+
+        let mut extra_precision = d.cb.get_extra_precision();
+
+        if let Some(correction) = extra_precision.scale_up(mpower) {
+            correct(d, correction);
+        }
+
+        return d.cb.set_extra_precision(extra_precision);
+    }
+
     let clength = clength(d.digits);
     let max_gap = Intrinsics::<N>::MAX_CLENGTH - clength;
 
     if max_gap < 1 {
-        return d.raise_signal(Signal::OP_CLAMPED);
+        return d.cb.raise_signals(Signals::OP_CLAMPED);
     }
 
-    let mut correction;
-
     if mpower < max_gap {
-        d.digits = strict_mul10(d.digits, mpower);
-        d.scale += mpower as i16;
-
-        (d.extra_precision, correction) = d.extra_precision.overflowing_scale(mpower as i16);
-        correction.scale += d.scale;
-        return add(d, correction);
+        return rescale_up_unchecked(d, mpower);
     }
 
     if max_gap >= 2 {
-        d.digits = strict_mul10(d.digits, max_gap - 1);
-        d.scale += (max_gap - 1) as i16;
-
-        (d.extra_precision, correction) = d.extra_precision.overflowing_scale((max_gap - 1) as i16);
-        correction.scale += d.scale;
-        d = add(d, correction);
+        rescale_up_unchecked(d, max_gap - 1);
     }
 
-    while new_scale > d.scale {
+    while new_scale > d.cb.get_scale() {
         if d.digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
-            return d.raise_signal(Signal::OP_CLAMPED);
+            return d.cb.raise_signals(Signals::OP_CLAMPED);
         } else {
-            d.digits = d.digits.strict_mul(UInt::<N>::TEN);
-            d.scale += 1;
-
-            (d.extra_precision, correction) = d.extra_precision.overflowing_scale(1);
-            correction.scale += d.scale;
-            d = add(d, correction);
+            rescale_up_unchecked(d, 1);
         }
     }
-    d
 }
 
 #[inline]
-const fn rescale_down<const N: usize>(mut d: D<N>, new_scale: i16) -> D<N> {
-    debug_assert!(new_scale < d.scale);
-    d.cb = d.cb.raise_signal(Signal::OP_ROUNDED);
+const fn rescale_down<const N: usize>(d: &mut D<N>, new_scale: i16) {
+    debug_assert!(new_scale < d.cb.get_scale());
+    d.cb.raise_signals(Signals::OP_ROUNDED);
+
+    let mut extra_precision = d.cb.get_extra_precision();
 
     // TODO: performance optimization
+    // - fast zero scale extra precision
+    // - replace iterative division with faster 10^N
     let mut extra_digit;
-    while new_scale < d.scale {
+    while new_scale < d.cb.get_scale() {
         if !d.digits.is_zero() {
             (d.digits, extra_digit) = div_rem_digit(d.digits, 10);
 
             if extra_digit != 0 {
-                d.cb = d.cb.raise_signal(Signal::OP_INEXACT);
+                d.cb.raise_signals(Signals::OP_INEXACT);
             }
 
-            d.extra_precision = d.extra_precision.push(extra_digit);
+            extra_precision.push_digit(extra_digit);
         } else {
-            d.extra_precision = d.extra_precision.push(0);
+            extra_precision.push_digit(0);
         }
 
-        d.scale -= 1;
+        d.cb.dec_scale(1);
     }
 
-    d
+    d.cb.set_extra_precision(extra_precision);
+}
+
+#[inline]
+const fn rescale_up_unchecked<const N: usize>(d: &mut D<N>, gap: u32) {
+    if gap == 1 {
+        d.digits = d.digits.strict_mul(UInt::<N>::TEN);
+    } else {
+        d.digits = strict_mul10(d.digits, gap);
+    }
+
+    d.cb.inc_scale(gap as i16);
+
+    let mut extra_precision = d.cb.get_extra_precision();
+
+    if let Some(correction) = extra_precision.scale_up(gap) {
+        correct(d, correction);
+    }
+
+    d.cb.set_extra_precision(extra_precision);
+}
+
+#[inline]
+const fn correct<const N: usize>(d: &mut D<N>, mut correction: D<N>) {
+    correction.set_sign(d.sign());
+    correction.cb.inc_scale(d.cb.get_scale());
+    *d = add(*d, correction);
 }

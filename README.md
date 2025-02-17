@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/fastnum.svg)](https://crates.io/crates/fastnum)
 [![Crates.io](https://img.shields.io/crates/d/fastnum.svg)](https://crates.io/crates/fastnum)
 [![doc.rs](https://img.shields.io/docsrs/fastnum)](https://docs.rs/fastnum/latest/fastnum)
-![MSRV](https://img.shields.io/static/v1?label=MSRV&message=1.82&color=blue&logo=rust)
+![MSRV](https://img.shields.io/static/v1?label=MSRV&message=1.83&color=blue&logo=rust)
 
 Fixed-size decimal numbers implemented in pure Rust. Suitable for
 financial, crypto and any other fixed-precision calculations.
@@ -97,13 +97,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.1"
+fastnum = "0.2"
 ```
 
 Or, to enable various `fastnum` features as well, add, for example, this line instead:
 
 ```toml
-fastnum = { version = "0.1", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.2", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -306,7 +306,7 @@ cargo nextest run --all-features
 
 ## Minimum Supported Rust Version
 
-The current Minimum Supported Rust Version (MSRV) is `1.82.0`.
+The current Minimum Supported Rust Version (MSRV) is `1.83.0`.
 
 ## Documentation
 

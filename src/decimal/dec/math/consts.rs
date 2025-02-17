@@ -2,8 +2,9 @@ use core::str::from_utf8_unchecked;
 
 use crate::{
     decimal::{
-        dec::{intrinsics::Intrinsics, parse, round::round, ControlBlock, ExtraPrecision},
-        Context, Decimal, ParseError,
+        dec::{intrinsics::Intrinsics, parse, ControlBlock, ExtraPrecision},
+        signals::Signals,
+        Context, Decimal, ParseError, Sign,
     },
     int::UInt,
     utils::err_msg,
@@ -41,9 +42,13 @@ impl<const N: usize> Consts<N> {
 
     pub(crate) const C_180: D<N> = D::new(
         UInt::from_digit(180),
-        0,
-        ControlBlock::default(),
-        ExtraPrecision::new(),
+        ControlBlock::new(
+            0,
+            Sign::Plus,
+            Signals::empty(),
+            Context::default(),
+            ExtraPrecision::new(),
+        ),
     );
 
     pub(crate) const MAX_F32: D<N> = const_scale(make_const(MAX_F32_BASE), -38);
@@ -93,7 +98,7 @@ const fn make_const<const N: usize>(str: &str) -> D<N> {
 
 #[inline]
 const fn const_scale<const N: usize>(mut d: D<N>, scale: i16) -> D<N> {
-    d.scale = scale;
+    d.cb.set_scale(scale);
     d
 }
 
@@ -104,8 +109,8 @@ const fn parse_const<const N: usize>(buf: &[u8], len: u32) -> Result<D<N>, Parse
         let res = parse::from_slice(left, Context::default());
         match res {
             Ok(mut res) => {
-                res.extra_precision = parse_extra_precision(right);
-                Ok(round(res))
+                res.cb.set_extra_precision(parse_extra_precision(right));
+                Ok(res)
             }
             Err(e) => Err(e),
         }
@@ -116,8 +121,10 @@ const fn parse_const<const N: usize>(buf: &[u8], len: u32) -> Result<D<N>, Parse
 
 #[inline]
 const fn parse_extra_precision(buf: &[u8]) -> ExtraPrecision {
-    if buf.len() > 4 {
-        parse_extra_precision_buf(buf.split_at(4).0)
+    const EXTRA_PRECISION_DIGITS: usize = ExtraPrecision::EXTRA_PRECISION_DIGITS as usize;
+
+    if buf.len() > EXTRA_PRECISION_DIGITS {
+        parse_extra_precision_buf(buf.split_at(EXTRA_PRECISION_DIGITS).0)
     } else {
         parse_extra_precision_buf(buf)
     }
@@ -133,7 +140,7 @@ const fn parse_extra_precision_buf(buf: &[u8]) -> ExtraPrecision {
         #[allow(unsafe_code)]
         let src = unsafe { from_utf8_unchecked(buf) };
 
-        match u16::from_str_radix(src, 10) {
+        match u64::from_str_radix(src, 10) {
             Ok(d) => digits = d,
             Err(_) => {
                 panic!(err_msg!(

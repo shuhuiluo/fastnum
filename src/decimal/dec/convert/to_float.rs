@@ -55,7 +55,7 @@ macro_rules! to_float_impl {
 
             let bits = d.digits.bits() as i32;
 
-            let d_exp = d.exponent();
+            let d_exp = d.cb.get_exponent();
 
             let b_exp_native = if d_exp >= 0 {
                 let exp_correction = mul_log_2_10(d_exp);
@@ -157,7 +157,7 @@ macro_rules! to_float_impl {
             }
 
             let exp = (exp + (MAX_EXP - 1)) as $u;
-            from_bits((exp << (MANTISSA_DIGITS - 1)) | mant & MAN_MASK)
+            $f::from_bits((exp << (MANTISSA_DIGITS - 1)) | mant & MAN_MASK)
         }
     };
 }
