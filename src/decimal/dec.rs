@@ -1584,9 +1584,9 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(3.5).floor(), dec256!(3));
     /// assert_eq!(dec256!(4.0).floor(), dec256!(4));
     ///
-    /// assert_eq!(dec256!(-3.01).floor(), dec256!(-3));
-    /// assert_eq!(dec256!(-3.1).floor(), dec256!(-3));
-    /// assert_eq!(dec256!(-3.5).floor(), dec256!(-3));
+    /// assert_eq!(dec256!(-3.01).floor(), dec256!(-4));
+    /// assert_eq!(dec256!(-3.1).floor(), dec256!(-4));
+    /// assert_eq!(dec256!(-3.5).floor(), dec256!(-4));
     /// assert_eq!(dec256!(-4.0).floor(), dec256!(-4));
     /// ```
     #[must_use = doc::must_use_op!()]
@@ -1611,8 +1611,8 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(1.000001).ceil(), dec256!(2));
     /// assert_eq!(dec256!(1.00000000000001).ceil(), dec256!(2));
     ///
-    /// assert_eq!(dec256!(-3.01).ceil(), dec256!(-4));
-    /// assert_eq!(dec256!(-3.5).ceil(), dec256!(-4));
+    /// assert_eq!(dec256!(-3.01).ceil(), dec256!(-3));
+    /// assert_eq!(dec256!(-3.5).ceil(), dec256!(-3));
     /// assert_eq!(dec256!(-4.0).ceil(), dec256!(-4));
     /// ```
     #[must_use = doc::must_use_op!()]

@@ -4,6 +4,12 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## [0.2.1] – 2025-02-18
+
+### Fixed
+
+- Incorrect `.ceil()` and `floor()` behavior for negative values.
+
 ## [0.2.0] – 2025-02-17
 
 This release primarily focuses on:

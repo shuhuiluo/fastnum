@@ -17,6 +17,10 @@ pub(crate) const fn sqrt<const N: usize>(d: D<N>) -> D<N> {
         return d.op_invalid();
     }
 
+    if d.is_infinite() {
+        return d;
+    }
+
     if d.is_zero() || d.is_one() {
         return d;
     }
@@ -25,8 +29,8 @@ pub(crate) const fn sqrt<const N: usize>(d: D<N>) -> D<N> {
         return d.signaling_nan();
     }
 
-    if d.is_infinite() {
-        return d;
+    if d.eq(&D::TWO) {
+        return D::SQRT_2;
     }
 
     sqrt_heron(d)

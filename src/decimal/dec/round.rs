@@ -55,7 +55,12 @@ pub(crate) const fn floor<const N: usize>(d: D<N>) -> D<N> {
     if d.is_integral() {
         d
     } else {
-        d.with_rounding_mode(Down).round(0)
+        let rounded = d.with_rounding_mode(Down).round(0);
+        if d.is_negative() {
+            sub(rounded, D::ONE).round_extra_precision().check()
+        } else {
+            rounded
+        }
     }
 }
 
@@ -70,7 +75,7 @@ pub(crate) const fn ceil<const N: usize>(d: D<N>) -> D<N> {
     } else {
         let rounded = d.with_rounding_mode(Down).round(0);
         if d.is_negative() {
-            sub(rounded, D::ONE).round_extra_precision().check()
+            rounded
         } else {
             add(rounded, D::ONE).round_extra_precision().check()
         }

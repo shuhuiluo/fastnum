@@ -60,7 +60,7 @@ macro_rules! test_impl {
         #[rstest(::trace)]
         #[case($dec!(0), $dec!(0), signals![])]
         #[case($dec!(1), $dec!(1), signals![])]
-        #[case($dec!(2), $D::SQRT_2, signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(2), $D::SQRT_2, signals![!ROUND, !INEXACT])]
         #[case($dec!(4), $dec!(2), signals![!CP, !ROUND, !INEXACT])]
         fn test_sqrt(#[case] d: $D, #[case] expected: $D, #[case] signals: Signals) {
             let res = d.sqrt();

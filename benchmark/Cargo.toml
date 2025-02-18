@@ -17,6 +17,10 @@ ryu = "1.0"
 name = "benchmark"
 harness = false
 
+[[bench]]
+name = "sqrt"
+harness = false
+
 [profile.release]
 lto = true # enable link-time optimisation for faster runtime, but slower compile time
 opt-level = 3 # maximum optimisation level for faster runtime, but slower compile time
