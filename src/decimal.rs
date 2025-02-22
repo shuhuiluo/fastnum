@@ -49,6 +49,7 @@ macro_rules! decimal_types {
 }
 
 decimal_types!(
+    64 UD64 D64;
     128 UD128 D128;
     256 UD256 D256;
     512 UD512 D512;

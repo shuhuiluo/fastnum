@@ -55,6 +55,16 @@ macro_rules! test_impl {
 
     (COMMON:: 128, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(COMMON:: 128, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(3), $dec!(1.73205080756887729352744634150587236694))]
+        fn test_sqrt_128(#[case] d: $D, #[case] expected: $D) {
+            let res = d.sqrt();
+
+            assert_eq!(res, expected);
+            assert_eq!(res.op_signals(), signals![!CP, !ROUND, !INEXACT]);
+        }
+        
     };
     (COMMON:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]

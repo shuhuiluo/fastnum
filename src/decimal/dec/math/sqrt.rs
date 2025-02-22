@@ -41,6 +41,7 @@ const fn sqrt_heron<const N: usize>(d: D<N>) -> D<N> {
     let approx_f64 = to_f64(d);
     let guess = types::f64::sqrt(approx_f64);
 
+    // TODO: from_f64 - optimization point
     let mut result = from_f64(guess).compound(&d);
 
     let mut result_next;

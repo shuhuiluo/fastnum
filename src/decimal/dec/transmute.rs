@@ -1,4 +1,7 @@
-use crate::{decimal::Decimal, int::UInt};
+use crate::{
+    decimal::{dec::scale::rescale, Decimal},
+    int::UInt,
+};
 
 type D<const N: usize> = Decimal<N>;
 
@@ -16,7 +19,8 @@ pub(crate) const fn transmute<const N: usize, const M: usize>(mut d: D<N>) -> D<
         // FIXME
         if UInt::<N>::BITS - d.digits.leading_zeros() > UInt::<M>::BITS {
             while UInt::<N>::BITS - d.digits.leading_zeros() > UInt::<M>::BITS {
-                d = d.rescale(d.cb.get_scale() - 1);
+                let scale = d.cb.get_scale() - 1;
+                rescale(&mut d, scale);
             }
         }
 

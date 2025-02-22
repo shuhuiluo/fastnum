@@ -54,19 +54,7 @@ macro_rules! test_impl {
 
     (COMMON:: 256, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(COMMON:: 256, $dec, $D);
-    };
-    (COMMON:: 256, $dec: ident, $D: ident) => {
-        super::test_impl!(COMMON:: 128, $dec, $D);
-    };
-    (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(UNSIGNED:: 256, $dec, $D);
-    };
-    (UNSIGNED:: 256, $dec: ident, $D: ident) => {
-        super::test_impl!(UNSIGNED:: 128, $dec, $D);
-    };
-    (SIGNED:: 256, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(SIGNED:: 256, $dec, $D);
-
+        
         #[rstest(::trace)]
         #[case($dec!(1),   $D::E)]
         #[case($dec!(1.5), $dec!(4.4816890703380648226020554601192758190057498683696670567726500827859366744667))]
@@ -79,6 +67,36 @@ macro_rules! test_impl {
         #[case($dec!(15),  $dec!(3269017.3724721106393018550460917213155057385438200342066295627732420213327489))]
         #[case($dec!(100), $dec!(2.6881171418161354484126255515800135873611118773741922415191608615280287034910e+43))]
         fn test_exp_256(#[case] d: $D, #[case] expected: $D) {
+            let res = d.exp();
+            assert_eq!(res, expected);
+            assert!(res.is_op_inexact());
+            assert!(res.is_op_rounded());
+        }
+    };
+    (COMMON:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(COMMON:: 128, $dec, $D);
+    };
+    (UNSIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 256, $dec, $D);
+    };
+    (UNSIGNED:: 256, $dec: ident, $D: ident) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 256, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 256, $dec, $D);
+        
+        #[rstest(::trace)]
+        #[case($dec!(-1),   $dec!(0.36787944117144232159552377016146086744581113103176783450783680169746149574490))]
+        // #[case($dec!(-1.5), $dec!(4.4816890703380648226020554601192758187))]
+        // #[case($dec!(-2),   $dec!(7.3890560989306502272304274605750078133))]
+        // #[case($dec!(-2.5), $dec!(12.1824939607034734380701759511679661832))]
+        // #[case($dec!(-3),   $dec!(20.0855369231876677409285296545817178969))]
+        // #[case($dec!(-4),   $dec!(54.598150033144239078110261202860878402))]
+        // #[case($dec!(-5),   $dec!(148.413159102576603421115580040552279621))]
+        // #[case($dec!(-10),  $dec!(22026.4657948067165169579006452842443660))]
+        // #[case($dec!(-15),  $dec!(3269017.37247211063930185504609172131533))]
+        // #[case($dec!(-100), $dec!(3.720076E-44))]
+        fn test_exp_256_signed(#[case] d: $D, #[case] expected: $D) {
             let res = d.exp();
             assert_eq!(res, expected);
             assert!(res.is_op_inexact());
@@ -149,7 +167,7 @@ macro_rules! test_impl {
         super::test_impl!(SIGNED:: 128, $dec, $D);
 
         #[rstest(::trace)]
-        #[case($dec!(-1),   $dec!(0.36787944117144232159552377016146086744))]
+        #[case($dec!(-1),   $dec!(0.36787944117144232159552377016146086745))]
         // #[case($dec!(-1.5), $dec!(4.4816890703380648226020554601192758187))]
         // #[case($dec!(-2),   $dec!(7.3890560989306502272304274605750078133))]
         // #[case($dec!(-2.5), $dec!(12.1824939607034734380701759511679661832))]

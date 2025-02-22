@@ -1146,7 +1146,7 @@ assert_eq!(D128::NEG_INFINITY.exp(), dec128!(0));
 assert!(D128::INFINITY.exp().is_infinite());
 assert_eq!(dec128!(0).exp(), dec128!(1));
 assert_eq!(dec128!(1).exp(), D128::E);
-assert_eq!(dec128!(-1).exp(), dec128!(0.36787944117144232159552377016146086744));
+assert_eq!(dec128!(-1).exp(), dec128!(0.36787944117144232159552377016146086745));
 assert_eq!(D128::LN_2.exp().round(20), dec128!(2));
 ```
 

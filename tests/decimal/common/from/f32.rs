@@ -104,10 +104,10 @@ macro_rules! test_impl {
 
         #[rstest(::trace)]
         #[case(1.1754942107e-38,    $dec!(1.1754942106924410754870294448492873488270524287458933338571745305715888704756e-38), signals![!INEXACT, !ROUND])]
-        #[case(1.0e-39,             $dec!(1.00000021530533325742087560014568310926874564800968669110436609702256827159062e-39), signals![!INEXACT, !ROUND])]
+        #[case(1.0e-39,             $dec!(1.00000021530533325742087560014568310926874564800968669110436609702256827159061e-39), signals![!INEXACT, !ROUND])]
         #[case(3.92e-39,            $dec!(3.9199993305945648982873957549431278352240611575150746024920816026947210236608e-39), signals![!INEXACT, !ROUND])]
         #[case(1.0e-40,             $dec!(0.99999461011147595815259190522734994960422052696191918504127906874943271242628e-40), signals![!INEXACT, !ROUND])]
-        #[case(1e-42,               $dec!(1.00052710352791938863954292246900011773410702649983226103454675469731083303771e-42), signals![!INEXACT, !ROUND])]
+        #[case(1e-42,               $dec!(1.00052710352791938863954292246900011773410702649983226103454675469731083303770e-42), signals![!INEXACT, !ROUND])]
         #[case(1.40129846432e-45,   $dec!(1.4012984643248170709237295832899161312802619418765157717570682838897910826859e-45), signals![!INEXACT, !ROUND])]
         fn test_from_f32_subnormal_256(#[case] n: f32, #[case] expected: $D, #[case] signals: Signals) {
             assert!(n.is_subnormal());
@@ -130,9 +130,9 @@ macro_rules! test_impl {
 
         #[rstest(::trace)]
         #[case(-1.0e-40, $dec!(-0.99999461011147595815259190522734994960422052696191918504127906874943271242628e-40), signals![!INEXACT, !ROUND])]
-        #[case(-1.0e-39, $dec!(-1.00000021530533325742087560014568310926874564800968669110436609702256827159062e-39), signals![!INEXACT, !ROUND])]
+        #[case(-1.0e-39, $dec!(-1.00000021530533325742087560014568310926874564800968669110436609702256827159061e-39), signals![!INEXACT, !ROUND])]
         #[case(-3.92e-39, $dec!(-3.9199993305945648982873957549431278352240611575150746024920816026947210236608e-39), signals![!INEXACT, !ROUND])]
-        #[case(-1e-42, $dec!(-1.00052710352791938863954292246900011773410702649983226103454675469731083303771e-42), signals![!INEXACT, !ROUND])]
+        #[case(-1e-42, $dec!(-1.00052710352791938863954292246900011773410702649983226103454675469731083303770e-42), signals![!INEXACT, !ROUND])]
         #[case(-1.40129846432e-45, $dec!(-1.4012984643248170709237295832899161312802619418765157717570682838897910826859e-45), signals![!INEXACT, !ROUND])]
         fn test_from_f32_subnormal_signed_256(#[case] n: f32, #[case] expected: $D, #[case] signals: Signals) {
             assert!(n.is_subnormal());
@@ -151,7 +151,7 @@ macro_rules! test_impl {
         #[rstest(::trace)]
         #[case(f32::MIN_POSITIVE,       $dec!(1.17549435082228750796873653722224567782e-38))]
         #[case(1e-13,                   $dec!(9.9999998245167004418121337039337959141e-14))]
-        #[case(7.2e-14,                 $dec!(7.2000002802278390001688990196271333844e-14))]
+        #[case(7.2e-14,                 $dec!(7.2000002802278390001688990196271333843e-14))]
         #[case(1e-16,                   $dec!(1.00000001686238352638716464504398118152e-16))]
         #[case(1e-32,                   $dec!(1.00000002374222799036108273658815415520e-32))]
         #[case(1.1754943508e-38,        $dec!(1.17549435082228750796873653722224567782e-38))]
@@ -163,7 +163,8 @@ macro_rules! test_impl {
             assert!(n.is_normal());
             let d = $D::try_from(n).unwrap();
             assert_eq!(d, expected);
-            assert_eq!(d.op_signals(), signals![!INEXACT, !ROUND]);
+            assert!(d.is_op_inexact());
+            assert!(d.is_op_rounded());
         }
 
         #[rstest(::trace)]
@@ -177,7 +178,8 @@ macro_rules! test_impl {
             assert!(n.is_subnormal());
             let d = $D::try_from(n).unwrap();
             assert_eq!(d, expected);
-            assert_eq!(d.op_signals(), signals![!INEXACT, !ROUND]);
+            assert!(d.is_op_inexact());
+            assert!(d.is_op_rounded());
         }
     };
     (COMMON:: 128, $dec: ident, $D: ident) => {
@@ -685,11 +687,11 @@ macro_rules! test_impl {
         super::test_impl!(SIGNED:: 128, $dec, $D);
 
         #[rstest(::trace)]
-        #[case(-1.0e-40, $dec!(-0.99999461011147595815259190522734994960e-40), signals![!INEXACT, !ROUND])]
-        #[case(-1.0e-39, $dec!(-1.00000021530533325742087560014568310927e-39), signals![!INEXACT, !ROUND])]
-        #[case(-3.92E-39, $dec!(-3.9199993305945648982873957549431278352e-39), signals![!INEXACT, !ROUND])]
-        #[case(-1e-42, $dec!(-1.00052710352791938863954292246900011773e-42), signals![!INEXACT, !ROUND])]
-        #[case(-1.40129846432e-45, $dec!(-1.40129846432481707092372958328991613128e-45), signals![!INEXACT, !ROUND])]
+        #[case(-1.0e-40, $dec!(-0.99999461011147595815259190522734994960e-40), signals![!CP, !INEXACT, !ROUND])]
+        #[case(-1.0e-39, $dec!(-1.00000021530533325742087560014568310927e-39), signals![!CP, !INEXACT, !ROUND])]
+        #[case(-3.92E-39, $dec!(-3.9199993305945648982873957549431278352e-39), signals![!CP, !INEXACT, !ROUND])]
+        #[case(-1e-42, $dec!(-1.00052710352791938863954292246900011773e-42), signals![!CP, !INEXACT, !ROUND])]
+        #[case(-1.40129846432e-45, $dec!(-1.40129846432481707092372958328991613128e-45), signals![!CP, !INEXACT, !ROUND])]
         fn test_from_f32_subnormal_signed_128(#[case] n: f32, #[case] expected: $D, #[case] signals: Signals) {
             assert!(n.is_subnormal());
             let d = $D::try_from(n).unwrap();
