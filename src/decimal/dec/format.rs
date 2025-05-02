@@ -373,7 +373,7 @@ fn format_exponential_be_ascii_digits(
     }
 
     if extra_trailing_zero_count > 0 {
-        abs_int.extend(core::iter::repeat('0').take(extra_trailing_zero_count));
+        abs_int.extend(core::iter::repeat_n('0', extra_trailing_zero_count));
     }
 
     // always print exponent in exponential mode
