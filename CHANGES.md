@@ -6,13 +6,19 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ## [0.2.5] – unreleased
 
+### Fixed
+
+- Failing to converge the Brent iterative method for calculating reciprocals (infinity
+  loop): [#20](https://github.com/neogenie/fastnum/issues/20).
+
 ## [0.2.4] – 2025-05-03
 
 ### Added
 
 - Add public constant functions for convert Decimal and UnsignedDecimal from/to Rust's primitive numeric
   types: [#15](https://github.com/neogenie/fastnum/issues/15).
-- Introduce `.transmute()` operation for N-to-M bit unsigned decimal conversion: [#18](https://github.com/neogenie/fastnum/issues/18).
+- Introduce `.transmute()` operation for N-to-M bit unsigned decimal
+  conversion: [#18](https://github.com/neogenie/fastnum/issues/18).
 
 ## [0.2.3] – 2025-04-08
 
