@@ -8,8 +8,9 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ### Added
 
-- add public constant functions for converts Decimal and UnsignedDecimal from/to Rust's primitive numeric
+- Add public constant functions for convert Decimal and UnsignedDecimal from/to Rust's primitive numeric
   types: [#15](https://github.com/neogenie/fastnum/issues/15).
+- Introduce `.transmute()` operation for N-to-M bit unsigned decimal conversion: [#18](https://github.com/neogenie/fastnum/issues/18).
 
 ## [0.2.3] – 2025-04-08
 

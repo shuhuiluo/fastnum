@@ -1300,6 +1300,26 @@ impl<const N: usize> UnsignedDecimal<N> {
         }
         Ok(Self::new(d))
     }
+
+    /// Transmute the given n-bits unsigned decimal number to m-bits unsigned
+    /// decimal number.
+    #[doc = doc::decimal_operation_panics!("transmute operation")]
+    /// # Examples
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// let d = udec256!(1.2345);
+    ///
+    /// assert_eq!(d.transmute(), udec128!(1.2345));
+    /// assert_eq!(d.transmute(), udec512!(1.2345));
+    /// ```
+    #[must_use = doc::must_use_op!()]
+    #[track_caller]
+    #[inline]
+    pub const fn transmute<const M: usize>(self) -> UnsignedDecimal<M> {
+        UnsignedDecimal::new(self.0.transmute())
+    }
 }
 
 #[doc(hidden)]
