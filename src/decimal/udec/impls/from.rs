@@ -25,7 +25,7 @@ macro_rules! from_impl {
                 }
             )*
         }
-        
+
         $(
             impl<const N: usize> From<$uint> for UD<N> {
                 #[inline]

@@ -13,7 +13,7 @@ macro_rules! from_num_impls {
                 }
             )*
         }
-        
+
         $(
             impl<const N: usize> From<$num> for D<N> {
                 #[inline]
