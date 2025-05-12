@@ -217,6 +217,13 @@ macro_rules! test_impl {
             assert!(a <= b);
             assert!(a >= b);
         }
+        
+        #[rstest(::trace)]
+        fn test_sort() {
+            let mut positions = vec![$dec!(2.0), $dec!(4.0), $dec!(1.0), $dec!(5.0), $dec!(3.0), $dec!(3.0)];
+            positions.sort_by(|a, b| a.cmp(&b));
+            itertools::assert_equal(positions, vec![$dec!(1.0), $dec!(2.0), $dec!(3.0), $dec!(3.0), $dec!(4.0), $dec!(5.0)]);
+        }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(UNSIGNED:: 128, $dec, $D);
