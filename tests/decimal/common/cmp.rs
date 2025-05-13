@@ -217,12 +217,55 @@ macro_rules! test_impl {
             assert!(a <= b);
             assert!(a >= b);
         }
-        
+
+        #[rstest(::trace)]
+        #[case($D::INFINITY, $D::INFINITY)]
+        fn test_eq_special(#[case] a: $D, #[case] b: $D) {
+             assert_eq!(a, b);
+        }
+
+        #[rstest(::trace)]
+        #[case($D::NAN, $D::NAN)]
+        #[case($D::ONE, $D::NAN)]
+        #[case($D::NAN, $D::ONE)]
+        #[case($D::INFINITY, $D::NAN)]
+        fn test_ne_special(#[case] a: $D, #[case] b: $D) {
+            assert_ne!(a, b);
+        }
+
+        #[rstest(::trace)]
+        #[case($D::ZERO, $D::ONE)]
+        #[case($D::ONE, $D::MAX)]
+        #[case($D::MAX, $D::INFINITY)]
+        #[case($D::INFINITY, $D::NAN)]
+        fn test_cmp_special(#[case] a: $D, #[case] b: $D) {
+            assert!(a < b);
+        }
+
         #[rstest(::trace)]
         fn test_sort() {
-            let mut positions = vec![$dec!(2.0), $dec!(4.0), $dec!(1.0), $dec!(5.0), $dec!(3.0), $dec!(3.0)];
+            let mut positions = vec![
+                $dec!(2.0),
+                $dec!(4.0),
+                $dec!(1.0),
+                $dec!(5.0),
+                $dec!(3.0),
+                $dec!(3.0),
+                $D::INFINITY,
+                $D::ZERO,
+            ];
+
             positions.sort_by(|a, b| a.cmp(&b));
-            itertools::assert_equal(positions, vec![$dec!(1.0), $dec!(2.0), $dec!(3.0), $dec!(3.0), $dec!(4.0), $dec!(5.0)]);
+            itertools::assert_equal(positions, vec![
+                $D::ZERO,
+                $dec!(1.0),
+                $dec!(2.0),
+                $dec!(3.0),
+                $dec!(3.0),
+                $dec!(4.0),
+                $dec!(5.0),
+                $D::INFINITY,
+            ]);
         }
     };
     (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
@@ -281,6 +324,67 @@ macro_rules! test_impl {
 
             assert_eq!(a, b);
             assert_eq!(b, a);
+        }
+
+        #[rstest(::trace)]
+        #[case($D::NEG_INFINITY, $D::NEG_INFINITY)]
+        fn test_eq_special_signed(#[case] a: $D, #[case] b: $D) {
+             assert_eq!(a, b);
+        }
+
+        #[rstest(::trace)]
+        #[case($D::NEG_INFINITY, $D::NAN)]
+        fn test_ne_special_signed(#[case] a: $D, #[case] b: $D) {
+            assert_ne!(a, b);
+        }
+
+        #[rstest(::trace)]
+        #[case($D::NEG_INFINITY, $D::MIN)]
+        #[case($D::MIN, $D::ONE.neg())]
+        #[case($D::ONE.neg(), $D::ZERO.neg())]
+        #[case($D::ZERO.neg(), $D::ZERO)]
+        fn test_cmp_special_signed(#[case] a: $D, #[case] b: $D) {
+            assert!(a < b);
+        }
+
+        #[rstest(::trace)]
+        fn test_sort_signed() {
+            let mut positions = vec![
+                $dec!(2.0),
+                $dec!(4.0),
+                $dec!(1.0),
+                $dec!(5.0),
+                $dec!(3.0),
+                $dec!(3.0),
+                $D::NEG_INFINITY,
+                $D::INFINITY,
+                $D::ZERO,
+                $dec!(-1.0),
+                $dec!(-5.0),
+                $dec!(-4.0),
+                $dec!(-2.0),
+                $dec!(-3.0),
+                $D::ZERO.neg(),
+            ];
+
+            positions.sort_by(|a, b| a.cmp(&b));
+            itertools::assert_equal(positions, vec![
+                $D::NEG_INFINITY,
+                $dec!(-5.0),
+                $dec!(-4.0),
+                $dec!(-3.0),
+                $dec!(-2.0),
+                $dec!(-1.0),
+                $D::ZERO.neg(),
+                $D::ZERO,
+                $dec!(1.0),
+                $dec!(2.0),
+                $dec!(3.0),
+                $dec!(3.0),
+                $dec!(4.0),
+                $dec!(5.0),
+                $D::INFINITY,
+            ]);
         }
     };
 }
