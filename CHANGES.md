@@ -6,6 +6,12 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ## [0.2.7] – unreleased
 
+## [0.2.7] – 2025-05-15
+
+### Fixed
+
+- Incorrect cmp implementation: [#22](https://github.com/neogenie/fastnum/issues/22).
+
 ## [0.2.6] – 2025-05-13
 
 ### Fixed

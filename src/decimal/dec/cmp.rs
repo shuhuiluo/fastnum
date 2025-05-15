@@ -152,11 +152,11 @@ const fn cmp_rounded<const N: usize>(a: &D<N>, b: &D<N>) -> Ordering {
             let (mul, false) =
                 UInt::TEN.overflowing_pow((b.cb.get_scale() - a.cb.get_scale()) as u32)
             else {
-                return Ordering::Less;
+                return Ordering::Greater;
             };
 
             let (value, false) = a.digits.overflowing_mul(mul) else {
-                return Ordering::Less;
+                return Ordering::Greater;
             };
 
             value.cmp(&b.digits)
