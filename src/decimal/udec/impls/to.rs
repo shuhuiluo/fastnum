@@ -1,8 +1,16 @@
 use core::num::IntErrorKind;
 
-use crate::decimal::UnsignedDecimal;
+use crate::decimal::{Decimal, UnsignedDecimal};
 
+type D<const N: usize> = Decimal<N>;
 type UD<const N: usize> = UnsignedDecimal<N>;
+
+impl<const N: usize> From<UD<N>> for D<N> {
+    #[inline]
+    fn from(ud: UD<N>) -> Self {
+        ud.0
+    }
+}
 
 macro_rules! to_num_impls {
     ($($name:ident $num:ty,)*) => {

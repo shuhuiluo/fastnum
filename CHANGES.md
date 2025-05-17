@@ -4,7 +4,21 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## [0.2.7] – unreleased
+## [0.3.0] – unreleased
+
+### Changed
+
+- Format module is completely refactored.
+
+## [0.2.8] – unreleased
+
+### Added
+
+- Add `impl From<UnsignedDecimal> for Decimal` convertion trait implementation.
+
+### Fixed
+
+- Fix display rounding error: [#24](https://github.com/neogenie/fastnum/issues/24).
 
 ## [0.2.7] – 2025-05-15
 

@@ -6,16 +6,17 @@ impl<const N: usize> Display for Decimal<N> {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.is_nan() {
-            return write!(f, "NaN");
+            write!(f, "NaN")
         } else if self.is_infinite() {
-            return write!(f, "{}Inf", self.sign());
+            write!(f, "{}Inf", self.sign())
+        } else {
+            format::format(
+                self.digits.to_str_radix(10),
+                self.cb.get_scale(),
+                self.sign(),
+                f,
+            )
         }
-        format::format(
-            self.digits.to_str_radix(10),
-            self.cb.get_scale(),
-            self.sign(),
-            f,
-        )
     }
 }
 
