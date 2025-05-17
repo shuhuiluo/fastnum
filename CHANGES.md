@@ -10,7 +10,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 - Format module is completely refactored.
 
-## [0.2.8] – unreleased
+## [0.2.8] – 2025-05-17
 
 ### Added
 
