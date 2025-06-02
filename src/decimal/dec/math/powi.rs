@@ -1,14 +1,6 @@
-use crate::{
-    decimal::{
-        dec::{
-            construct::construct,
-            math::{div::div, utils::overflow_exp},
-            ExtraPrecision,
-        },
-        signals::Signals,
-        Context, Decimal, Sign,
-    },
-    int::{math::div_rem_digit, UInt},
+use crate::decimal::{
+    dec::math::{div::div, mul::mul},
+    Decimal, Sign,
 };
 
 type D<const N: usize> = Decimal<N>;
@@ -56,75 +48,24 @@ pub(crate) const fn powi<const N: usize>(d: D<N>, n: i32) -> D<N> {
     }
 
     if n < 0 {
-        div(
-            D::ONE,
-            powi_integral(
-                d.digits,
-                d.cb.get_exponent(),
-                sign,
-                d.cb.get_signals(),
-                d.cb.get_context(),
-                n.overflowing_neg().0 as u32,
-            ),
-        )
+        div(D::ONE, powi_integral(d, n.overflowing_neg().0 as u32))
     } else {
-        powi_integral(
-            d.digits,
-            d.cb.get_exponent(),
-            sign,
-            d.cb.get_signals(),
-            d.cb.get_context(),
-            n as u32,
-        )
+        powi_integral(d, n as u32)
     }
 }
 
 #[inline]
-const fn powi_integral<const N: usize>(
-    mut digits: UInt<N>,
-    mut exp: i32,
-    sign: Sign,
-    mut signals: Signals,
-    ctx: Context,
-    n: u32,
-) -> D<N> {
-    // TODO: special case 2^n
+const fn powi_integral<const N: usize>(mut d: D<N>, mut n: u32) -> D<N> {
+    debug_assert!(n > 0);
 
-    if n > i32::MAX as u32 {
-        return overflow_exp(-1, sign, signals, ctx);
-    }
-
-    let (mut out, mut overflow) = digits.overflowing_pow(n);
-    let mut extra_precision = ExtraPrecision::new();
-
-    if overflow {
-        let mut extra_digit;
-        signals.raise(Signals::OP_ROUNDED);
-
-        while overflow {
-            (digits, extra_digit) = div_rem_digit(digits, 10);
-
-            if extra_digit != 0 {
-                signals.raise(Signals::OP_INEXACT);
-            }
-
-            extra_precision.push_digit(extra_digit);
-
-            (exp, overflow) = exp.overflowing_add(1);
-
-            if overflow {
-                return overflow_exp(exp, sign, signals, ctx);
-            }
-
-            (out, overflow) = digits.overflowing_pow(n);
+    let mut result = D::ONE;
+    while n > 1 {
+        if n & 1 == 1 {
+            result = mul(result, d);
         }
+        d = mul(d, d);
+        n >>= 1;
     }
 
-    (exp, overflow) = exp.overflowing_mul(n as i32);
-
-    if overflow {
-        return overflow_exp(exp, sign, signals, ctx);
-    }
-
-    construct(out, exp, sign, signals, ctx, extra_precision)
+    mul(result, d)
 }

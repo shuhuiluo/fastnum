@@ -10,6 +10,12 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 - Format module is completely refactored.
 
+## [0.2.9] – 2025-06-02
+
+### Fixed
+
+- Fix inaccurate pow: [#28](https://github.com/neogenie/fastnum/issues/28).
+
 ## [0.2.8] – 2025-05-17
 
 ### Added

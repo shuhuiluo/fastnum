@@ -84,8 +84,22 @@ macro_rules! test_impl {
         #[case($dec!(10), 99, $dec!(1E+99), signals![!ROUND])]
         #[case($dec!(10), -77, $dec!(1E-77), signals![!ROUND])]
         #[case($dec!(10), -22, $dec!(1E-22), signals![])]
+        #[case($D::E, 2, $dec!(7.3890560989306502272304274605750078132), signals![!CP, !ROUND, !INEXACT])]
+        #[case($D::E, 3, $dec!(20.0855369231876677409285296545817178970), signals![!CP, !ROUND, !INEXACT])]
+        #[case($D::PI, 2, $dec!(9.8696044010893586188344909998761511353), signals![!CP, !ROUND, !INEXACT])]
+        #[case($D::PI, 3, $dec!(31.0062766802998201754763150671013952023), signals![!CP, !ROUND, !INEXACT])]
         fn test_powi_128(#[case] d: $D, #[case] n: i32, #[case] expected: $D, #[case] signals: Signals) {
             let d = d.powi(n);
+
+            assert_eq!(d, expected);
+            assert_eq!(d.op_signals(), signals);
+        }
+
+        #[rstest(::trace)]
+        #[case($dec!(2), $sdec!(1.25), $dec!(2.37841423000544213343499994112095183059), signals![!CP, !INEXACT, !ROUND])]
+        #[case($dec!(2), $sdec!(5.5), $dec!(45.254833995939041561654039174710338514), signals![!CP, !INEXACT, !ROUND])]
+        fn test_pow_128(#[case] d: $D, #[case] n: $SD, #[case] expected: $D, #[case] signals: Signals) {
+            let d = d.pow(n);
 
             assert_eq!(d, expected);
             assert_eq!(d.op_signals(), signals);
@@ -391,6 +405,15 @@ macro_rules! test_impl {
             assert_eq!(d, expected);
             assert_eq!(d.op_signals(), signals);
         }
+
+        #[rstest(::trace)]
+        #[case($dec!(-2), $dec!(2.2), $dec!(-4.5947934199881400271945077871117103578), signals![!CP, !INEXACT, !ROUND])]
+        fn test_pow_128_signed(#[case] d: $D, #[case] n: $D, #[case] expected: $D, #[case] signals: Signals) {
+            let d = d.pow(n);
+
+            assert_eq!(d, expected);
+            assert_eq!(d.op_signals(), signals);
+        }
     };
     (SIGNED:: 128, $dec: ident, $D: ident) => {
 
@@ -437,6 +460,28 @@ macro_rules! test_impl {
             let d = d.with_ctx(ctx).powi(n);
             assert!(d.is_nan());
             assert!(d.is_op_invalid());
+        }
+
+        #[rstest(::trace)]
+        #[case($dec!(-3), $dec!(2), $dec!(9))]
+        #[case($dec!(-2), $dec!(3), $dec!(-8))]
+        #[case($dec!(-3), $dec!(3), $dec!(-27))]
+        #[case($dec!(-4), $dec!(3), $dec!(-64))]
+        #[case($dec!(-5), $dec!(3), $dec!(-125))]
+        #[case($dec!(-6), $dec!(3), $dec!(-216))]
+        #[case($dec!(-7), $dec!(3), $dec!(-343))]
+        // --------------------------------------
+        #[case($dec!(-0), $dec!(-1), $D::NEG_INFINITY)]
+        #[case($dec!(-0), $dec!(-2), $D::INFINITY)]
+        #[case($dec!(-0), $dec!(-3), $D::NEG_INFINITY)]
+        #[case($D::NEG_INFINITY, $dec!(-1), $dec!(-0))]
+        #[case($D::NEG_INFINITY, $dec!(0), $dec!(1))]
+        #[case($D::NEG_INFINITY, $dec!(1), $D::NEG_INFINITY)]
+        #[case($D::NEG_INFINITY, $dec!(2), $D::INFINITY)]
+        #[case($D::NEG_INFINITY, $dec!(3), $D::NEG_INFINITY)]
+        fn test_pow_signed(#[case] d: $D, #[case] n: $D, #[case] expected: $D) {
+            let d = d.pow(n);
+            assert_eq!(d, expected);
         }
     };
 }

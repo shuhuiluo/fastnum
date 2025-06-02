@@ -54,7 +54,12 @@ pub(crate) const fn pow<const N: usize>(d: D<N>, n: D<N>) -> D<N> {
         };
     }
 
-    powf(d, n)
+    if !d.is_negative() {
+        powf(d, n)
+    } else {
+        // TODO: fractal power part must be odd 
+        powf(d.abs(), n).set_sign(sign)
+    }
 }
 
 #[inline]

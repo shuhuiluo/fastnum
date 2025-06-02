@@ -30,20 +30,6 @@ pub(crate) const fn underflow<const N: usize>(sign: Sign, signals: Signals, ctx:
 }
 
 #[inline(always)]
-pub(crate) const fn overflow_exp<const N: usize>(
-    exp: i32,
-    sign: Sign,
-    signals: Signals,
-    ctx: Context,
-) -> D<N> {
-    if exp > 0 {
-        underflow(sign, signals, ctx)
-    } else {
-        overflow(sign, signals, ctx)
-    }
-}
-
-#[inline(always)]
 pub(crate) const fn is_even<const N: usize>(d: &D<N>) -> bool {
     if d.cb.get_scale() < 0 {
         true
