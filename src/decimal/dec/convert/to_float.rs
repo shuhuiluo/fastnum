@@ -123,6 +123,7 @@ macro_rules! to_float_impl {
                     }
                 }
             } else if bits < MANTISSA_DIGITS {
+                b_exp -= 1;
                 if let Ok(m) = $to_uint(digits) {
                     m << (MANTISSA_DIGITS - bits)
                 } else {

@@ -10,6 +10,12 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 - Format module is completely refactored.
 
+## [0.2.10] – 2025-06-04
+
+### Fixed
+
+- Fix incorrect D64 to_f64 implementation: [#29](https://github.com/neogenie/fastnum/issues/29).
+
 ## [0.2.9] – 2025-06-02
 
 ### Fixed
