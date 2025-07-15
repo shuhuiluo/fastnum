@@ -2,12 +2,8 @@ use core::cmp::Ordering;
 use num_traits::Euclid;
 
 use crate::{
+    bint::UInt,
     decimal::{dec::ControlBlock, Decimal, ParseError, Sign},
-    int::{
-        intrinsics::Intrinsics,
-        math::{mul_div_rem_wide, to_i16},
-        UInt,
-    },
 };
 
 type D<const N: usize> = Decimal<N>;
@@ -100,11 +96,11 @@ impl<const N: usize> TryFrom<D<N>> for NBase {
         exp += 4 - scale % 4;
 
         while !uint.is_zero() {
-            let correction = Intrinsics::<N>::POWERS_OF_TEN.lookup(exp as u32);
-            let (div, rem) = mul_div_rem_wide(uint, correction, Consts::<N>::NBASE);
+            let correction = UInt::<N>::power_of_ten(exp as u32);
+            let (div, rem) = uint.mul_div_rem(correction, Consts::<N>::NBASE);
 
             if !digits.is_empty() || !rem.is_zero() {
-                digits.push(to_i16(rem).expect("10000 always fits in an i16"));
+                digits.push(rem.to_i16().expect("10000 always fits in an i16"));
             }
 
             uint = div;
@@ -169,17 +165,15 @@ impl<const N: usize> TryFrom<NBase> for D<N> {
             Ordering::Greater => {
                 let scale_diff =
                     u32::try_from(scale - correction_exp).map_err(|_| ParseError::PosOverflow)?;
-                let correction = UInt::<N>::TEN
-                    .checked_pow(scale_diff)
-                    .ok_or(ParseError::PosOverflow)?;
+                let correction =
+                    UInt::<N>::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
                 checked!(uint *= correction);
             }
             Ordering::Less => {
                 let scale_diff =
                     u32::try_from(correction_exp - scale).map_err(|_| ParseError::PosOverflow)?;
-                let correction = UInt::<N>::TEN
-                    .checked_pow(scale_diff)
-                    .ok_or(ParseError::PosOverflow)?;
+                let correction =
+                    UInt::<N>::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
                 checked!(uint /= correction);
             }
             Ordering::Equal => {}

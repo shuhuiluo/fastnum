@@ -1,4 +1,5 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             construct::construct,
@@ -8,10 +9,6 @@ use crate::{
         },
         signals::Signals,
         Context, Decimal, Sign,
-    },
-    int::{
-        math::{div_rem, div_rem_digit, strict_mul10},
-        UInt,
     },
 };
 
@@ -72,8 +69,8 @@ pub(crate) const fn reduce<const N: usize>(mut d: D<N>) -> D<N> {
         let mut digits;
         let mut remainder;
         while !d.digits.is_zero() {
-            (digits, remainder) = div_rem(d.digits, UInt::TEN);
-            if remainder.is_zero() {
+            (digits, remainder) = d.digits.div_rem_digit(10);
+            if remainder == 0 {
                 if d.cb.get_scale() > i16::MIN {
                     d.digits = digits;
                     d.cb.dec_scale(1);
@@ -164,7 +161,7 @@ const fn rescale_down<const N: usize>(d: &mut D<N>, new_scale: i16) {
     let mut extra_digit;
     while new_scale < d.cb.get_scale() {
         if !d.digits.is_zero() {
-            (d.digits, extra_digit) = div_rem_digit(d.digits, 10);
+            (d.digits, extra_digit) = d.digits.div_rem_digit(10);
 
             if extra_digit != 0 {
                 d.cb.raise_signals(Signals::OP_INEXACT);
@@ -183,12 +180,7 @@ const fn rescale_down<const N: usize>(d: &mut D<N>, new_scale: i16) {
 
 #[inline]
 const fn rescale_up_unchecked<const N: usize>(d: &mut D<N>, gap: u32) {
-    if gap == 1 {
-        d.digits = d.digits.strict_mul(UInt::<N>::TEN);
-    } else {
-        d.digits = strict_mul10(d.digits, gap);
-    }
-
+    d.digits = d.digits.strict_mul(UInt::<N>::power_of_ten(gap));
     d.cb.inc_scale(gap as i16);
 
     let mut extra_precision = d.cb.get_extra_precision();

@@ -140,7 +140,7 @@ impl Display for RoundingMode {
 
 impl Debug for RoundingMode {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{self}")
     }
 }
 

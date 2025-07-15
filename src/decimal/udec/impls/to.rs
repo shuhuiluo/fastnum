@@ -1,6 +1,7 @@
-use core::num::IntErrorKind;
-
-use crate::decimal::{Decimal, UnsignedDecimal};
+use crate::{
+    bint::ParseError,
+    decimal::{Decimal, UnsignedDecimal},
+};
 
 type D<const N: usize> = Decimal<N>;
 type UD<const N: usize> = UnsignedDecimal<N>;
@@ -16,7 +17,7 @@ macro_rules! to_num_impls {
     ($($name:ident $num:ty,)*) => {
         $(
             impl<const N: usize> TryFrom<UD<N>> for $num {
-                type Error = IntErrorKind;
+                type Error = ParseError;
 
                 #[inline]
                 fn try_from(ud: UD<N>) -> Result<Self, Self::Error> {
@@ -29,7 +30,7 @@ macro_rules! to_num_impls {
             $(
                 #[inline]
                 #[doc = concat!("Try converts [UnsignedDecimal] into [`", stringify!($num), "`].")]
-                pub const fn $name(self) -> Result<$num, IntErrorKind> {
+                pub const fn $name(self) -> Result<$num, ParseError> {
                     self.0.$name()
                 }
             )*

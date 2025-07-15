@@ -1,4 +1,4 @@
-use crate::int::{math::ilog10, UInt};
+use crate::bint::UInt;
 
 pub(crate) struct Intrinsics<const N: usize>;
 
@@ -28,5 +28,5 @@ pub(crate) const fn clength<const N: usize>(coeff: UInt<N>) -> u32 {
         return 1;
     }
 
-    ilog10(coeff) + 1
+    coeff.ilog10() + 1
 }

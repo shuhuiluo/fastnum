@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.2.10"
+version = "0.3.0"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast decimal numbers library"
@@ -19,7 +19,7 @@ categories = ["mathematics", "science", "no-std"]
 license = "MIT OR Apache-2.0"
 autobenches = false
 exclude = ["examples/*", "benchmark/*"]
-rust-version = "1.83"
+rust-version = "1.87"
 
 [lib]
 bench = false
@@ -28,10 +28,12 @@ bench = false
 
 bnum = { version = "0.12.0", default-features = false }
 
+num-integer = { version = "0.1", default-features = false, optional = true }
 num-traits = { version = "0.2", default-features = false, optional = true }
 zeroize = { version = "1.6", default-features = false, optional = true }
 rand = { version = "0.8", features = ["min_const_gen"], default-features = false, optional = true }
 serde = { version = ">= 1.0.0", default-features = false, optional = true }
+borsh = { version = ">= 1.0.0", default-features = false, optional = true }
 diesel = { version = ">=2.2.4", default-features = false, features = ["numeric"], optional = true }
 sqlx = { version = ">=0.8.0", default-features = false, optional = true }
 bytes = { version = "1.1.0", default-features = false, optional = true }
@@ -53,12 +55,13 @@ autocfg = "1"
 default = ["std"]
 std = []
 
-numtraits = ["num-traits", "bnum/numtraits"]
+numtraits = ["num-traits", "bnum/numtraits", "num-integer"]
 
 rand = ["dep:rand"]
 zeroize = ["dep:zeroize"]
 
 serde = ["dep:serde", "bnum/serde"]
+borsh = ["dep:borsh", "bnum/borsh"]
 
 diesel = ["dep:diesel"]
 diesel_postgres = ["diesel", "diesel/postgres_backend", "extra-postgres"]

@@ -97,8 +97,8 @@ macro_rules! test_impl {
         super::test_impl!(COMMON:: 128, $dec, $D);
 
         #[rstest(::trace)]
-        #[case($D::from(u128::MAX), $dec!(0.1), $D::from(u128::MAX))]
-        #[case($D::from(u128::MAX), $dec!(0.5), $D::from(u128::MAX))]
+        #[case($D::try_from(u128::MAX).unwrap(), $dec!(0.1), $D::try_from(u128::MAX).unwrap())]
+        #[case($D::try_from(u128::MAX).unwrap(), $dec!(0.5), $D::try_from(u128::MAX).unwrap())]
         #[case($dec!(340282366920938463463374607431768211455), $dec!(0.5), $dec!(340282366920938463463374607431768211455))]
         #[case($dec!(340282366920938463463374607431768211455), $dec!(0.1), $dec!(340282366920938463463374607431768211455))]
         #[case($dec!(34028236692093846346337460743176821145), $dec!(0.01), $dec!(34028236692093846346337460743176821145.0))]
@@ -216,8 +216,8 @@ macro_rules! test_impl {
         super::test_impl!(SIGNED:: 128, $dec, $D);
 
         #[rstest(::trace)]
-        #[case($D::from(i128::MAX), $dec!(0.1), $D::from(i128::MAX))]
-        #[case($D::from(i128::MAX), $dec!(0.5), $D::from(i128::MAX))]
+        #[case($D::try_from(i128::MAX).unwrap(), $dec!(0.1), $D::try_from(i128::MAX).unwrap())]
+        #[case($D::try_from(i128::MAX).unwrap(), $dec!(0.5), $D::try_from(i128::MAX).unwrap())]
         #[case($dec!(0.000000001), $dec!(340282366920938463463374607431768211455), $dec!(-340282366920938463463374607431768211455))]
         #[case($dec!(0.000001), $dec!(340282366920938463463374607431768211455), $dec!(-340282366920938463463374607431768211455))]
         #[case($dec!(0.1), $dec!(340282366920938463463374607431768211455), $dec!(-340282366920938463463374607431768211455))]

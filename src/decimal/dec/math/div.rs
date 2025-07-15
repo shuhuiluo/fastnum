@@ -1,4 +1,5 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             construct::construct,
@@ -8,10 +9,6 @@ use crate::{
         },
         signals::Signals,
         Context, Decimal,
-    },
-    int::{
-        math::{div_rem, div_rem_digit, mul_div_rem_wide},
-        UInt,
     },
 };
 
@@ -56,7 +53,7 @@ pub(crate) const fn div<const N: usize>(mut dividend: D<N>, mut divisor: D<N>) -
         let correction = div_correction(&mut dividend, &mut divisor);
 
         let mut exp = dividend.cb.get_exponent() - divisor.cb.get_exponent();
-        let (mut digits, mut remainder) = div_rem(dividend.digits, divisor.digits);
+        let (mut digits, mut remainder) = dividend.digits.div_rem(divisor.digits);
 
         if !remainder.is_zero() {
             let mut quotient;
@@ -120,11 +117,11 @@ const fn extra_digits<const N: usize>(mut quotient: U<N>) -> ExtraPrecision {
     let mut ep = ExtraPrecision::new();
     let mut digit;
 
-    (quotient, digit) = div_rem_digit(quotient, 10);
+    (quotient, digit) = quotient.div_rem_digit(10);
     ep.push_digit(digit);
 
     while !quotient.is_zero() {
-        (quotient, digit) = div_rem_digit(quotient, 10);
+        (quotient, digit) = quotient.div_rem_digit(10);
         ep.push_digit(digit);
     }
 
@@ -134,10 +131,10 @@ const fn extra_digits<const N: usize>(mut quotient: U<N>) -> ExtraPrecision {
 #[inline]
 const fn div_rem_next<const N: usize>(mut remainder: U<N>, divisor: U<N>) -> (U<N>, U<N>) {
     if remainder.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
-        mul_div_rem_wide(remainder, UInt::TEN, divisor)
+        remainder.mul_div_rem(UInt::TEN, divisor)
     } else {
         remainder = remainder.strict_mul(UInt::TEN);
-        div_rem(remainder, divisor)
+        remainder.div_rem(divisor)
     }
 }
 

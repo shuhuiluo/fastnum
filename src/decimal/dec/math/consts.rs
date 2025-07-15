@@ -6,7 +6,7 @@ use crate::{
         signals::Signals,
         Context, Decimal, ParseError, Sign,
     },
-    int::UInt,
+    bint::UInt,
     utils::err_msg,
 };
 

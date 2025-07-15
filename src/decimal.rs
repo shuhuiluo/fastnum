@@ -11,6 +11,7 @@ pub(crate) mod dec;
 pub(crate) mod doc;
 pub(crate) mod round;
 pub(crate) mod udec;
+pub(crate) mod impls;
 
 mod context;
 mod sign;

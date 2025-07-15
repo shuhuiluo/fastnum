@@ -25,7 +25,7 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_i128<E>(self, value: i128) -> Result<Self::Value, E>
@@ -33,7 +33,7 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
@@ -41,7 +41,7 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_u128<E>(self, value: u128) -> Result<Self::Value, E>
@@ -49,7 +49,7 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_f32<E>(self, value: f32) -> Result<Self::Value, E>
@@ -57,7 +57,7 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
@@ -65,13 +65,13 @@ impl<const N: usize> de::Visitor<'_> for Visitor<N> {
         E: de::Error,
     {
         UD::<N>::from_str(&value.to_string(), Context::default())
-            .map_err(|err| E::custom(format!("{}", err)))
+            .map_err(|err| E::custom(format!("{err}")))
     }
 
     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        UD::<N>::from_str(value, Context::default()).map_err(|err| E::custom(format!("{}", err)))
+        UD::<N>::from_str(value, Context::default()).map_err(|err| E::custom(format!("{err}")))
     }
 }

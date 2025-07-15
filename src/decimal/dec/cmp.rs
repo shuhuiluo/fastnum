@@ -2,7 +2,7 @@ use core::cmp::Ordering;
 
 use crate::{
     decimal::{dec::scale::reduce, Decimal},
-    int::UInt,
+    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

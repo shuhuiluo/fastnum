@@ -1,27 +1,25 @@
-use core::num::IntErrorKind;
-
-use crate::{decimal::Decimal, int::convert};
+use crate::{bint::ParseError, decimal::Decimal};
 
 type D<const N: usize> = Decimal<N>;
 
 macro_rules! to_int_impl {
     ($to_int: ident, $int: ty, $to_uint: ident) => {
         #[inline]
-        pub const fn $to_int<const N: usize>(d: D<N>) -> Result<$int, IntErrorKind> {
+        pub const fn $to_int<const N: usize>(d: D<N>) -> Result<$int, ParseError> {
             if d.cb.is_special() {
-                return Err(IntErrorKind::PosOverflow);
+                return Err(ParseError::PosOverflow);
             }
 
             if d.is_negative() {
-                match convert::$to_uint(d.rescale(0).digits) {
+                match d.rescale(0).digits.$to_uint() {
                     Err(e) => Err(e),
                     Ok(uint) => match (0 as $int).checked_sub_unsigned(uint) {
-                        None => Err(IntErrorKind::NegOverflow),
+                        None => Err(ParseError::NegOverflow),
                         Some(i) => Ok(i),
                     },
                 }
             } else {
-                convert::$to_int(d.rescale(0).digits)
+                d.rescale(0).digits.$to_int()
             }
         }
     };

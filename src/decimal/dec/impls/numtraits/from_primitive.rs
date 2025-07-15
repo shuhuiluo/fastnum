@@ -1,75 +1,23 @@
 use num_traits::FromPrimitive;
 
-use crate::decimal::Decimal;
+use crate::decimal::{impls::numtraits::from_primitive_impl, Decimal};
 
-impl<const N: usize> FromPrimitive for Decimal<N> {
-    #[inline]
-    fn from_isize(n: isize) -> Option<Self> {
-        Some(Self::from(n))
-    }
+from_primitive_impl!(
+    Decimal, I,
+    from_u8 <- u8,
+    from_u16 <- u16,
+    from_u32 <- u32,
+    from_u64 <- u64 #TRY,
+    from_usize <- usize #TRY,
+    from_u128 <- u128 #TRY,
 
-    #[inline]
-    fn from_i8(n: i8) -> Option<Self> {
-        Some(Self::from(n))
-    }
+    from_i8 <- i8,
+    from_i16 <- i16,
+    from_i32 <- i32,
+    from_i64 <- i64,
+    from_isize <- isize,
+    from_i128 <- i128 #TRY,
 
-    #[inline]
-    fn from_i16(n: i16) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_i32(n: i32) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_i64(n: i64) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_i128(n: i128) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_usize(n: usize) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_u8(n: u8) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_u16(n: u16) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_u32(n: u32) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_u64(n: u64) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_u128(n: u128) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_f32(n: f32) -> Option<Self> {
-        Some(Self::from(n))
-    }
-
-    #[inline]
-    fn from_f64(n: f64) -> Option<Self> {
-        Some(Self::from(n))
-    }
-}
+    from_f32 <- f32 #TRY,
+    from_f64 <- f64 #TRY
+);

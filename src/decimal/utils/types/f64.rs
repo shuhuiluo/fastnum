@@ -1,6 +1,6 @@
 use crate::{
     decimal::{dec::math, Decimal},
-    int::UInt,
+    bint::UInt,
 };
 
 /// Sign bit

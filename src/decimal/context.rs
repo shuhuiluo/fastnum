@@ -113,7 +113,7 @@ impl Display for Context {
 
 impl Debug for Context {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{self}")
     }
 }
 

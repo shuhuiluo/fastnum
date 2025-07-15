@@ -3,7 +3,7 @@ use core::{
     fmt::{Display, Formatter},
 };
 
-use crate::{decimal::dec::ControlBlock, int::UInt};
+use crate::{decimal::dec::ControlBlock, bint::UInt};
 
 #[inline]
 pub(crate) fn debug_print<const N: usize>(
@@ -26,9 +26,9 @@ fn debug_print_alternate<const N: usize>(
     f: &mut Formatter,
 ) -> fmt::Result {
     if cb.is_nan() {
-        return write!(f, "{}(NaN)", ty);
+        return write!(f, "{ty}(NaN)");
     } else if cb.is_infinity() {
-        return write!(f, "{}({}Inf)", ty, cb.get_sign());
+        return write!(f, "{ty}({}Inf)", cb.get_sign());
     }
 
     let alert = if cb.is_op_ok() { "" } else { "! " };

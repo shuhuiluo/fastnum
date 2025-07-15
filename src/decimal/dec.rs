@@ -35,7 +35,7 @@ use crate::{
         signals::Signals,
         Context, DecimalError, ParseError, RoundingMode, Sign, UnsignedDecimal,
     },
-    int::{math::ilog10, UInt},
+    bint::UInt,
 };
 
 /// # Decimal
@@ -2273,7 +2273,7 @@ impl<const N: usize> Decimal<N> {
 
     #[inline]
     pub(crate) const fn decimal_power(&self) -> i32 {
-        ilog10(self.digits) as i32 - self.cb.get_scale() as i32
+        self.digits.ilog10() as i32 - self.cb.get_scale() as i32
     }
 
     #[inline(always)]

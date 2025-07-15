@@ -8,7 +8,7 @@ use crate::{
         signals::Signals,
         Context, Decimal,
     },
-    int::{math::div_rem_wide_digit, UInt},
+    bint::{math::div_rem_wide_digit, UInt},
 };
 
 type D<const N: usize> = Decimal<N>;

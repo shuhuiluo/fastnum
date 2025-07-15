@@ -4,12 +4,20 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## [0.3.0] – unreleased
+# [0.4.0] - 
 
 ### Changed
 
 - Format module is completely refactored.
 
+## [0.3.0] – 2025-07-15
+
+### Changed
+
+- Bump Rust version to `1.87` (stabilize [`#![feature(integer_sign_cast)]`](https://github.com/rust-lang/rust/issues/125882)).
+- Replace big integer's implementation from `bnum` type aliasing to wrapped types.
+- Some minor performance optimizations.
+    
 ## [0.2.10] – 2025-06-04
 
 ### Fixed

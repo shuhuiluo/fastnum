@@ -58,6 +58,7 @@ pub enum ParseError {
 }
 
 impl ParseError {
+    #[inline(always)]
     pub(crate) const fn description(&self) -> &str {
         use ParseError::*;
         match self {
@@ -72,6 +73,7 @@ impl ParseError {
         }
     }
 
+    #[inline(always)]
     pub(crate) const fn from_int_error_kind(e: &IntErrorKind) -> ParseError {
         match e {
             IntErrorKind::Empty => ParseError::Empty,
@@ -91,6 +93,7 @@ impl Display for ParseError {
 }
 
 impl Debug for ParseError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Display::fmt(&self, f)
     }
@@ -111,6 +114,7 @@ impl core::error::Error for ParseError {
 }
 
 #[allow(dead_code)]
+#[inline]
 pub(crate) fn pretty_error_msg(ty: &str, e: ParseError) -> String {
     use ParseError::*;
     let msg = match e {

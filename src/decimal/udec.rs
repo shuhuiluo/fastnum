@@ -9,7 +9,7 @@ use crate::{
         doc, signals::Signals, udec::consts::consts_impl, Context, Decimal, DecimalError,
         ParseError, RoundingMode, Sign,
     },
-    int::UInt,
+    bint::UInt,
 };
 
 /// # Unsigned Decimal

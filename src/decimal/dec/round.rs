@@ -4,7 +4,7 @@ use crate::{
         Decimal,
         RoundingMode::*,
     },
-    int::UInt,
+    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

@@ -1,6 +1,7 @@
-use core::num::IntErrorKind;
-
-use crate::decimal::{dec::convert, Decimal};
+use crate::{
+    bint::ParseError,
+    decimal::{dec::convert, Decimal},
+};
 
 type D<const N: usize> = Decimal<N>;
 
@@ -10,7 +11,7 @@ macro_rules! try_to_impl {
             $(
                 #[inline]
                 #[doc = concat!("Converts [Decimal] into [`", stringify!($int), "`].")]
-                pub const fn $name(self) -> Result<$int, IntErrorKind> {
+                pub const fn $name(self) -> Result<$int, ParseError> {
                     convert::$name(self)
                 }
             )*
@@ -18,7 +19,7 @@ macro_rules! try_to_impl {
 
         $(
             impl<const N: usize> TryFrom<D<N>> for $int {
-                type Error = IntErrorKind;
+                type Error = ParseError;
 
                 #[inline]
                 fn try_from(d: D<N>) -> Result<$int, Self::Error> {

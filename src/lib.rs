@@ -4,14 +4,15 @@
 extern crate alloc;
 extern crate core;
 
+pub mod bint;
 pub mod decimal;
-pub mod int;
 
+mod doc;
 mod utils;
 
-pub use int::{I1024, I128, I2048, I256, I4096, I512, I8192};
+pub use bint::{I1024, I128, I2048, I256, I4096, I512, I64, I8192};
 
-pub use int::{U1024, U128, U2048, U256, U4096, U512, U8192};
+pub use bint::{U1024, U128, U2048, U256, U4096, U512, U64, U8192};
 
 pub use decimal::{UD1024, UD128, UD2048, UD256, UD4096, UD512, UD8192};
 

@@ -8,7 +8,7 @@ use crate::{
         dec::{construct::construct, ControlBlock},
         Context, Decimal, Sign, Signals,
     },
-    int::UInt,
+    bint::UInt,
     utils::assert_eq_size,
 };
 

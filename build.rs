@@ -31,10 +31,8 @@ fn write_default_rounding_mode(out_dir: &Path) {
     );
 
     let rust_file_path = out_dir.join("default_rounding_mode.rs");
-    let rust_file_contents = format!(
-        "const DEFAULT_ROUNDING_MODE: RoundingMode = RoundingMode::{};",
-        rounding_mode_name
-    );
+    let rust_file_contents =
+        format!("const DEFAULT_ROUNDING_MODE: RoundingMode = RoundingMode::{rounding_mode_name};");
 
     std::fs::write(rust_file_path, rust_file_contents).unwrap();
 }
@@ -72,15 +70,9 @@ fn write_exponential_format_threshold(out_dir: &Path) {
     let rust_file_path = out_dir.join("exponential_format_threshold.rs");
 
     let rust_file_contents = [
-        format!(
-            "const EXPONENTIAL_FORMAT_LEADING_ZERO_THRESHOLD: usize = {};",
-            low_value
-        ),
-        format!(
-            "const EXPONENTIAL_FORMAT_TRAILING_ZERO_THRESHOLD: usize = {};",
-            high_value
-        ),
-        format!("const FMT_MAX_INTEGER_PADDING: usize = {};", max_padding),
+        format!("const EXPONENTIAL_FORMAT_LEADING_ZERO_THRESHOLD: usize = {low_value};"),
+        format!("const EXPONENTIAL_FORMAT_TRAILING_ZERO_THRESHOLD: usize = {high_value};"),
+        format!("const FMT_MAX_INTEGER_PADDING: usize = {max_padding};"),
     ];
 
     std::fs::write(rust_file_path, rust_file_contents.join("\n")).unwrap();
@@ -94,10 +86,8 @@ fn write_serde_deserialize_mode(out_dir: &Path) {
     );
 
     let rust_file_path = out_dir.join("serde_deserialize_mode.rs");
-    let rust_file_contents = format!(
-        "const SERDE_DESERIALIZE_MODE: DeserializeMode = DeserializeMode::{};",
-        mode
-    );
+    let rust_file_contents =
+        format!("const SERDE_DESERIALIZE_MODE: DeserializeMode = DeserializeMode::{mode};");
 
     std::fs::write(rust_file_path, rust_file_contents).unwrap();
 }

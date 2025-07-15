@@ -84,7 +84,7 @@ macro_rules! test_impl {
                 #[case($Pt::MAX, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap())]
                 #[case($Pt::MAX - 1, $D::from_str(format!("{}", $Pt::MAX).as_str(), Context::default()).unwrap() - $dec!(1))]
                 fn [< test_from_ $Pt >](#[case] n: $Pt, #[case] expected: $D) {
-                    let d = $D::from(n);
+                    let d = $D::try_from(n).unwrap();
                     assert_eq!(d, expected);
                 }
             }
@@ -101,7 +101,7 @@ macro_rules! test_impl {
                 #[case($Pt::MIN, $D::from_str(format!("{}", $Pt::MIN).as_str(), Context::default()).unwrap())]
                 #[case($Pt::MIN + 1, $D::from_str(format!("{}", $Pt::MIN).as_str(), Context::default()).unwrap() + $dec!(1))]
                 fn [< test_from_ $Pt >](#[case] n: $Pt, #[case] expected: $D) {
-                    let d = $D::from(n);
+                    let d = $D::try_from(n).unwrap();
                     assert_eq!(d, expected);
                 }
             }

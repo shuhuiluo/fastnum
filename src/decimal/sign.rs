@@ -7,6 +7,7 @@ use core::{
 
 /// A `Sign` represents `sign` associated with a decimal number.
 #[derive(Copy, Clone, Debug)]
+#[repr(u8)]
 pub enum Sign {
     /// Positive: plus "+" or no sign.
     Plus,

@@ -3,7 +3,7 @@ use crate::{
         dec::{transmute::transmute, ControlBlock},
         Decimal, Sign,
     },
-    int::UInt,
+    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

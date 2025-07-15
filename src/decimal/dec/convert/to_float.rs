@@ -1,6 +1,6 @@
 use crate::{
     decimal::Decimal,
-    int::{convert::*, math::div_rem, UInt},
+    bint::{UInt},
     utils::err_msg,
 };
 
@@ -76,7 +76,7 @@ macro_rules! to_float_impl {
                 coefficient = coefficient.mul(UInt::FIVE.pow(d_exp as u32));
                 if b_exp >= d_exp {
                     (coefficient, rem) =
-                        div_rem(coefficient, UInt::TWO.pow((b_exp - d_exp) as u32));
+                        coefficient.div_rem(UInt::TWO.pow((b_exp - d_exp) as u32));
                     if !rem.is_zero() {
                         coefficient = coefficient.mul(UInt::TWO).add(UInt::ONE);
                         exp_shift = true;
@@ -87,7 +87,7 @@ macro_rules! to_float_impl {
             } else {
                 if b_exp >= d_exp {
                     (coefficient, rem) =
-                        div_rem(coefficient, UInt::TWO.pow((b_exp - d_exp) as u32));
+                        coefficient.div_rem(UInt::TWO.pow((b_exp - d_exp) as u32));
                     if !rem.is_zero() {
                         coefficient = coefficient.mul(UInt::TWO).add(UInt::ONE);
                         exp_shift = true;
@@ -110,13 +110,13 @@ macro_rules! to_float_impl {
             let mut mant = if U::<N>::BITS > $u::BITS {
                 if bits < MANTISSA_DIGITS {
                     b_exp -= 1;
-                    if let Ok(m) = $to_uint(digits) {
+                    if let Ok(m) = digits.$to_uint() {
                         m << (MANTISSA_DIGITS - bits)
                     } else {
                         panic!(err_msg!("mantissa is too large"));
                     }
                 } else {
-                    if let Ok(m) = $to_uint(digits.shr(bits - MANTISSA_DIGITS)) {
+                    if let Ok(m) = digits.shr(bits - MANTISSA_DIGITS).$to_uint() {
                         m
                     } else {
                         panic!(err_msg!("mantissa is too large"));
@@ -124,13 +124,13 @@ macro_rules! to_float_impl {
                 }
             } else if bits < MANTISSA_DIGITS {
                 b_exp -= 1;
-                if let Ok(m) = $to_uint(digits) {
+                if let Ok(m) = digits.$to_uint() {
                     m << (MANTISSA_DIGITS - bits)
                 } else {
                     panic!(err_msg!("mantissa is too large"));
                 }
             } else {
-                if let Ok(m) = $to_uint(digits) {
+                if let Ok(m) = digits.$to_uint() {
                     m >> (bits - MANTISSA_DIGITS)
                 } else {
                     panic!(err_msg!("mantissa is too large"));

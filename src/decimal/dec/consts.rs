@@ -30,7 +30,7 @@ macro_rules! consts_impl {
             consts_impl!(CONSTS ZERO 0, ONE 1, TWO 2, THREE 3, FOUR 4, FIVE 5, SIX 6, SEVEN 7, EIGHT 8, NINE 9, TEN 10);
 
             /// The value of `0.5` represented by this decimal type.
-            pub const HALF: Self = Self::new(UInt::from_digit(5), ControlBlock::basic(1, Sign::Plus));
+            pub const HALF: Self = Self::new(UInt::FIVE, ControlBlock::basic(1, Sign::Plus));
 
             /// Euler's number (e).
             pub const E: Self = Consts::<N>::E.round_extra_precision();

@@ -45,7 +45,7 @@ pub(crate) fn write_engineering_notation<W: Write>(
         let zeros = &"000"[..padding_zero_count];
         out.write_str(&digits)?;
         out.write_str(zeros)?;
-        return write!(out, "e{}", exp);
+        return write!(out, "e{exp}");
     }
 
     let (head, rest) = digits.split_at(shift_amount);
@@ -58,7 +58,7 @@ pub(crate) fn write_engineering_notation<W: Write>(
         out.write_str(rest)?;
     }
 
-    write!(out, "e{}", exp)
+    write!(out, "e{exp}")
 }
 
 pub(crate) fn format(
@@ -159,7 +159,7 @@ fn format_full_scale(
 
     // add exp part to buffer (if not zero)
     if exp != 0 {
-        write!(buf, "e{:+}", exp)?;
+        write!(buf, "e{exp:+}")?;
     }
 
     // write buffer to formatter
@@ -353,7 +353,7 @@ fn format_exponential_be_ascii_digits(
     }
 
     // always print exponent in exponential mode
-    write!(abs_int, "{}{:+}", e_symbol, exponent)?;
+    write!(abs_int, "{e_symbol}{exponent:+}")?;
 
     let non_negative = matches!(sign, Sign::Plus);
     f.pad_integral(non_negative, "", &abs_int)
