@@ -30,8 +30,8 @@ macro_rules! try_from_uint_impl {
 
                     let mut digits = [0; N];
                     let mut i = 0;
-                    while i << BIT_SHIFT < uint_bits {
-                        let d = (uint >> (i << BIT_SHIFT)) as Digit;
+                    while i << DIGIT_BIT_SHIFT < uint_bits {
+                        let d = (uint >> (i << DIGIT_BIT_SHIFT)) as Digit;
                         if d != 0 {
                             digits[i] = d;
                         }

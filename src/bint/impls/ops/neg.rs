@@ -8,10 +8,10 @@ macro_rules! neg_impl {
                 self.neg()
             }
         }
-        
+
         impl<const N: usize> Neg for &$Ty<N> {
             type Output = $Ty<N>;
-        
+
             #[inline]
             fn neg(self) -> Self::Output {
                 (*self).neg()

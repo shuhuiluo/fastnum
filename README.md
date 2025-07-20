@@ -11,6 +11,10 @@ financial, crypto and any other fixed-precision calculations.
 
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 
+[`D64`]: https://docs.rs/fastnum/latest/fastnum/decimal/type.D64.html
+
+[`D128`]: https://docs.rs/fastnum/latest/fastnum/decimal/type.D128.html
+
 [API Docs](https://docs.rs/fastnum/latest/fastnum)
 
 ## Overview
@@ -89,7 +93,7 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 - **`const` evaluation**: nearly all methods defined on `fastnum` integers and decimals are `const`, which allows
   complex compile-time calculations and checks.
 - **Full range of advanced mathematical functions**: exponential, roots, power, logarithmic, and trigonometric functions
-  for working with exact precision decimals. 
+  for working with exact precision decimals.
   And yes, they're all `const` too.
 
 ## Installation
@@ -285,6 +289,27 @@ Perform `a ÷ b`.
 |       13       | 607.92 ps | 84.582 ns |  175.94 ns   |
 |       77       | 592.75 ps | 1.8675 µs |  270.37 µs   |
 |      154       | 572.60 ps | 13.297 µs |  269.63 µs   |
+
+### To f64 conversion
+
+![](doc/to_f64.svg)
+
+Convert [`D64`]/[`D128`] decimals into `f64` floating point.
+
+| Decimal digits | `rust_decimal` | `fastnum 64` | `fastnum 128` | `bigdecimal` |
+|:--------------:|:--------------:|:------------:|:-------------:|:------------:|
+|       1        |   3.4253 ns    |  2.0280 ns   |   3.6434 ns   |  3.0061 ns   |
+|       3        |   13.245 ns    |  2.0127 ns   |   3.6692 ns   |  95.600 ns   |
+|       4        |   11.196 ns    |  2.1009 ns   |   3.8226 ns   |  97.964 ns   |
+|       5        |   14.461 ns    |  2.1014 ns   |   3.8178 ns   |  94.742 ns   |
+|       7        |   14.623 ns    |  2.0128 ns   |   3.6693 ns   |  114.97 ns   |
+|       8        |   15.449 ns    |  2.0143 ns   |   3.6702 ns   |  95.565 ns   |
+|       11       |   16.038 ns    |  2.1010 ns   |   3.8171 ns   |  111.85 ns   |
+|       17       |   16.724 ns    |  2.0124 ns   |   3.6694 ns   |  117.51 ns   |
+|       20       |   17.735 ns    |  4.7012 ns   |   6.1908 ns   |  133.63 ns   |
+|       21       |   17.815 ns    |  4.7725 ns   |   6.2551 ns   |  135.01 ns   |
+|       36       |   106.57 ns    |      -       |   93.216 ns   |  270.80 ns   |
+|       41       |       -        |      -       |   184.25 ns   |  367.28 ns   |
 
 You can run benchmark tests with [`Criterion.rs`](https://bheisler.github.io/criterion.rs/book/criterion_rs.html) tool:
 

@@ -1,6 +1,6 @@
 [package]
 name = "fastnum"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Neo"]
 description = "Fast decimal numbers library"
@@ -78,7 +78,7 @@ tokio-postgres = ["dep:tokio-postgres", "extra-postgres-encode"]
 dev = []
 
 # For internal use only
-test-util = ["num-traits"]
+test-util = ["num-traits/std"]
 extra-postgres = ["num-traits"]
 extra-postgres-encode = ["extra-postgres", "bytes", "byteorder"]
 

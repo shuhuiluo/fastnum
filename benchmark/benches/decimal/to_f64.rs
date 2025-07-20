@@ -13,7 +13,9 @@ macro_rules! macro_impl {
         macro_impl!(@ $($a)? $group, [$($bits),*], STR, size);
     }};
     (@ $group: ident, [$($bits: literal),*], $str: ident, $size: ident) => {{
-        let n = rust_decimal::Decimal::from_str($str).unwrap();
+        let n = rust_decimal::Decimal::from_str($str).or_else(|_|
+            rust_decimal::Decimal::from_scientific($str)
+        ).unwrap();
         $group.bench_with_input(BenchmarkId::new("rust_decimal", $size), &$size, |b, _| {
             b.iter(|| black_box(n).to_f64().unwrap());
         });
@@ -48,19 +50,19 @@ fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("to_f64");
 
     macro_impl!(group, [64, 128], "1");
-    macro_impl!(group, [64, 128], "1.0");
+    macro_impl!(group, [64, 128], "0.1");
     macro_impl!(group, [64, 128], "-1.0");
     macro_impl!(group, [64, 128], "-0.05");
     macro_impl!(group, [64, 128], "123.456");
     macro_impl!(group, [64, 128], "0.000001");
-    // macro_impl!(group, [64, 128], "-1.23456789");
-    // macro_impl!(group, [64, 128], "1000000.123456789");
-    // macro_impl!(group, [64, 128], "1234567891234567891");
-    // macro_impl!(group, [64, 128], "1.234567891234567891");
-    // macro_impl!(group, [64, 128], "-1.234567891234567891");
-    // macro_impl!(group, [64, 128], "-184467.44073709551615");
-    // macro_impl!(group, [128], "-184467.4407378463463374609551615");
-    // macro_impl!(group, [128], "3.4028236692093846346337460743176821145" A);
+    macro_impl!(group, [64, 128], "-1.23456789");
+    macro_impl!(group, [64, 128], "1000000.123456789");
+    macro_impl!(group, [64, 128], "1.234567891234567891");
+    macro_impl!(group, [64, 128], "-1.234567891234567891");
+    macro_impl!(group, [64, 128], "-184467.44073709551615");
+    macro_impl!(group, [128], "-184467.4407378463463374609551615");
+    macro_impl!(group, [128], "59890004.528405539691448211669921875");
+    macro_impl!(group, [128], "0.340282366920938463463374607431768211455" A);
     // macro_impl!(
     //     group,
     //     [256],

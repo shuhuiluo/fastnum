@@ -2,7 +2,7 @@ use core::{num::IntErrorKind, str::from_utf8_unchecked};
 
 use crate::{
     bint::{
-        intrinsics::{Digit, POWER},
+        intrinsics::{Digit, DIGIT_POWER_10},
         UInt,
     },
     decimal::{
@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-const MAX_DIGITS_COUNT: i32 = POWER as i32;
+const MAX_DIGITS_COUNT: i32 = DIGIT_POWER_10 as i32;
 
 /// Creates and initializes a Decimal from string.
 #[inline]

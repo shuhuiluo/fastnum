@@ -9,10 +9,10 @@ use crate::decimal::{
 type D<const N: usize> = Decimal<N>;
 
 macro_rules! from_float_impl {
-    ($n: ident, $f: ident) => {
+    ($n: ident, $f: ident, $u: ident) => {
         #[inline]
         pub const fn $n<const N: usize>(n: $f) -> D<N> {
-            use crate::decimal::utils::types::$f::*;
+            use crate::decimal::utils::types::{$f::*, $u::*};
 
             if n.is_nan() {
                 return D::NAN;
@@ -79,5 +79,5 @@ macro_rules! from_float_impl {
     };
 }
 
-from_float_impl!(from_f32, f32);
-from_float_impl!(from_f64, f64);
+from_float_impl!(from_f32, f32, u32);
+from_float_impl!(from_f64, f64, u64);

@@ -1,6 +1,10 @@
 macro_rules! impl_desc {
     () => {
-        doc::arithmetic_impl_desc!("Widening", "widening", "Each method returns of the calculation without the possibility to overflow.")
+        doc::arithmetic_impl_desc!(
+            "Widening",
+            "widening",
+            "Each method returns of the calculation without the possibility to overflow."
+        )
     };
 }
 

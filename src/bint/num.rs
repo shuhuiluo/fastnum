@@ -91,7 +91,7 @@ macro_rules! num_impl {
             pub const fn mul(self, rhs: Self) -> Self {
                 Self(self.0.mul(rhs.0))
             }
-            
+
             #[doc = doc::num::shl!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -126,7 +126,7 @@ macro_rules! num_impl {
             pub const fn rem(self, rhs: Self) -> Self {
                 Self(self.0.rem(rhs.0))
             }
-            
+
             #[doc = doc::num::div_euclid!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -173,7 +173,9 @@ macro_rules! num_impl {
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
             pub const fn ilog10(self) -> u32 {
-                self.checked_ilog10().expect(crate::utils::err_msg!("argument of integer logarithm must be positive"))
+                self.checked_ilog10().expect(crate::utils::err_msg!(
+                    "argument of integer logarithm must be positive"
+                ))
             }
 
             #[doc = doc::num::next_multiple_of!($sign 256)]

@@ -83,6 +83,13 @@ impl<const N: usize> UInt<N> {
         Self(bnum::BUint::power_of_two(power))
     }
 
+    #[doc = doc::num::power_of_five!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn power_of_five(power: ExpType) -> Self {
+        Self::strict_power_of_five(power)
+    }
+
     #[doc = doc::num::power_of_ten!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]

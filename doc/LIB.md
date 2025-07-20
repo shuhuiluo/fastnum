@@ -7,6 +7,8 @@ Suitable for financial, crypto and any other fixed-precision calculations.
 
 [IEEE 854]: https://en.wikipedia.org/wiki/IEEE_854-1987
 
+[`D64`]: crate::D64
+
 [`D128`]: crate::D128
 
 [`UD128`]: crate::UD128

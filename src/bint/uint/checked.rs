@@ -1,7 +1,11 @@
 use crate::bint::{
-    checked::checked_impl, doc, intrinsics::ExpType, uint::math, utils::tuple_to_option, Int, UInt,
+    checked::checked_impl,
+    doc,
+    intrinsics::ExpType,
+    uint::{intrinsics::Intrinsics, math},
+    utils::tuple_to_option,
+    Int, UInt,
 };
-use crate::bint::uint::intrinsics::Intrinsics;
 
 checked_impl!(UInt, U);
 
@@ -52,10 +56,13 @@ impl<const N: usize> UInt<N> {
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn checked_power_of_ten(power: ExpType) -> Option<Self> {
-        if power > Intrinsics::<N>::MAX_POWER_OF_TEN {
-            None
-        } else {
-            Some(Intrinsics::<N>::POWERS_OF_TEN.lookup(power))
-        }
+        Intrinsics::<N>::checked_power_of_ten(power)
+    }
+
+    #[doc = doc::checked::checked_power_of_five!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn checked_power_of_five(power: ExpType) -> Option<Self> {
+        Intrinsics::<N>::checked_power_of_five(power)
     }
 }

@@ -720,6 +720,22 @@ macro_rules! is_negative {
 
 pub(crate) use is_negative;
 
+macro_rules! power_of_five {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Returns an integer whose value is 5^power.\n\n"
+
+            "# Panics\n\n"
+            "This function will panic if `5^power` is greater than [Self::MAX]",
+
+            "assert_eq!(" doc::type_str!($sign $bits) "::power_of_five(2), " doc::m!($sign $bits) "(25));\n"
+        }
+    };
+}
+
+pub(crate) use power_of_five;
+
 macro_rules! power_of_ten {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {

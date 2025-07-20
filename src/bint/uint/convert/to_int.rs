@@ -19,7 +19,7 @@ macro_rules! to_int_impl {
                         i = 1;
                     } else {
                         loop {
-                            let shift = i << BIT_SHIFT;
+                            let shift = i << DIGIT_BIT_SHIFT;
                             if i >= N || shift >= <$int>::BITS as usize {
                                 break;
                             }

@@ -31,12 +31,12 @@ macro_rules! try_from_int_impl {
                             *(UInt::ZERO.digits())
                         };
                         let mut i = 0;
-                        while i << intrinsics::BIT_SHIFT < $int::BITS as usize {
-                            let d = (int >> (i << intrinsics::BIT_SHIFT)) as intrinsics::Digit;
+                        while i << intrinsics::DIGIT_BIT_SHIFT < $int::BITS as usize {
+                            let d = (int >> (i << intrinsics::DIGIT_BIT_SHIFT)) as intrinsics::Digit;
                             digits[i] = d;
                             i += 1;
                         }
-                        
+
                         Ok(Self(bnum::BInt::from_bits(bnum::BUint::from_digits(digits))))
                     }
                 }

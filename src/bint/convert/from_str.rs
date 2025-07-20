@@ -24,8 +24,7 @@ macro_rules! from_str_impl {
                     #[allow(unsafe_code)]
                     let s = unsafe { from_utf8_unchecked(buf.split_at(2).1) };
                     Self::from_str_radix(s, 2)
-                }
-                else {
+                } else {
                     Self::from_str_radix(s, 10)
                 }
             }
@@ -33,10 +32,7 @@ macro_rules! from_str_impl {
             #[doc = doc::convert::from_str_radix!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
-            pub const fn from_str_radix(
-                s: &str,
-                radix: u32,
-            ) -> Result<Self, ParseError> {
+            pub const fn from_str_radix(s: &str, radix: u32) -> Result<Self, ParseError> {
                 match $Int::from_str_radix(s, radix) {
                     Ok(val) => Ok(Self(val)),
                     Err(e) => Err(from_int_error_kind(e.kind())),

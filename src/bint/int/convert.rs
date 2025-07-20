@@ -1,16 +1,16 @@
-mod to_int;
-mod to_uint;
+mod from_float;
+mod from_int;
 mod from_str;
 mod from_uint;
-mod from_int;
-mod from_float;
+mod to_int;
+mod to_uint;
 
+use from_int::*;
+use from_uint::*;
 use to_int::*;
 use to_uint::*;
-use from_uint::*;
-use from_int::*;
 
-use crate::bint::{int::intrinsics, Int, UInt, error::ParseError, doc};
+use crate::bint::{doc, error::ParseError, int::intrinsics, Int, UInt};
 
 from_uint_impl!(
     from_u8 <- u8,

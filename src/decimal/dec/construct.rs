@@ -1,4 +1,5 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             intrinsics::{clength, Intrinsics, E_LIMIT, E_MIN},
@@ -8,7 +9,6 @@ use crate::{
         signals::Signals,
         Context, Decimal, Sign,
     },
-    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

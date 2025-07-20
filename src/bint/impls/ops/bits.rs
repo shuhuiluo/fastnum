@@ -8,7 +8,7 @@ macro_rules! bits_impl {
                 self.not()
             }
         }
-        
+
         impl<const N: usize> BitAnd for $Ty<N> {
             type Output = Self;
 

@@ -1,6 +1,10 @@
 macro_rules! impl_desc {
     ($sign: ident) => {
-        concat!("Associated constants for ", doc::text_sign!($sign), " integer type.")
+        concat!(
+            "Associated constants for ",
+            doc::text_sign!($sign),
+            " integer type."
+        )
     };
 }
 

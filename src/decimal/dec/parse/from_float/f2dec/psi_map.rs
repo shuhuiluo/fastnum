@@ -1,9 +1,9 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{transmute::transmute, ControlBlock},
         Decimal, Sign,
     },
-    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

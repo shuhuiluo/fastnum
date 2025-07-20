@@ -10,6 +10,25 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 - Format module is completely refactored.
 
+
+## [0.3.1] – 2025-07-22
+
+### Changed
+
+This release is mostly focused on fix: [#34](https://github.com/neogenie/fastnum/issues/34).
+
+Converting decimal numbers to floating point IEEE 754 was completely redesigned.
+Implementation is based on LLVM’s libc experience: https://llvm.org/devmtg/2022-11/slides/QuickTalk3-ApproximatingatScale-StringToFloat.pdf
+Algorithms:
+
+- First pass: Clinger’s Fast Path: [Clinger WD. How to Read Floating Point Numbers Accurately](https://doi.org/10.1145/93548.93557).
+- Second Pass: Eisel-Lemire fast_float: [Number Parsing at a Gigabyte per Second](https://arxiv.org/abs/2101.11408) and [Noble Mushtak, Daniel Lemire. Fast number parsing without fallback](https://doi.org/10.1002/spe.3198).
+- Third Pass: Simple Decimal Conversion [Nigel Tao’s description of the Simple Decimal Conversion algorithm](https://nigeltao.github.io/blog/2020/parse-number-f64-simple.html).
+
+### Documentation
+
+- Add decimal -> f64 conversion benchmarks.
+
 ## [0.3.0] – 2025-07-15
 
 ### Changed

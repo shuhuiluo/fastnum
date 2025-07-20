@@ -106,7 +106,7 @@ const fn carrying_mul<const N: usize>(
 ) -> (Digit, Digit) {
     let prod =
         carry as DoubleDigit + current as DoubleDigit + (a as DoubleDigit) * (b as DoubleDigit);
-    (prod as Digit, (prod >> BITS) as Digit)
+    (prod as Digit, (prod >> DIGIT_BITS) as Digit)
 }
 
 #[inline]
@@ -123,12 +123,12 @@ const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
 #[inline]
 const fn widening_mul(a: Digit, b: Digit) -> (Digit, Digit) {
     let prod = a as DoubleDigit * b as DoubleDigit;
-    (prod as Digit, (prod >> BITS) as Digit)
+    (prod as Digit, (prod >> DIGIT_BITS) as Digit)
 }
 
 #[inline]
 const fn to_double_digit(low: Digit, high: Digit) -> DoubleDigit {
-    ((high as DoubleDigit) << BITS) | low as DoubleDigit
+    ((high as DoubleDigit) << DIGIT_BITS) | low as DoubleDigit
 }
 
 #[inline]
@@ -161,7 +161,7 @@ impl<const N: usize> Remainder<N> {
         if shift > 0 {
             i = 0;
             while i < N {
-                out[i] |= self.rest[i] << (BITS - shift);
+                out[i] |= self.rest[i] << (DIGIT_BITS - shift);
                 i += 1;
             }
         }
@@ -171,7 +171,7 @@ impl<const N: usize> Remainder<N> {
 
     const fn new(digits: Digits<N>, shift: ExpType) -> Self {
         let first = digits[0] << shift;
-        let rest = wrapping_shr(digits, BITS - shift);
+        let rest = wrapping_shr(digits, DIGIT_BITS - shift);
         Self { first, rest }
     }
 
@@ -266,11 +266,11 @@ const fn overflowing_shr<const N: usize>(digits: Digits<N>, rhs: ExpType) -> (Di
 const fn unchecked_shl_internal<const N: usize>(digits: Digits<N>, rhs: ExpType) -> Digits<N> {
     let mut out = [0; N];
 
-    let digit_shift = (rhs >> BIT_SHIFT) as usize;
-    let bit_shift = rhs & BITS_MINUS_1;
+    let digit_shift = (rhs >> DIGIT_BIT_SHIFT) as usize;
+    let bit_shift = rhs & DIGIT_BITS_MINUS_1;
 
     if bit_shift != 0 {
-        let carry_shift = BITS - bit_shift;
+        let carry_shift = DIGIT_BITS - bit_shift;
         let mut carry = 0;
 
         let mut i = digit_shift;
@@ -300,13 +300,13 @@ const fn unchecked_shr_pad_internal<const N: usize, const NEG: bool>(
 ) -> Digits<N> {
     let mut out = if NEG { [Digit::MAX; N] } else { [0; N] };
 
-    let digit_shift = (rhs >> BIT_SHIFT) as usize;
-    let bit_shift = rhs & BITS_MINUS_1;
+    let digit_shift = (rhs >> DIGIT_BIT_SHIFT) as usize;
+    let bit_shift = rhs & DIGIT_BITS_MINUS_1;
 
     let num_copies = N.saturating_sub(digit_shift);
 
     if bit_shift != 0 {
-        let carry_shift = BITS - bit_shift;
+        let carry_shift = DIGIT_BITS - bit_shift;
         let mut carry = 0;
 
         let mut i = digit_shift;

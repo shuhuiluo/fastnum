@@ -9,7 +9,7 @@ impl<const N: usize> Int<N> {
     pub const fn neg(self) -> Self {
         Self(self.0.neg())
     }
-    
+
     #[doc = doc::num::from_bits!(256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]

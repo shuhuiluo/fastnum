@@ -2,7 +2,7 @@ use crate::{
     bint::UInt,
     decimal::{
         dec::{Context, ControlBlock, ExtraPrecision, Sign, Signals},
-        Decimal, ParseError
+        Decimal, ParseError,
     },
 };
 
@@ -34,7 +34,7 @@ macro_rules! from_uint {
             let Ok(u) = U::$n(n) else {
                 return Err(ParseError::PosOverflow);
             };
-            
+
             Ok(D::new(
                 u,
                 ControlBlock::new(

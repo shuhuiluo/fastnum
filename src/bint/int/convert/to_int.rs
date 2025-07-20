@@ -5,7 +5,7 @@ macro_rules! to_int_impl {
                 #[doc = concat!("Converts [Self] into [`", stringify!($int), "`].")]
                 #[inline]
                 pub const fn $to_int(self) -> Result<$int, ParseError> {
-                    use intrinsics::{Digit, BIT_SHIFT, BITS};
+                    use intrinsics::{Digit, DIGIT_BIT_SHIFT, DIGIT_BITS};
 
                     let neg = self.is_negative();
                     let (mut out, padding) = if neg {
@@ -16,8 +16,8 @@ macro_rules! to_int_impl {
                     let mut i = 0;
                     let u = self.0.to_bits();
                     let digits = u.digits();
-                    
-                    if BITS > <$int>::BITS {
+
+                    if DIGIT_BITS > <$int>::BITS {
                         let small = digits[i] as $int;
                         let trunc = small as Digit;
                         if digits[i] != trunc {
@@ -28,7 +28,7 @@ macro_rules! to_int_impl {
                     } else {
                         if neg {
                             loop {
-                                let shift = i << BIT_SHIFT;
+                                let shift = i << DIGIT_BIT_SHIFT;
                                 if i >= N || shift >= <$int>::BITS as usize {
                                     break;
                                 }
@@ -37,7 +37,7 @@ macro_rules! to_int_impl {
                             }
                         } else {
                             loop {
-                                let shift = i << BIT_SHIFT;
+                                let shift = i << DIGIT_BIT_SHIFT;
                                 if i >= N || shift >= <$int>::BITS as usize {
                                     break;
                                 }

@@ -8,14 +8,14 @@ macro_rules! wrapping_impl {
             pub const fn wrapping_add(self, rhs: Self) -> Self {
                 Self(self.0.wrapping_add(rhs.0))
             }
-            
+
             #[doc = doc::wrapping::wrapping_sub!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
             pub const fn wrapping_sub(self, rhs: Self) -> Self {
                 Self(self.0.wrapping_sub(rhs.0))
             }
-            
+
             #[doc = doc::wrapping::wrapping_mul!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -50,7 +50,7 @@ macro_rules! wrapping_impl {
             pub const fn wrapping_rem_euclid(self, rhs: Self) -> Self {
                 Self(self.0.wrapping_rem_euclid(rhs.0))
             }
-            
+
             #[doc = doc::wrapping::wrapping_shl!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -71,7 +71,7 @@ macro_rules! wrapping_impl {
             pub const fn wrapping_pow(self, pow: ExpType) -> Self {
                 Self(self.0.wrapping_pow(pow))
             }
-            
+
             #[doc = doc::wrapping::wrapping_neg!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

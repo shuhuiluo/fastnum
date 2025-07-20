@@ -1,8 +1,8 @@
 use core::cmp::Ordering;
 
 use crate::{
-    decimal::{dec::scale::reduce, Decimal},
     bint::UInt,
+    decimal::{dec::scale::reduce, Decimal},
 };
 
 type D<const N: usize> = Decimal<N>;

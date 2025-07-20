@@ -1,7 +1,7 @@
+mod from_float;
 mod from_int;
 mod from_str;
 mod from_uint;
-mod from_float;
 mod to_int;
 mod to_str;
 
@@ -9,7 +9,7 @@ use from_int::*;
 use from_uint::*;
 use to_int::*;
 
-use crate::bint::{error::ParseError, intrinsics::*, UInt, doc};
+use crate::bint::{doc, error::ParseError, intrinsics::*, UInt};
 
 impl<const N: usize> UInt<N> {
     #[inline(always)]

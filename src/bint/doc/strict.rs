@@ -26,6 +26,22 @@ doc::doc_comment_impl!(
     strict_sub_unsigned
 );
 
+macro_rules! strict_power_of_five {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Returns an integer whose value is 5^power.\n\n"
+
+            "# Panics\n\n"
+            "This function will panic if `5^power` is greater than [Self::MAX]",
+
+            "assert_eq!(" doc::type_str!($sign $bits) "::strict_power_of_five(2), " doc::m!($sign $bits) "(25));\n"
+        }
+    };
+}
+
+pub(crate) use strict_power_of_five;
+
 macro_rules! strict_power_of_ten {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {

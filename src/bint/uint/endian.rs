@@ -1,5 +1,5 @@
 use bnum::BUint;
 
-use crate::bint::{endian::endian_impl, UInt, doc};
+use crate::bint::{doc, endian::endian_impl, UInt};
 
 endian_impl!(UInt, U, BUint);

@@ -1,10 +1,10 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{Context, ControlBlock, ExtraPrecision, Signals},
-        Decimal, Sign, ParseError
+        Decimal, ParseError, Sign,
     },
 };
-use crate::bint::UInt;
 
 type D<const N: usize> = Decimal<N>;
 type U<const N: usize> = UInt<N>;
@@ -42,7 +42,7 @@ macro_rules! from_int {
             } else {
                 Sign::Plus
             };
-            
+
             let Ok(u) = U::$nu(n.unsigned_abs()) else {
                 return Err(ParseError::PosOverflow);
             };

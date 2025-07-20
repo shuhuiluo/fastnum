@@ -37,7 +37,7 @@ macro_rules! ops_impl {
                 $Op::<$Ty<N>>::$op(self, rhs)
             }
         }
-        
+
         impl<const N: usize> $Op<$Ty<N>> for $ty {
             type Output = $Ty<N>;
 
@@ -73,7 +73,7 @@ macro_rules! ops_impl {
                 $Op::<$Ty<N>>::$op(self, rhs)
             }
         }
-        
+
         impl<const N: usize> $Op<$Ty<N>> for $ty {
             type Output = $Ty<N>;
 

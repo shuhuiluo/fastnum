@@ -3,11 +3,15 @@ use num_traits::{
     AsPrimitive, Bounded, CheckedAdd, CheckedDiv, CheckedEuclid, CheckedMul, CheckedNeg,
     CheckedRem, CheckedShl, CheckedShr, CheckedSub, Euclid, FromPrimitive, MulAdd, MulAddAssign,
     Num, One, Pow, PrimInt, Saturating, SaturatingAdd, SaturatingMul, SaturatingSub, Signed,
-    ToPrimitive, WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr,
-    WrappingSub, Zero,
+    ToPrimitive, WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr, WrappingSub,
+    Zero,
 };
 
-use crate::bint::{impls::numtraits::{numtraits_impl, from_primitive_impl}, Int, UInt, ParseError, intrinsics::ExpType};
+use crate::bint::{
+    impls::numtraits::{from_primitive_impl, numtraits_impl},
+    intrinsics::ExpType,
+    Int, ParseError, UInt,
+};
 
 numtraits_impl!(Int, I);
 

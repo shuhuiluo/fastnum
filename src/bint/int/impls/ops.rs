@@ -1,9 +1,9 @@
 mod add;
+mod bits;
 mod div;
 mod mul;
-mod rem;
-mod sub;
 mod neg;
-mod bits;
+mod rem;
 mod shl;
 mod shr;
+mod sub;

@@ -34,6 +34,19 @@ doc::doc_comment_impl!(
     checked_sub_unsigned
 );
 
+macro_rules! checked_power_of_five {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Returns an integer whose value is 5^power.",
+
+            "assert_eq!(" doc::type_str!($sign $bits) "::checked_power_of_five(2), Some(" doc::m!($sign $bits) "(25)));\n"
+        }
+    };
+}
+
+pub(crate) use checked_power_of_five;
+
 macro_rules! checked_power_of_ten {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {

@@ -1,6 +1,6 @@
 use crate::{
-    decimal::{dec::scale::rescale, Decimal},
     bint::UInt,
+    decimal::{dec::scale::rescale, Decimal},
 };
 
 type D<const N: usize> = Decimal<N>;

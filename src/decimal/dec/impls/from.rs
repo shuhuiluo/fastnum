@@ -39,7 +39,7 @@ macro_rules! from_num_impls {
     (@@ TRY $name:ident $num:ident) => {
         impl<const N: usize> TryFrom<$num> for D<N> {
             type Error = ParseError;
-            
+
             #[inline]
             fn try_from(n: $num) -> Result<Self, Self::Error> {
                 Self::$name(n)

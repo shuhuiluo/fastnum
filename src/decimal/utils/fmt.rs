@@ -3,7 +3,7 @@ use core::{
     fmt::{Display, Formatter},
 };
 
-use crate::{decimal::dec::ControlBlock, bint::UInt};
+use crate::{bint::UInt, decimal::dec::ControlBlock};
 
 #[inline]
 pub(crate) fn debug_print<const N: usize>(

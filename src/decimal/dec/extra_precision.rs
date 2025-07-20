@@ -4,11 +4,11 @@ use core::{
 };
 
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{construct::construct, ControlBlock},
         Context, Decimal, Sign, Signals,
     },
-    bint::UInt,
     utils::assert_eq_size,
 };
 

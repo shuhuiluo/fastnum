@@ -9,7 +9,7 @@ macro_rules! overflowing_impl {
                 let (res, carry) = self.0.overflowing_add(rhs.0);
                 (Self(res), carry)
             }
-            
+
             #[doc = doc::overflowing::overflowing_sub!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -17,7 +17,7 @@ macro_rules! overflowing_impl {
                 let (res, carry) = self.0.overflowing_sub(rhs.0);
                 (Self(res), carry)
             }
-            
+
             #[doc = doc::overflowing::overflowing_mul!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

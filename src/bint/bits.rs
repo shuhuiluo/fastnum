@@ -33,4 +33,3 @@ macro_rules! bits_impl {
 }
 
 pub(crate) use bits_impl;
-

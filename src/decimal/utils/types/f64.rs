@@ -1,7 +1,4 @@
-use crate::{
-    decimal::{dec::math, Decimal},
-    bint::UInt,
-};
+pub const BITS: u32 = 64;
 
 /// Sign bit
 pub const SIGN_MASK: u64 = 0x8000_0000_0000_0000;
@@ -18,18 +15,9 @@ pub const MANTISSA_DIGITS: u32 = f64::MANTISSA_DIGITS;
 
 pub const MAX_EXP: i32 = f64::MAX_EXP;
 
+pub const MIN_EXP: i32 = f64::MIN_EXP;
+
 pub const BIAS_EXP: i16 = MAX_EXP as i16 - 1;
-
-pub struct FloatConsts<const N: usize>;
-
-impl<const N: usize> FloatConsts<N> {
-    pub const MAX: Decimal<N> = math::consts::Consts::MAX_F64;
-}
-
-#[inline]
-pub const fn uint<const N: usize>(digit: u64) -> UInt<N> {
-    UInt::from_digit(digit)
-}
 
 #[inline]
 pub const fn sqrt(n: f64) -> f64 {

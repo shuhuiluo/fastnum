@@ -1,4 +1,5 @@
 use crate::{
+    bint::{math::div_rem_wide_digit, UInt},
     decimal::{
         dec::{
             construct::construct,
@@ -8,7 +9,6 @@ use crate::{
         signals::Signals,
         Context, Decimal,
     },
-    bint::{math::div_rem_wide_digit, UInt},
 };
 
 type D<const N: usize> = Decimal<N>;

@@ -1,6 +1,7 @@
 mod psi_map;
 
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             math::{div::div, mul::mul},
@@ -9,7 +10,6 @@ use crate::{
         signals::Signals,
         Context, Decimal, Sign,
     },
-    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

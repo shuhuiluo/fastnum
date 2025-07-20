@@ -8,14 +8,14 @@ macro_rules! shift_impl {
                 Self::$op(self, rhs)
             }
         }
-        
+
         impl<const N: usize> $OpAssign<ExpType> for $Ty<N> {
             #[inline]
             fn $op_assign(&mut self, rhs: ExpType) {
                 self.0.$op_assign(rhs);
             }
         }
-        
+
         shift_impl!(@ $Ty, $sign, $Op, $op, $OpAssign, $op_assign, [u8, u16, u64 #TRY, usize #TRY, u128 #TRY, i8 #TRY, i16 #TRY, i32 #TRY, i64 #TRY, isize #TRY, i128 #TRY]);
     };
     (@ $Ty: ident, $sign: ident, $Op: ident, $op: ident, $OpAssign: ident, $op_assign: ident, [$($ty: ident $(#$try: ident)?),*]) => {
@@ -32,7 +32,7 @@ macro_rules! shift_impl {
                 Self::$op(self, rhs as ExpType)
             }
         }
-        
+
         impl<const N: usize> $OpAssign<$ty> for $Ty<N> {
             #[inline]
             fn $op_assign(&mut self, rhs: $ty) {
@@ -51,11 +51,11 @@ macro_rules! shift_impl {
 
                 #[cfg(not(debug_assertions))]
                 let rhs = rhs as ExpType;
-                
+
                 Self::$op(self, rhs as ExpType)
             }
         }
-        
+
         impl<const N: usize> $OpAssign<$ty> for $Ty<N> {
             #[inline]
             fn $op_assign(&mut self, rhs: $ty) {

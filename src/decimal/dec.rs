@@ -24,6 +24,7 @@ pub(crate) use extra_precision::ExtraPrecision;
 use core::{cmp::Ordering, fmt, num::FpCategory, panic};
 
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             consts::consts_impl,
@@ -35,7 +36,6 @@ use crate::{
         signals::Signals,
         Context, DecimalError, ParseError, RoundingMode, Sign, UnsignedDecimal,
     },
-    bint::UInt,
 };
 
 /// # Decimal

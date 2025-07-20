@@ -22,28 +22,28 @@ macro_rules! checked_impl {
             pub const fn checked_mul(self, rhs: Self) -> Option<Self> {
                 tuple_to_option(self.overflowing_mul(rhs))
             }
-            
+
             #[doc = doc::checked::checked_div!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
             pub const fn checked_div(self, rhs: Self) -> Option<Self> {
                 tuple_to_option(self.overflowing_div(rhs))
             }
-            
+
             #[doc = doc::checked::checked_div_euclid!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
             pub const fn checked_div_euclid(self, rhs: Self) -> Option<Self> {
                 tuple_to_option(self.overflowing_div_euclid(rhs))
             }
-            
+
             #[doc = doc::checked::checked_rem!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
             pub const fn checked_rem(self, rhs: Self) -> Option<Self> {
                 tuple_to_option(self.overflowing_rem(rhs))
             }
-            
+
             #[doc = doc::checked::checked_rem_euclid!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -81,7 +81,7 @@ macro_rules! checked_impl {
                     None => None,
                 }
             }
-            
+
             #[doc = doc::checked::checked_neg!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

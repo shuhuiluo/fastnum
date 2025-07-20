@@ -1,4 +1,7 @@
-use crate::bint::{impls::to::{try_to_impl, try_to_float_impl}, ParseError, UInt};
+use crate::bint::{
+    impls::to::{try_to_float_impl, try_to_impl},
+    ParseError, UInt,
+};
 
 try_to_impl!(
     UInt, U

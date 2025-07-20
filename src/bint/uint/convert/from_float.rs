@@ -23,7 +23,7 @@ macro_rules! from_float_impl {
             let (mut mant, exp) = $decoder(f);
             if exp.is_negative() {
                 mant = match mant.checked_shr((-exp) as ExpType) {
-                    Some(mant) => mant, 
+                    Some(mant) => mant,
                     None => 0,
                 };
                 if $mant_bits(mant) > Self::BITS {

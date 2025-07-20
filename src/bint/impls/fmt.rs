@@ -6,7 +6,7 @@ macro_rules! fmt_impl {
                 Display::fmt(&self.0, f)
             }
         }
-        
+
         impl<const N: usize> Debug for $Ty<N> {
             #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -17,4 +17,3 @@ macro_rules! fmt_impl {
 }
 
 pub(crate) use fmt_impl;
-

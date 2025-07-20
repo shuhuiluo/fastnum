@@ -1,4 +1,4 @@
-use crate::bint::{doc, saturating::saturating_impl, Int, UInt, intrinsics::ExpType};
+use crate::bint::{doc, intrinsics::ExpType, saturating::saturating_impl, Int, UInt};
 
 saturating_impl!(Int, I);
 

@@ -29,7 +29,7 @@ macro_rules! endian_impl {
             pub const fn to_le(self) -> Self {
                 Self(self.0.to_le())
             }
-            
+
             #[doc = doc::endian::from_be_slice!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -39,7 +39,7 @@ macro_rules! endian_impl {
                     None => None,
                 }
             }
-            
+
             #[doc = doc::endian::from_le_slice!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

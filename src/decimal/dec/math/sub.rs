@@ -1,6 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
+    bint::UInt,
     decimal::{
         dec::{
             math::add::add_abs,
@@ -9,7 +10,6 @@ use crate::{
         },
         Decimal,
     },
-    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

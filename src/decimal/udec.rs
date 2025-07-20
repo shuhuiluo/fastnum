@@ -5,11 +5,11 @@ mod impls;
 use core::{cmp::Ordering, num::FpCategory};
 
 use crate::{
+    bint::UInt,
     decimal::{
         doc, signals::Signals, udec::consts::consts_impl, Context, Decimal, DecimalError,
         ParseError, RoundingMode, Sign,
     },
-    bint::UInt,
 };
 
 /// # Unsigned Decimal

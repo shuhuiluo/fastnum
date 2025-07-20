@@ -1,4 +1,4 @@
-pub (crate) use crate::doc::*;
+pub(crate) use crate::doc::*;
 
 macro_rules! decimal_type_doc {
     ($bits: literal, $sign: literal) => {

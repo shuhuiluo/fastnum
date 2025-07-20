@@ -2,9 +2,8 @@ use num_integer::{Integer, Roots};
 use num_traits::{
     AsPrimitive, Bounded, CheckedAdd, CheckedDiv, CheckedEuclid, CheckedMul, CheckedNeg,
     CheckedRem, CheckedShl, CheckedShr, CheckedSub, Euclid, FromPrimitive, MulAdd, MulAddAssign,
-    Num, One, Pow, PrimInt, Saturating, SaturatingAdd, SaturatingMul, SaturatingSub,
-    ToPrimitive, Unsigned, WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr,
-    WrappingSub, Zero,
+    Num, One, Pow, PrimInt, Saturating, SaturatingAdd, SaturatingMul, SaturatingSub, ToPrimitive,
+    Unsigned, WrappingAdd, WrappingMul, WrappingNeg, WrappingShl, WrappingShr, WrappingSub, Zero,
 };
 
 use crate::bint::{

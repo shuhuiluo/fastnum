@@ -1,10 +1,10 @@
 use crate::{
+    bint::UInt,
     decimal::{
         dec::math::{add::add, sub::sub},
         Decimal,
         RoundingMode::*,
     },
-    bint::UInt,
 };
 
 type D<const N: usize> = Decimal<N>;

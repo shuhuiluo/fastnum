@@ -55,7 +55,7 @@ macro_rules! from_uint_impl {
     (@@ TRY $name:ident $uint:ident) => {
         impl<const N: usize> TryFrom<$uint> for UD<N> {
             type Error = ParseError;
-            
+
             #[inline]
             fn try_from(n: $uint) -> Result<Self, Self::Error> {
                 Self::$name(n)
