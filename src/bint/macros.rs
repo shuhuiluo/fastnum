@@ -24,6 +24,7 @@ macro_rules! macro_impl {
     };
 }
 
+macro_impl!(U64, 64, unsigned, u64);
 macro_impl!(U128, 128, unsigned, u128);
 macro_impl!(U256, 256, unsigned, u256);
 macro_impl!(U512, 512, unsigned, u512);

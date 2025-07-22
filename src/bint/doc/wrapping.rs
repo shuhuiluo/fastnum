@@ -42,3 +42,14 @@ macro_rules! wrapping_next_power_of_two {
 }
 
 pub(crate) use wrapping_next_power_of_two;
+
+macro_rules! wrapping_mul_digit {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Wrapping (modular) multiplication by [u64]. Computes self * rhs, wrapping around at the boundary of the type."
+        }
+    };
+}
+
+pub(crate) use wrapping_mul_digit;

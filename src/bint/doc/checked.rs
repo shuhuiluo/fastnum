@@ -77,3 +77,14 @@ macro_rules! checked_next_power_of_two {
 }
 
 pub(crate) use checked_next_power_of_two;
+
+macro_rules! checked_mul_digit {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Checked integer multiplication by single [u64] digit. Computes self * rhs, returning None if overflow occurred.\n\n"
+        }
+    };
+}
+
+pub(crate) use checked_mul_digit;

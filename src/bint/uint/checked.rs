@@ -65,4 +65,11 @@ impl<const N: usize> UInt<N> {
     pub const fn checked_power_of_five(power: ExpType) -> Option<Self> {
         Intrinsics::<N>::checked_power_of_five(power)
     }
+
+    #[doc = doc::checked::checked_mul_digit!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline]
+    pub const fn checked_mul_digit(self, digit: u64) -> Option<Self> {
+        tuple_to_option(self.overflowing_mul_digit(digit))
+    }
 }

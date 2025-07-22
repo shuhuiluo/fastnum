@@ -103,4 +103,15 @@ impl<const N: usize> UInt<N> {
     pub const fn abs_diff(self, other: Self) -> Self {
         Self(self.0.abs_diff(other.0))
     }
+
+    #[doc = doc::num::mul_digit!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn mul_digit(self, digit: u64) -> Self {
+        #[cfg(debug_assertions)]
+        return self.strict_mul_digit(digit);
+
+        #[cfg(not(debug_assertions))]
+        self.wrapping_mul_digit(digit)
+    }
 }

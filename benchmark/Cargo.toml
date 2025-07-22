@@ -50,6 +50,11 @@ path = "benches/decimal/mul.rs"
 harness = false
 
 [[bench]]
+name = "decimal_smoke"
+path = "benches/decimal/smoke.rs"
+harness = false
+
+[[bench]]
 name = "decimal_sqrt"
 path = "benches/decimal/sqrt.rs"
 harness = false
@@ -62,6 +67,11 @@ harness = false
 [[bench]]
 name = "int_math"
 path = "benches/int/math.rs"
+harness = false
+
+[[bench]]
+name = "int_intrinsics"
+path = "benches/int/intrinsics.rs"
 harness = false
 
 [profile.release]

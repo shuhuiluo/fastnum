@@ -55,6 +55,7 @@ pub(crate) const fn div<const N: usize>(mut dividend: D<N>, mut divisor: D<N>) -
         let mut exp = dividend.cb.get_exponent() - divisor.cb.get_exponent();
         let (mut digits, mut remainder) = dividend.digits.div_rem(divisor.digits);
 
+        // TODO: most heavy part
         if !remainder.is_zero() {
             let mut quotient;
             let mut digits_prev;
@@ -72,7 +73,7 @@ pub(crate) const fn div<const N: usize>(mut dividend: D<N>, mut divisor: D<N>) -
                     return correct(result, correction);
                 }
 
-                digits_prev = digits.strict_mul(UInt::TEN);
+                digits_prev = digits.mul_digit(10);
                 exp -= 1;
 
                 if digits_prev.gt(&UInt::MAX.strict_sub(quotient)) {
@@ -133,13 +134,17 @@ const fn div_rem_next<const N: usize>(mut remainder: U<N>, divisor: U<N>) -> (U<
     if remainder.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
         remainder.mul_div_rem(UInt::TEN, divisor)
     } else {
-        remainder = remainder.strict_mul(UInt::TEN);
+        remainder = remainder.mul_digit(10);
         remainder.div_rem(divisor)
     }
 }
 
 #[inline]
 const fn div_correction<const N: usize>(dividend: &mut D<N>, divisor: &mut D<N>) -> D<N> {
+    if !dividend.cb.has_extra_precision() && !divisor.cb.has_extra_precision() {
+        return D::ZERO;
+    }
+
     let xi_dividend = dividend.cb.take_extra_precision_decimal();
     let xi_divisor = divisor.cb.take_extra_precision_decimal();
 

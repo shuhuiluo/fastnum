@@ -1,3 +1,9 @@
+mod div;
+mod mul;
+
+pub use div::div_rem_wide_digit;
+pub use mul::{carrying_mul, carrying_mul_add};
+
 pub type Digit = u64;
 pub type DoubleDigit = u128;
 pub type ExpType = u32;

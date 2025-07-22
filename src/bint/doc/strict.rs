@@ -57,3 +57,18 @@ macro_rules! strict_power_of_ten {
 }
 
 pub(crate) use strict_power_of_ten;
+
+macro_rules! strict_mul_digit {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Strict integer multiplication by [u64].\n\n"
+            "Computes self * rhs, panicking if overflow occurred.\n\n"
+
+            "# Panics\n\n"
+            "This function will always panic on overflow, regardless of whether overflow checks are enabled."
+        }
+    };
+}
+
+pub(crate) use strict_mul_digit;

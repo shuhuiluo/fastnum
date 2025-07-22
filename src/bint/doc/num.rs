@@ -751,3 +751,18 @@ macro_rules! power_of_ten {
 }
 
 pub(crate) use power_of_ten;
+
+macro_rules! mul_digit {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Integer multiplication by [u64].\n\n"
+            "Computes self * rhs, panicking if overflow occurred.\n\n"
+
+            "## Overflow behavior\n\n"
+            "On overflow, this function will panic if overflow checks are enabled (default in debug mode) and wrap if overflow checks are disabled (default in release mode).\n\n"
+        }
+    };
+}
+
+pub(crate) use mul_digit;

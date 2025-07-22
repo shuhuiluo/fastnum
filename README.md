@@ -101,13 +101,13 @@ indirect addressing, which improves cache-friendliness and reduces the CPU load.
 To install and use `fastnum`, simply add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.2"
+fastnum = "0.3"
 ```
 
 Or, to enable various `fastnum` features as well, add, for example, this line instead:
 
 ```toml
-fastnum = { version = "0.2", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.3", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example Usage
@@ -296,20 +296,25 @@ Perform `a ÷ b`.
 
 Convert [`D64`]/[`D128`] decimals into `f64` floating point.
 
-| Decimal digits | `rust_decimal` | `fastnum 64` | `fastnum 128` | `bigdecimal` |
-|:--------------:|:--------------:|:------------:|:-------------:|:------------:|
-|       1        |   3.4253 ns    |  2.0280 ns   |   3.6434 ns   |  3.0061 ns   |
-|       3        |   13.245 ns    |  2.0127 ns   |   3.6692 ns   |  95.600 ns   |
-|       4        |   11.196 ns    |  2.1009 ns   |   3.8226 ns   |  97.964 ns   |
-|       5        |   14.461 ns    |  2.1014 ns   |   3.8178 ns   |  94.742 ns   |
-|       7        |   14.623 ns    |  2.0128 ns   |   3.6693 ns   |  114.97 ns   |
-|       8        |   15.449 ns    |  2.0143 ns   |   3.6702 ns   |  95.565 ns   |
-|       11       |   16.038 ns    |  2.1010 ns   |   3.8171 ns   |  111.85 ns   |
-|       17       |   16.724 ns    |  2.0124 ns   |   3.6694 ns   |  117.51 ns   |
-|       20       |   17.735 ns    |  4.7012 ns   |   6.1908 ns   |  133.63 ns   |
-|       21       |   17.815 ns    |  4.7725 ns   |   6.2551 ns   |  135.01 ns   |
-|       36       |   106.57 ns    |      -       |   93.216 ns   |  270.80 ns   |
-|       41       |       -        |      -       |   184.25 ns   |  367.28 ns   |
+| Decimal digits | `rust_decimal` | `fastnum 64` | `fastnum 128` | `bigdecimal`<sup>*</sup> |
+|:--------------:|:--------------:|:------------:|:-------------:|:------------------------:|
+|       1        |   3.4253 ns    |  2.0280 ns   |   3.6434 ns   |        3.0061 ns         |
+|       3        |   13.245 ns    |  2.0127 ns   |   3.6692 ns   |        95.600 ns         |
+|       4        |   11.196 ns    |  2.1009 ns   |   3.8226 ns   |        97.964 ns         |
+|       5        |   14.461 ns    |  2.1014 ns   |   3.8178 ns   |        94.742 ns         |
+|       7        |   14.623 ns    |  2.0128 ns   |   3.6693 ns   |        114.97 ns         |
+|       8        |   15.449 ns    |  2.0143 ns   |   3.6702 ns   |        95.565 ns         |
+|       11       |   16.038 ns    |  2.1010 ns   |   3.8171 ns   |        111.85 ns         |
+|       17       |   16.724 ns    |  2.0124 ns   |   3.6694 ns   |        117.51 ns         |
+|       20       |   17.735 ns    |  4.7012 ns   |   6.1908 ns   |        133.63 ns         |
+|       21       |   17.765 ns    |  4.7811 ns   |   6.0507 ns   |        136.35 ns         |
+|       33       |   105.09 ns    |      -       |   25.651 ns   |        271.66 ns         |
+|       36       |   104.97 ns    |      -       |   25.838 ns   |        271.89 ns         |
+|       41       |       -        |      -       |   44.526 ns   |        368.55 ns         |
+
+-
+
+<sup>*</sup> `bigdecimal` to float conversion is not pretty accurate.
 
 You can run benchmark tests with [`Criterion.rs`](https://bheisler.github.io/criterion.rs/book/criterion_rs.html) tool:
 
@@ -320,13 +325,10 @@ cargo criterion
 
 ## Testing
 
-This crate is tested with the [`rstest`](https://docs.rs/rstest/latest/rstest/) crate as well as with specific edge
-cases.
-
-We have more than `25'000` tests, so we recommend running it using [`nextest`](https://nexte.st/):
+This crate is tested as well as with specific edge cases.
 
 ```shell
-cargo nextest run --all-features
+cargo test --all-features
 ```
 
 ## Minimum Supported Rust Version

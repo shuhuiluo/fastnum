@@ -98,24 +98,7 @@ const fn cmp_magnitude<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
         (false, false) => {}
     }
 
-    let lhs = reduce(*lhs);
-    let rhs = reduce(*rhs);
-
-    match cmp_rounded(&lhs, &rhs) {
-        Ordering::Less => Ordering::Less,
-        Ordering::Equal => match (lhs.has_extra_precision(), rhs.has_extra_precision()) {
-            (true, true) => lhs.cb.cmp_extra_precision(&rhs.cb),
-            (true, false) => Ordering::Greater,
-            (false, true) => Ordering::Less,
-            (false, false) => Ordering::Equal,
-        },
-        Ordering::Greater => Ordering::Greater,
-    }
-}
-
-#[inline(always)]
-const fn cmp_rounded<const N: usize>(a: &D<N>, b: &D<N>) -> Ordering {
-    match (a.is_zero(), b.is_zero()) {
+    match (lhs.is_zero(), rhs.is_zero()) {
         (true, true) => {
             return Ordering::Equal;
         }
@@ -128,6 +111,32 @@ const fn cmp_rounded<const N: usize>(a: &D<N>, b: &D<N>) -> Ordering {
         (_, _) => {}
     }
 
+    let lhs_power = lhs.decimal_power();
+    let rhs_power = rhs.decimal_power();
+
+    if lhs_power == rhs_power {
+        let lhs = reduce(*lhs);
+        let rhs = reduce(*rhs);
+
+        match cmp_rounded(&lhs, &rhs) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Equal => match (lhs.has_extra_precision(), rhs.has_extra_precision()) {
+                (true, true) => lhs.cb.cmp_extra_precision(&rhs.cb),
+                (true, false) => Ordering::Greater,
+                (false, true) => Ordering::Less,
+                (false, false) => Ordering::Equal,
+            },
+            Ordering::Greater => Ordering::Greater,
+        }
+    } else if lhs_power < rhs_power {
+        Ordering::Less
+    } else {
+        Ordering::Greater
+    }
+}
+
+#[inline(always)]
+const fn cmp_rounded<const N: usize>(a: &D<N>, b: &D<N>) -> Ordering {
     if a.cb.get_scale() == b.cb.get_scale() {
         return a.digits.cmp(&b.digits);
     }

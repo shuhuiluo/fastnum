@@ -9,6 +9,8 @@ Suitable for financial, crypto and any other fixed-precision calculations.
 
 [`D64`]: crate::D64
 
+[`UD64`]: crate::UD64
+
 [`D128`]: crate::D128
 
 [`UD128`]: crate::UD128
@@ -20,6 +22,8 @@ Suitable for financial, crypto and any other fixed-precision calculations.
 [`D512`]: crate::D512
 
 [`UD512`]: crate::UD512
+
+[`U64`]: crate::U64
 
 [`U128`]: crate::U128
 
@@ -79,13 +83,13 @@ get rid of one indirect addressing, which improves cache-friendliness and reduce
 To install and use `fastnum`, add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.2"
+fastnum = "0.3"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.2", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.3", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example usage
@@ -106,6 +110,8 @@ advance. This allows you to perform all the necessary checks at the compile time
 
 | Decimal type | Integer part | Bits | Signed | Helper macro    |
 |--------------|--------------|------|:------:|-----------------|
+| [`D64`]      | [`U64`]      | 64   |   ✅    | `dec64!(0.1)`   |
+| [`UD64`]     | [`U64`]      | 64   |        | `udec64!(0.1)`  |
 | [`D128`]     | [`U128`]     | 128  |   ✅    | `dec128!(0.1)`  |
 | [`UD128`]    | [`U128`]     | 128  |        | `udec128!(0.1)` |
 | [`D256`]     | [`U256`]     | 256  |   ✅    | `dec256!(0.1)`  |

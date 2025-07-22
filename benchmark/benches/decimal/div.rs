@@ -12,7 +12,7 @@ macro_rules! macro_impl {
         let a = fastnum::decimal::Decimal::<{ $bits / 64 }>::from_str($a, ctx).unwrap();
         let b = fastnum::decimal::Decimal::<{ $bits / 64 }>::from_str($b, ctx).unwrap();
 
-        let size = (a / b).digits_count();
+        let size = a.digits_count() + b.digits_count();
 
         let a_f64 = f64::from_str($a).unwrap();
         let b_f64 = f64::from_str($b).unwrap();
@@ -52,10 +52,11 @@ macro_rules! macro_impl {
 fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("a/b");
 
-    macro_impl!(group, 128, "-5", "2.5");
-    macro_impl!(group, 128, "500549251119075878721813", "209481029831");
-    macro_impl!(group, 256, "-1", "3");
-    macro_impl!(group, 512, "1", "-3");
+    // macro_impl!(group, 128, "-5", "2.5");
+    macro_impl!(group, 128, "789.012", "12.345");
+    // macro_impl!(group, 128, "500549251119075878721813", "209481029831");
+    // macro_impl!(group, 256, "-1", "3");
+    // macro_impl!(group, 512, "1", "-3");
 
     group.finish();
 }

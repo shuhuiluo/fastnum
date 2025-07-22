@@ -1,14 +1,6 @@
 use crate::bint::intrinsics::*;
 
 #[inline]
-pub const fn div_rem_wide_digit(low: Digit, high: Digit, rhs: Digit) -> (Digit, Digit) {
-    let a = to_double_digit(low, high);
-    (
-        (a / rhs as DoubleDigit) as Digit,
-        (a % rhs as DoubleDigit) as Digit,
-    )
-}
-
 pub const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
     let mut index = 0;
     let mut i = 1;
@@ -22,6 +14,7 @@ pub const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
     index
 }
 
+#[inline]
 pub const fn basecase_div_rem<const N: usize>(
     digits: Digits<N>,
     mut v: Digits<N>,
@@ -98,18 +91,6 @@ const fn carrying_add(a: Digit, b: Digit, carry: bool) -> (Digit, bool) {
 }
 
 #[inline]
-const fn carrying_mul<const N: usize>(
-    a: Digit,
-    b: Digit,
-    carry: Digit,
-    current: Digit,
-) -> (Digit, Digit) {
-    let prod =
-        carry as DoubleDigit + current as DoubleDigit + (a as DoubleDigit) * (b as DoubleDigit);
-    (prod as Digit, (prod >> DIGIT_BITS) as Digit)
-}
-
-#[inline]
 const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
     let (s1, o1) = a.overflowing_sub(b);
     if borrow {
@@ -120,18 +101,13 @@ const fn borrowing_sub(a: Digit, b: Digit, borrow: bool) -> (Digit, bool) {
     }
 }
 
-#[inline]
+#[inline(always)]
 const fn widening_mul(a: Digit, b: Digit) -> (Digit, Digit) {
     let prod = a as DoubleDigit * b as DoubleDigit;
     (prod as Digit, (prod >> DIGIT_BITS) as Digit)
 }
 
-#[inline]
-const fn to_double_digit(low: Digit, high: Digit) -> DoubleDigit {
-    ((high as DoubleDigit) << DIGIT_BITS) | low as DoubleDigit
-}
-
-#[inline]
+#[inline(always)]
 const fn tuple_gt(a: (Digit, Digit), b: (Digit, Digit)) -> bool {
     a.1 > b.1 || a.1 == b.1 && a.0 > b.0
 }
@@ -222,13 +198,14 @@ struct Mul<const N: usize> {
 }
 
 impl<const N: usize> Mul<N> {
+    #[inline]
     const fn new(digits: Digits<N>, rhs: Digit) -> Self {
         let mut rest = [0; N];
 
         let mut carry: Digit = 0;
         let mut i = 0;
         while i < N {
-            let (prod, c) = carrying_mul::<N>(digits[i], rhs, carry, 0);
+            let (prod, c) = carrying_mul(digits[i], rhs, carry);
             carry = c;
             rest[i] = prod;
             i += 1;
@@ -236,6 +213,7 @@ impl<const N: usize> Mul<N> {
         Self { last: carry, rest }
     }
 
+    #[inline(always)]
     const fn digit(&self, index: usize) -> Digit {
         if index == N {
             self.last

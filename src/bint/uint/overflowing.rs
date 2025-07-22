@@ -1,4 +1,9 @@
-use crate::bint::{doc, overflowing::overflowing_impl, uint::intrinsics::*, Int, UInt};
+use crate::bint::{
+    doc,
+    overflowing::overflowing_impl,
+    uint::{intrinsics::*, math},
+    Int, UInt,
+};
 
 overflowing_impl!(UInt, U);
 
@@ -10,5 +15,12 @@ impl<const N: usize> UInt<N> {
     pub const fn overflowing_add_signed(self, rhs: Int<N>) -> (Self, bool) {
         let (res, carry) = self.0.overflowing_add_signed(rhs.0);
         (Self(res), carry)
+    }
+
+    #[doc = doc::overflowing::overflowing_mul_digit!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn overflowing_mul_digit(self, rhs: u64) -> (Self, bool) {
+        math::mul_digit(self, rhs)
     }
 }

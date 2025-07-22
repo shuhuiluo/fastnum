@@ -2273,7 +2273,7 @@ impl<const N: usize> Decimal<N> {
 
     #[inline]
     pub(crate) const fn decimal_power(&self) -> i32 {
-        self.digits.ilog10() as i32 - self.cb.get_scale() as i32
+        self.digits_count() as i32 - self.cb.get_scale() as i32
     }
 
     #[inline(always)]

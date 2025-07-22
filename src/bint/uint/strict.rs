@@ -26,4 +26,12 @@ impl<const N: usize> UInt<N> {
     pub const fn strict_power_of_five(power: ExpType) -> Self {
         Self::checked_power_of_five(power).expect(err_msg!("power of five is too large"))
     }
+
+    #[doc = doc::strict::strict_mul_digit!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn strict_mul_digit(self, digit: u64) -> Self {
+        self.checked_mul_digit(digit)
+            .expect(err_msg!("overflow of mul digit is too large"))
+    }
 }

@@ -10,8 +10,13 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 - Format module is completely refactored.
 
+## [0.3.2] – 2025-07-22
 
-## [0.3.1] – 2025-07-22
+### Changed
+
+- Internal performance optimizations.
+
+## [0.3.1] – 2025-07-21
 
 ### Changed
 

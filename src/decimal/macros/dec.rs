@@ -50,6 +50,7 @@ macro_rules! macro_impl {
     };
 }
 
+macro_impl!($, UD64, 64, unsigned, udec64);
 macro_impl!($, UD128, 128, unsigned, udec128);
 macro_impl!($, UD256, 256, unsigned, udec256);
 macro_impl!($, UD512, 512, unsigned, udec512);
@@ -58,6 +59,7 @@ macro_impl!($, UD1024, 1024, unsigned, udec1024);
 // macro_impl!($, UD4096, 4096, unsigned, udec4096);
 // macro_impl!($, UD8192, 8192, unsigned, udec8192);
 
+macro_impl!($, D64, 64, signed, dec64);
 macro_impl!($, D128, 128, signed, dec128);
 macro_impl!($, D256, 256, signed, dec256);
 macro_impl!($, D512, 512, signed, dec512);
