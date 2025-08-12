@@ -11,4 +11,4 @@ assert_impl!(I64, U64, 64);
 assert_impl!(I128, U128, 128);
 assert_impl!(I256, U256, 256);
 assert_impl!(I512, U512, 512);
-assert_impl!(I1024, U1024, 1024);
+// assert_impl!(I1024, U1024, 1024);

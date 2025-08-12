@@ -2,7 +2,7 @@ use crate::bint::{
     checked::checked_impl,
     doc,
     intrinsics::ExpType,
-    uint::{intrinsics::Intrinsics, math},
+    uint::{math, powers},
     utils::tuple_to_option,
     Int, UInt,
 };
@@ -12,9 +12,16 @@ checked_impl!(UInt, U);
 impl<const N: usize> UInt<N> {
     #[doc = doc::checked::checked_add_signed!(U 256)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
+    #[inline(always)]
     pub const fn checked_add_signed(self, rhs: Int<N>) -> Option<Self> {
         tuple_to_option(self.overflowing_add_signed(rhs))
+    }
+
+    #[doc = doc::checked::checked_mul!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn checked_mul(self, rhs: Self) -> Option<Self> {
+        tuple_to_option(self.overflowing_mul(rhs))
     }
 
     #[doc = doc::checked::checked_ilog2!(U 256)]
@@ -56,20 +63,27 @@ impl<const N: usize> UInt<N> {
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn checked_power_of_ten(power: ExpType) -> Option<Self> {
-        Intrinsics::<N>::checked_power_of_ten(power)
+        powers::checked_power_of_ten(power)
     }
 
     #[doc = doc::checked::checked_power_of_five!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn checked_power_of_five(power: ExpType) -> Option<Self> {
-        Intrinsics::<N>::checked_power_of_five(power)
+        powers::checked_power_of_five(power)
     }
 
     #[doc = doc::checked::checked_mul_digit!(U 256)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
+    #[inline(always)]
     pub const fn checked_mul_digit(self, digit: u64) -> Option<Self> {
         tuple_to_option(self.overflowing_mul_digit(digit))
+    }
+
+    #[doc = doc::checked::checked_add!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn checked_add_digit(self, digit: u64) -> Option<Self> {
+        tuple_to_option(self.overflowing_add_digit(digit))
     }
 }

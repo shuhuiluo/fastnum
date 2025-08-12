@@ -4,11 +4,55 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-# [0.4.0] - 
+# [0.4.3] - 2025-08-12
 
-### Changed
+### Documentation
 
-- Format module is completely refactored.
+- Minor fixes.
+
+# [0.4.2] - 2025-08-11
+
+This release is still mostly focused on fix: [#32](https://github.com/neogenie/fastnum/issues/32).
+
+### Documentation
+
+- Minor fixes.
+
+# [0.4.1] - 2025-08-10
+
+### Documentation
+
+- Minor fixes.
+
+# [0.4.0] - 2025-08-10
+
+This release is mostly focused on fix: [#32](https://github.com/neogenie/fastnum/issues/32).
+A lot of work was done, but a huge part of the optimization should still be completed.
+
+### Added
+- Added core mathematical operations:
+    - `widening_mul`: full 256-bit multiplication for 128-bit integers
+    - `div_digit`: optimized division by single 64-bit digit
+    - `decimal_digits`: efficient decimal digit counting
+    - `remaining_decimal_digits`: safe decimal scaling calculation
+    - `can_scaled_by_power_of_ten`: overflow prevention for decimal operations
+
+### Fixed
+- Fixed postgres padding overflowing [#43](https://github.com/neogenie/fastnum/issues/43).
+- Fixed bug in `widening_mul` for u128 where high bits were incorrectly handled.
+- Fixed incorrect overflow detection in large number multiplication.
+- Fixed edge cases in power-of-ten scaling operations.
+
+### Performance
+- Optimized division algorithm for decimal numbers.
+- Optimized multiplication algorithm for 128-bit integers.
+- Improved overflow checking using precomputed values.
+- Enhanced decimal digit counting performance.
+
+### Internal
+- Improved code documentation with detailed algorithm descriptions.
+- Added comprehensive examples for core numeric operations.
+- Enhanced performance-related documentation.
 
 ## [0.3.2] – 2025-07-22
 

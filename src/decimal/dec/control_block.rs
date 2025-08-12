@@ -6,6 +6,7 @@ mod signals;
 use core::cmp::Ordering;
 
 use crate::{
+    bint::intrinsics::ExpType,
     decimal::{dec::ExtraPrecision, signals::Signals, Context, Sign},
     utils::assert_eq_size,
 };
@@ -103,15 +104,15 @@ impl ControlBlock {
     }
 
     #[inline(always)]
-    pub const fn inc_scale(&mut self, inc: i16) {
-        let scale = self.get_scale() + inc;
-        self.set_scale(scale);
+    pub const fn inc_scale(&mut self, inc: ExpType) {
+        let scale = self.get_scale() as i32 + inc as i32;
+        self.set_scale(scale as i16);
     }
 
     #[inline(always)]
-    pub const fn dec_scale(&mut self, dec: i16) {
-        let scale = self.get_scale() - dec;
-        self.set_scale(scale);
+    pub const fn dec_scale(&mut self, dec: ExpType) {
+        let scale = self.get_scale() as i32 - dec as i32;
+        self.set_scale(scale as i16);
     }
 
     #[inline(always)]

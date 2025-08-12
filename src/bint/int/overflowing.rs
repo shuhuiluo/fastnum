@@ -4,6 +4,14 @@ overflowing_impl!(Int, I);
 
 #[doc = doc::overflowing::impl_desc!()]
 impl<const N: usize> Int<N> {
+    #[doc = doc::overflowing::overflowing_mul!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn overflowing_mul(self, rhs: Self) -> (Self, bool) {
+        let (res, carry) = self.0.overflowing_mul(rhs.0);
+        (Self(res), carry)
+    }
+
     #[doc = doc::overflowing::overflowing_add_unsigned!(I 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]

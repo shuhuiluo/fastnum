@@ -835,7 +835,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// See more about [multiplication](crate#multiplication).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn mul(self, rhs: Self) -> Self {
         Self::new(self.0.mul(rhs.0))
     }
@@ -872,7 +872,7 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// See more about [division](crate#division).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn div(self, rhs: Self) -> Self {
         Self::new(self.0.div(rhs.0))
     }

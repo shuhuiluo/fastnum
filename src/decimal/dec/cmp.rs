@@ -1,31 +1,35 @@
 use core::cmp::Ordering;
 
 use crate::{
-    bint::UInt,
+    bint::{intrinsics::ExpType, UInt},
     decimal::{dec::scale::reduce, Decimal},
 };
 
 type D<const N: usize> = Decimal<N>;
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn eq<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> bool {
     if lhs.is_nan() || rhs.is_nan() {
-        return false;
+        false
+    } else if lhs.is_zero() && rhs.is_zero() {
+        true
+    } else {
+        eq_not_nan(lhs, rhs)
     }
-
-    eq_not_nan(lhs, rhs)
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn ne<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> bool {
     if lhs.is_nan() || rhs.is_nan() {
-        return true;
+        true
+    } else if lhs.is_zero() && rhs.is_zero() {
+        false
+    } else {
+        !eq_not_nan(lhs, rhs)
     }
-
-    !eq_not_nan(lhs, rhs)
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn cmp<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
     match (lhs.is_negative(), rhs.is_negative()) {
         (false, true) => Ordering::Greater,
@@ -35,7 +39,7 @@ pub(crate) const fn cmp<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
     }
 }
 
-#[inline(always)]
+#[inline(never)]
 const fn eq_not_nan<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> bool {
     if lhs.is_negative() ^ rhs.is_negative() {
         return false;
@@ -70,7 +74,7 @@ const fn eq_rounded<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> bool {
     (lhs.cb.get_scale() == rhs.cb.get_scale()) && (lhs.digits.eq(&rhs.digits))
 }
 
-#[inline(always)]
+#[inline(never)]
 const fn cmp_magnitude<const N: usize>(lhs: &D<N>, rhs: &D<N>) -> Ordering {
     match (lhs.is_nan(), rhs.is_nan()) {
         (true, true) => {
@@ -146,29 +150,33 @@ const fn cmp_rounded<const N: usize>(a: &D<N>, b: &D<N>) -> Ordering {
 
     if a_exp == b_exp {
         if a.cb.get_scale() > b.cb.get_scale() {
-            let (mul, false) =
-                UInt::TEN.overflowing_pow((a.cb.get_scale() - b.cb.get_scale()) as u32)
-            else {
-                return Ordering::Less;
-            };
+            let power = (a.cb.get_scale() - b.cb.get_scale()) as ExpType;
 
-            let (value, false) = b.digits.overflowing_mul(mul) else {
+            if power > b.digits.remaining_decimal_digits() {
                 return Ordering::Less;
-            };
+            }
 
-            a.digits.cmp(&value)
+            // SAFETY: `power` is less than or equal to
+            // `b.digits.remaining_decimal_digits()`
+            #[allow(unsafe_code)]
+            {
+                let value = unsafe { b.digits.unchecked_mul(UInt::power_of_ten(power)) };
+                a.digits.cmp(&value)
+            }
         } else {
-            let (mul, false) =
-                UInt::TEN.overflowing_pow((b.cb.get_scale() - a.cb.get_scale()) as u32)
-            else {
-                return Ordering::Greater;
-            };
+            let power = (b.cb.get_scale() - a.cb.get_scale()) as ExpType;
 
-            let (value, false) = a.digits.overflowing_mul(mul) else {
+            if power > a.digits.remaining_decimal_digits() {
                 return Ordering::Greater;
-            };
+            }
 
-            value.cmp(&b.digits)
+            // SAFETY: `power` is less than or equal to
+            // `b.digits.remaining_decimal_digits()`
+            #[allow(unsafe_code)]
+            {
+                let value = unsafe { a.digits.unchecked_mul(UInt::power_of_ten(power)) };
+                value.cmp(&b.digits)
+            }
         }
     } else if a_exp > b_exp {
         Ordering::Greater

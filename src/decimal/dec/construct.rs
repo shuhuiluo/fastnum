@@ -1,8 +1,8 @@
 use crate::{
-    bint::UInt,
+    bint::{intrinsics::ExpType, UInt},
     decimal::{
         dec::{
-            intrinsics::{clength, Intrinsics, E_LIMIT, E_MIN},
+            intrinsics::{Intrinsics, E_LIMIT, E_MIN},
             math::utils::{overflow, underflow},
             ControlBlock, ExtraPrecision,
         },
@@ -22,18 +22,11 @@ pub(crate) const fn construct<const N: usize>(
     ctx: Context,
     extra_precision: ExtraPrecision,
 ) -> D<N> {
-    construct_with_clength(
-        digits,
-        exp,
-        sign,
-        signals,
-        ctx,
-        extra_precision,
-        clength(digits),
-    )
+    let clength = digits.decimal_digits();
+    construct_with_clength(digits, exp, sign, signals, ctx, extra_precision, clength)
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn construct_with_clength<const N: usize>(
     mut digits: UInt<N>,
     mut exp: i32,
@@ -69,30 +62,35 @@ pub(crate) const fn construct_with_clength<const N: usize>(
     signals.raise(Signals::OP_ROUNDED);
     signals.raise(Signals::OP_CLAMPED);
 
-    while exp > E_LIMIT {
-        if digits.gt(&Intrinsics::<N>::COEFF_MEDIUM) {
+    let power = (exp - E_LIMIT) as ExpType;
+
+    if power > digits.remaining_decimal_digits() {
+        return overflow(sign, signals, ctx);
+    }
+
+    // SAFETY: `power` is less than `digits.remaining_decimal_digits()`
+    #[allow(unsafe_code)]
+    {
+        let multiplier = UInt::unchecked_power_of_ten(power);
+        digits = unsafe { digits.unchecked_mul(multiplier) };
+    }
+
+    if let Some(correction) = extra_precision.scale_up::<N>(power) {
+        let ofw;
+        (digits, ofw) = digits.overflowing_add(correction.digits);
+
+        if ofw {
             return overflow(sign, signals, ctx);
-        } else {
-            digits = digits.strict_mul(UInt::<N>::TEN);
-
-            if let Some(correction) = extra_precision.scale_up::<N>(1) {
-                let ofw;
-                (digits, ofw) = digits.overflowing_add(correction.digits);
-
-                if ofw {
-                    return overflow(sign, signals, ctx);
-                }
-            }
-
-            exp -= 1;
         }
     }
+
+    exp = E_LIMIT;
 
     let cb = ControlBlock::new(-exp as i16, sign, signals, ctx, extra_precision);
     D::new(digits, cb)
 }
 
-#[inline]
+#[inline(always)]
 const fn construct_zero<const N: usize>(
     exp: i32,
     sign: Sign,

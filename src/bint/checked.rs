@@ -16,13 +16,6 @@ macro_rules! checked_impl {
                 tuple_to_option(self.overflowing_sub(rhs))
             }
 
-            #[doc = doc::checked::checked_mul!($sign 256)]
-            #[must_use = doc::must_use_op!()]
-            #[inline(always)]
-            pub const fn checked_mul(self, rhs: Self) -> Option<Self> {
-                tuple_to_option(self.overflowing_mul(rhs))
-            }
-
             #[doc = doc::checked::checked_div!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

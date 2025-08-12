@@ -53,6 +53,7 @@ macro_rules! test_impl {
         super::test_impl!(SIGNED:: 128, $dec, $D);
     };
 
+
     (COMMON:: 128, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(COMMON:: 128, $dec, $D);
 
@@ -64,14 +65,48 @@ macro_rules! test_impl {
             assert_eq!(res, expected);
             assert_eq!(res.op_signals(), signals![!CP, !ROUND, !INEXACT]);
         }
-
     };
     (COMMON:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(COMMON:: 64, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(UNSIGNED:: 64, $dec, $D);
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(SIGNED:: 64, $dec, $D);
+    };
+
+
+    (COMMON:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 64, $dec, $D);
+
         #[rstest(::trace)]
-        #[case($dec!(0), $dec!(0), signals![])]
-        #[case($dec!(1), $dec!(1), signals![])]
-        #[case($dec!(2), $D::SQRT_2, signals![!ROUND, !INEXACT])]
-        #[case($dec!(4), $dec!(2), signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(3), $dec!(1.7320508075688772935), signals![!CP, !ROUND, !INEXACT])]
+        fn test_sqrt_64(#[case] d: $D, #[case] expected: $D, #[case] signals: Signals) {
+            let res = d.sqrt();
+
+            assert_eq!(res, expected);
+            assert_eq!(res.op_signals(), signals);
+        }
+    };
+    (COMMON:: 64, $dec: ident, $D: ident) => {
+        #[rstest(::trace)]
+        #[case($dec!(0),       $dec!(0),      signals![])]
+        #[case($dec!(1),       $dec!(1),      signals![])]
+        #[case($dec!(2),       $D::SQRT_2,    signals![!ROUND, !INEXACT])]
+        #[case($dec!(4),       $dec!(2),      signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(16),      $dec!(4),      signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(9),       $dec!(3),      signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(25),      $dec!(5),      signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(36),      $dec!(6),      signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(100),     $dec!(10),     signals![!CP, !ROUND, !INEXACT])]
+        #[case($dec!(10000),   $dec!(100),    signals![!CP, !ROUND, !INEXACT])]
         fn test_sqrt(#[case] d: $D, #[case] expected: $D, #[case] signals: Signals) {
             let res = d.sqrt();
 
@@ -83,21 +118,21 @@ macro_rules! test_impl {
         #[case($D::NAN)]
         fn test_sqrt_nan(#[case] d: $D) {
             let ctx = Context::default().without_traps();
-            let res = d.with_ctx(ctx).ln();
+            let res = d.with_ctx(ctx).sqrt();
 
             assert!(res.is_nan());
             assert!(res.is_op_invalid());
         }
     };
-    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    (UNSIGNED:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 64, $dec, $D);
     };
-    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+    (UNSIGNED:: 64, $dec: ident, $D: ident) => {
     };
-    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(SIGNED:: 128, $dec, $D);
+    (SIGNED:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 64, $dec, $D);
     };
-    (SIGNED:: 128, $dec: ident, $D: ident) => {
+    (SIGNED:: 64, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
         #[case($dec!(-1))]
         fn test_sqrt_neg(#[case] d: $D) {

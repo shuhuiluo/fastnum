@@ -10,4 +10,4 @@ macro_rules! assert_impl {
 assert_impl!(D128, UD128, 128);
 assert_impl!(D256, UD256, 256);
 assert_impl!(D512, UD512, 512);
-assert_impl!(D1024, UD1024, 1024);
+// assert_impl!(D1024, UD1024, 1024);

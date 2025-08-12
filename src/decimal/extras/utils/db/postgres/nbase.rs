@@ -31,18 +31,47 @@ pub enum NBase {
     NaN,
 }
 
-struct Consts<const N: usize>;
+pub const NBASE: u64 = 10_000;
 
-impl<const N: usize> Consts<N> {
-    pub const NBASE: UInt<N> = UInt::<N>::from_digit(10_000);
+struct PowerCoefficient {
+    multiplier: u64,
+    divider: i16,
 }
 
+const POWERS: [PowerCoefficient; 4] = [
+    PowerCoefficient {
+        multiplier: NBASE,
+        divider: 1,
+    },
+    PowerCoefficient {
+        multiplier: NBASE / 10,
+        divider: 10,
+    },
+    PowerCoefficient {
+        multiplier: NBASE / 100,
+        divider: 100,
+    },
+    PowerCoefficient {
+        multiplier: NBASE / 1000,
+        divider: 1000,
+    },
+];
+
 macro_rules! checked {
+    ($a: ident *= {$b: expr}) => {
+        $a = $a.checked_mul_digit($b).ok_or(ParseError::PosOverflow)?;
+    };
     ($a: ident *= $b: expr) => {
         $a = $a.checked_mul($b).ok_or(ParseError::PosOverflow)?;
     };
+    ($a: ident += {$b: expr}) => {
+        $a = $a.checked_add_digit($b).ok_or(ParseError::PosOverflow)?;
+    };
     ($a: ident += $b: expr) => {
         $a = $a.checked_add($b).ok_or(ParseError::PosOverflow)?;
+    };
+    ($a: ident /= {$b: expr}) => {
+        $a = $a.checked_div_digit($b).ok_or(ParseError::PosOverflow)?;
     };
     ($a: ident /= $b: expr) => {
         $a = $a.checked_div($b).ok_or(ParseError::PosOverflow)?;
@@ -96,8 +125,8 @@ impl<const N: usize> TryFrom<D<N>> for NBase {
         exp += 4 - scale % 4;
 
         while !uint.is_zero() {
-            let correction = UInt::<N>::power_of_ten(exp as u32);
-            let (div, rem) = uint.mul_div_rem(correction, Consts::<N>::NBASE);
+            let correction = UInt::power_of_ten(exp as u32);
+            let (div, rem) = uint.mul_div_rem(correction, UInt::from_digit(NBASE));
 
             if !digits.is_empty() || !rem.is_zero() {
                 digits.push(rem.to_i16().expect("10000 always fits in an i16"));
@@ -150,39 +179,48 @@ impl<const N: usize> TryFrom<NBase> for D<N> {
 
         let count = i16::try_from(digits.len()).map_err(|_| ParseError::PosOverflow)?;
         let scale = i16::try_from(scale).map_err(|_| ParseError::ExponentOverflow)?;
-        let number_size: i16 = scale + ((weight + 1) * 4);
-        // If the number is negative, we don't need to do anything.
-        let last_digit_to_trim = ((count * 4) - number_size).max(0);
 
         let mut uint = UInt::<N>::ZERO;
 
-        for (i, digit) in digits.into_iter().enumerate() {
-            let d = u64::try_from(digit).map_err(|_| ParseError::InvalidLiteral)?;
+        let num_power = scale + ((weight + 1) * 4);
+        let trailing_zeros = ((count * 4) - num_power).max(0);
 
-            if last_digit_to_trim > 0 && i as i16 == count - 1 {
-                checked!(uint *= UInt::<N>::from_digit(10_u64.pow(4 - last_digit_to_trim as u32)));
-                let rescaled = d / 10_u64.pow(last_digit_to_trim as u32);
-                checked!(uint += UInt::<N>::from_digit(rescaled));
-            } else {
-                checked!(uint *= Consts::<N>::NBASE);
-                checked!(uint += UInt::<N>::from_digit(d));
+        debug_assert!(trailing_zeros >= 0);
+        debug_assert!(trailing_zeros <= 4);
+
+        if let Some((last, digits)) = digits.split_last() {
+            for digit in digits {
+                let d = u64::try_from(*digit).map_err(|_| ParseError::InvalidLiteral)?;
+                checked!(uint *= { NBASE });
+                checked!(uint += UInt::from_digit(d));
+            }
+
+            if trailing_zeros < 4 {
+                let coefficient = &POWERS[trailing_zeros as usize];
+
+                let d = u64::try_from((*last) / coefficient.divider)
+                    .map_err(|_| ParseError::InvalidLiteral)?;
+                let multiplier = coefficient.multiplier;
+
+                checked!(uint *= { multiplier });
+                checked!(uint += { d });
             }
         }
 
-        let correction_exp = -(4 * (weight - (count - 1))) - last_digit_to_trim;
+        let correction_exp = -(4 * (weight - (count - 1))) - trailing_zeros;
         match scale.cmp(&correction_exp) {
             Ordering::Greater => {
                 let scale_diff =
                     u32::try_from(scale - correction_exp).map_err(|_| ParseError::PosOverflow)?;
                 let correction =
-                    UInt::<N>::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
+                    UInt::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
                 checked!(uint *= correction);
             }
             Ordering::Less => {
                 let scale_diff =
                     u32::try_from(correction_exp - scale).map_err(|_| ParseError::PosOverflow)?;
                 let correction =
-                    UInt::<N>::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
+                    UInt::checked_power_of_ten(scale_diff).ok_or(ParseError::PosOverflow)?;
                 checked!(uint /= correction);
             }
             Ordering::Equal => {}

@@ -85,13 +85,6 @@ macro_rules! num_impl {
                 Self(self.0.add(rhs.0))
             }
 
-            #[doc = doc::num::mul!($sign 256)]
-            #[must_use = doc::must_use_op!()]
-            #[inline(always)]
-            pub const fn mul(self, rhs: Self) -> Self {
-                Self(self.0.mul(rhs.0))
-            }
-
             #[doc = doc::num::shl!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]
@@ -111,13 +104,6 @@ macro_rules! num_impl {
             #[inline(always)]
             pub const fn sub(self, rhs: Self) -> Self {
                 Self(self.0.sub(rhs.0))
-            }
-
-            #[doc = doc::num::div!($sign 256)]
-            #[must_use = doc::must_use_op!()]
-            #[inline(always)]
-            pub const fn div(self, rhs: Self) -> Self {
-                Self(self.0.div(rhs.0))
             }
 
             #[doc = doc::num::rem!($sign 256)]

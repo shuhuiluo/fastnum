@@ -9,4 +9,3 @@ license = "MIT OR Apache-2.0"
 fastnum = { path = "../../", features = ["sqlx_postgres"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio" ] }
 tokio = { version = "1.43.0", features = ["full"] }
-tokio-macros = "2.5.0"

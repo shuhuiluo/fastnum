@@ -11,6 +11,13 @@ impl<const N: usize> Int<N> {
         Self(self.0.strict_abs())
     }
 
+    #[doc = doc::strict::strict_mul!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn strict_mul(self, rhs: Self) -> Self {
+        Self(self.0.strict_mul(rhs.0))
+    }
+
     #[doc = doc::strict::strict_add_unsigned!(I 256)]
     #[must_use = doc::must_use_op!()]
     #[inline]

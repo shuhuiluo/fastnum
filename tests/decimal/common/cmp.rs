@@ -284,8 +284,22 @@ macro_rules! test_impl {
     };
     (SIGNED:: 128, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
-        #[case($dec!(-0), $dec!(0))]
-        #[case($dec!(-0), $dec!(+0))]
+        fn test_zero_signed() {
+            assert_eq!($dec!(-0), $dec!(0));
+            assert_eq!($dec!(-0), $dec!(+0));
+            assert_eq!($dec!(0), $dec!(-0));
+
+            assert!($dec!(-0) <= $dec!(0));
+            assert!($dec!(-0) < $dec!(0));
+
+            assert!($dec!(0) >= $dec!(-0));
+            assert!($dec!(0) > $dec!(-0));
+
+            assert_eq!(max($dec!(0), $dec!(-0)), $dec!(0));
+            assert_eq!(min($dec!(0), $dec!(-0)), $dec!(-0))
+        }
+
+        #[rstest(::trace)]
         #[case($dec!(-1), $dec!(1))]
         #[case($dec!(-1), $dec!(0))]
         #[case($dec!(-1), $dec!(-0))]
@@ -316,6 +330,9 @@ macro_rules! test_impl {
         #[case($dec!(0), $dec!(+0))]
         #[case($dec!(-0), $dec!(-0))]
         #[case($dec!(+0), $dec!(+0))]
+        #[case($dec!(+0), $dec!(-0))]
+        #[case($dec!(-0), $dec!(+0))]
+        #[case($dec!(0), $dec!(-0))]
         #[case($dec!(+1.1), $dec!(+1.1))]
         #[case($dec!(-1.1), $dec!(-1.1))]
         #[case($dec!(-1), $dec!(-1000e-3))]

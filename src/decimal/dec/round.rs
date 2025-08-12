@@ -1,15 +1,12 @@
-use crate::{
-    bint::UInt,
-    decimal::{
-        dec::math::{add::add, sub::sub},
-        Decimal,
-        RoundingMode::*,
-    },
+use crate::decimal::{
+    dec::math::{add::add, sub::sub},
+    Decimal,
+    RoundingMode::*,
 };
 
 type D<const N: usize> = Decimal<N>;
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn round<const N: usize>(d: &mut D<N>) {
     if !matches!(d.cb.get_rounding_mode(), No) {
         let digit = d.cb.take_round_reminder();
@@ -36,12 +33,12 @@ pub(crate) const fn round<const N: usize>(d: &mut D<N>) {
                 }
             }
         {
-            if d.digits.eq(&UInt::MAX) {
-                d.digits = d.digits.strict_div(UInt::TEN);
+            if d.digits.is_max() {
+                d.digits = d.digits.div_digit(10);
                 d.cb.dec_scale(1);
             }
 
-            d.digits = d.digits.strict_add(UInt::ONE);
+            d.digits = d.digits.strict_add_digit(1);
         }
     }
 }

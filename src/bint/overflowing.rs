@@ -18,14 +18,6 @@ macro_rules! overflowing_impl {
                 (Self(res), carry)
             }
 
-            #[doc = doc::overflowing::overflowing_mul!($sign 256)]
-            #[must_use = doc::must_use_op!()]
-            #[inline(always)]
-            pub const fn overflowing_mul(self, rhs: Self) -> (Self, bool) {
-                let (res, carry) = self.0.overflowing_mul(rhs.0);
-                (Self(res), carry)
-            }
-
             #[doc = doc::overflowing::overflowing_div!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

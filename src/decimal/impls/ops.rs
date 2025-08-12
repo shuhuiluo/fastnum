@@ -9,14 +9,14 @@ macro_rules! ops_impl {
         impl<const N: usize> $Op for $Ty<N> {
             type Output = Self;
 
-            #[inline]
+            #[inline(always)]
             fn $op(self, rhs: Self) -> Self::Output {
                 self.$op(rhs)
             }
         }
 
         impl<const N: usize> $OpAssign for $Ty<N> {
-            #[inline]
+            #[inline(always)]
             fn $op_assign(&mut self, rhs: Self) {
                 let res = $Op::<$Ty<N>>::$op(*self, rhs);
                 *self = res;
@@ -31,7 +31,7 @@ macro_rules! ops_impl {
         impl<const N: usize> $Op<$ty> for $Ty<N> {
             type Output = Self;
 
-            #[inline]
+            #[inline(always)]
             fn $op(self, rhs: $ty) -> Self::Output {
                 let rhs = $Ty::from(rhs);
                 $Op::<$Ty<N>>::$op(self, rhs)
@@ -41,7 +41,7 @@ macro_rules! ops_impl {
         impl<const N: usize> $Op<$Ty<N>> for $ty {
             type Output = $Ty<N>;
 
-            #[inline]
+            #[inline(always)]
             fn $op(self, rhs: $Ty<N>) -> Self::Output {
                 let this = $Ty::from(self);
                 $Op::<$Ty<N>>::$op(this, rhs)
@@ -49,7 +49,7 @@ macro_rules! ops_impl {
         }
 
         impl<const N: usize> $OpAssign<$ty> for $Ty<N> {
-            #[inline]
+            #[inline(always)]
             fn $op_assign(&mut self, rhs: $ty) {
                 let rhs = $Ty::from(rhs);
                 self.$op_assign(rhs);
@@ -60,7 +60,7 @@ macro_rules! ops_impl {
         impl<const N: usize> $Op<$ty> for $Ty<N> {
             type Output = Self;
 
-            #[inline]
+            #[inline(always)]
             fn $op(self, rhs: $ty) -> $Ty<N> {
                 let Ok(rhs) = $Ty::try_from(rhs) else {
                     #[cfg(debug_assertions)]
@@ -77,7 +77,7 @@ macro_rules! ops_impl {
         impl<const N: usize> $Op<$Ty<N>> for $ty {
             type Output = $Ty<N>;
 
-            #[inline]
+            #[inline(always)]
             fn $op(self, rhs: $Ty<N>) -> Self::Output {
                 let Ok(this) = $Ty::try_from(self) else {
                     #[cfg(debug_assertions)]
@@ -92,7 +92,7 @@ macro_rules! ops_impl {
         }
 
         impl<const N: usize> $OpAssign<$ty> for $Ty<N> {
-            #[inline]
+            #[inline(always)]
             fn $op_assign(&mut self, rhs: $ty) {
                 let Ok(rhs) = $Ty::try_from(rhs) else {
                     #[cfg(debug_assertions)]

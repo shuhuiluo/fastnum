@@ -27,11 +27,27 @@ impl<const N: usize> UInt<N> {
         Self::checked_power_of_five(power).expect(err_msg!("power of five is too large"))
     }
 
+    #[doc = doc::strict::strict_mul!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn strict_mul(self, rhs: Self) -> Self {
+        self.checked_mul(rhs)
+            .expect(err_msg!("attempt to multiply with overflow"))
+    }
+
     #[doc = doc::strict::strict_mul_digit!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn strict_mul_digit(self, digit: u64) -> Self {
         self.checked_mul_digit(digit)
-            .expect(err_msg!("overflow of mul digit is too large"))
+            .expect(err_msg!("attempt to multiply by digit with overflow"))
+    }
+
+    #[doc = doc::strict::strict_add!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn strict_add_digit(self, digit: u64) -> Self {
+        self.checked_add_digit(digit)
+            .expect(err_msg!("attempt to add digit with overflow"))
     }
 }

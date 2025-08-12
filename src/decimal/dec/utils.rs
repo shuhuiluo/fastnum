@@ -29,6 +29,7 @@ pub(crate) const fn sub_extra_precision<const N: usize>(this: &mut D<N>, other: 
     }
 }
 
+// FIXME
 #[inline]
 pub const fn magnitude_inc<const N: usize>(d: &mut D<N>) {
     if d.is_negative() {
@@ -62,6 +63,7 @@ pub const fn magnitude_inc<const N: usize>(d: &mut D<N>) {
     }
 }
 
+// FIXME
 #[inline]
 pub const fn magnitude_dec<const N: usize>(d: &mut D<N>) {
     if d.is_negative() {

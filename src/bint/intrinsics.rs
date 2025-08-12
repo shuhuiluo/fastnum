@@ -1,8 +1,18 @@
+mod add;
+mod cmp;
 mod div;
+mod ilog;
 mod mul;
+mod powers;
+mod u128;
 
-pub use div::div_rem_wide_digit;
-pub use mul::{carrying_mul, carrying_mul_add};
+pub use add::*;
+pub use cmp::*;
+pub use div::*;
+pub use ilog::*;
+pub use mul::*;
+pub use powers::*;
+pub use u128::*;
 
 pub type Digit = u64;
 pub type DoubleDigit = u128;
@@ -21,26 +31,3 @@ pub struct BInt<const N: usize>;
 impl<const N: usize> BInt<N> {
     pub const BITS: ExpType = DIGIT_BITS * N as ExpType;
 }
-
-pub const DIGIT_POWERS_10: [Digit; 20] = [
-    1,
-    10,
-    100,
-    1000,
-    10000,
-    100000,
-    1000000,
-    10000000,
-    100000000,
-    1000000000,
-    10000000000,
-    100000000000,
-    1000000000000,
-    10000000000000,
-    100000000000000,
-    1000000000000000,
-    10000000000000000,
-    100000000000000000,
-    1000000000000000000,
-    10000000000000000000,
-];

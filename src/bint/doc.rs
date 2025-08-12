@@ -31,6 +31,14 @@ macro_rules! type_str {
 
 pub(crate) use type_str;
 
+macro_rules! link_type_str {
+    ($sign: ident $bits: literal) => {
+        concat!("[`", doc::type_str!($sign $bits), "`](crate::", doc::type_str!($sign $bits), ")")
+    };
+}
+
+pub(crate) use link_type_str;
+
 macro_rules! m {
     ($sign: ident $bits: literal) => {
         concat!(doc::small_sign!($sign), $bits, "!")
@@ -47,7 +55,7 @@ macro_rules! example_header {
 # Examples
 
 Please note that this example is shared between integer types.
-Which explains why `", doc::type_str!($sign $bits), "` is used here.", "
+Which explains why ", doc::link_type_str!($sign $bits), " is used here.", "
 
 ```
 use fastnum::*", ";
@@ -84,7 +92,7 @@ pub(crate) use text_sign;
 macro_rules! doc_comment {
     { $(# $method: ident, )? $sign: ident $bits: literal, $($($desc: expr)+)? $(, $($code: expr)+)? } => {
         concat!(
-            $($("\n\n", $desc), +,)?
+            $($($desc), +,)?
             $("\n\n", "See also: <https://doc.rust-lang.org/std/primitive.", doc::small_sign!($sign), "64.html#method.", stringify!($method), ">.", )?
             $(
                 doc::example_header!($sign $bits),

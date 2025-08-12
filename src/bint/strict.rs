@@ -16,13 +16,6 @@ macro_rules! strict_impl {
                 Self(self.0.strict_sub(rhs.0))
             }
 
-            #[doc = doc::strict::strict_mul!($sign 256)]
-            #[must_use = doc::must_use_op!()]
-            #[inline(always)]
-            pub const fn strict_mul(self, rhs: Self) -> Self {
-                Self(self.0.strict_mul(rhs.0))
-            }
-
             #[doc = doc::strict::strict_div!($sign 256)]
             #[must_use = doc::must_use_op!()]
             #[inline(always)]

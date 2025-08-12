@@ -11,7 +11,7 @@ use crate::decimal::{
 
 type D<const N: usize> = Decimal<N>;
 
-#[inline]
+#[inline(never)]
 pub(crate) const fn add<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     if lhs.is_nan() {
         return lhs.compound(&rhs).op_invalid();
@@ -29,7 +29,7 @@ pub(crate) const fn add<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     }
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     debug_assert!(!lhs.is_negative() && !rhs.is_negative());
 
@@ -56,7 +56,7 @@ pub(crate) const fn add_abs<const N: usize>(lhs: D<N>, rhs: D<N>) -> D<N> {
     }
 }
 
-#[inline]
+#[inline(always)]
 const fn add_rescale<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
     rescale(&mut lhs, rhs.cb.get_scale());
 
@@ -68,7 +68,7 @@ const fn add_rescale<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
     }
 }
 
-#[inline]
+#[inline(always)]
 const fn add_aligned<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
     debug_assert!(lhs.cb.get_scale() == rhs.cb.get_scale());
 

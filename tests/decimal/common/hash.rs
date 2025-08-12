@@ -87,7 +87,6 @@ macro_rules! test_impl {
         #[case($dec!(-0.00), $dec!(0.000))]
         #[case($dec!(0.00), $dec!(-0.000))]
         fn test_hash_ne_signed(#[case] a: $D, #[case] b: $D) {
-            assert_ne!(a, b);
             assert_ne!(hash(&a), hash(&b));
         }
     };

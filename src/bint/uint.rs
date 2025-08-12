@@ -4,17 +4,17 @@ mod checked;
 mod cmp;
 mod convert;
 mod endian;
-mod num;
-mod overflowing;
-mod saturating;
-mod strict;
-mod widening;
-mod wrapping;
-
 mod impls;
 mod intrinsics;
-
 mod math;
+mod num;
+mod overflowing;
+mod powers;
+mod saturating;
+mod strict;
+mod unchecked;
+mod widening;
+mod wrapping;
 
 use bnum::BUint;
 

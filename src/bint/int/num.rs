@@ -3,6 +3,20 @@ use crate::bint::{doc, int::math, intrinsics::ExpType, num::num_impl, Int, UInt}
 num_impl!(Int, I);
 
 impl<const N: usize> Int<N> {
+    #[doc = doc::num::mul!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn mul(self, rhs: Self) -> Self {
+        Self(self.0.mul(rhs.0))
+    }
+
+    #[doc = doc::num::div!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn div(self, rhs: Self) -> Self {
+        Self(self.0.div(rhs.0))
+    }
+
     #[doc = doc::num::neg!(I 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]

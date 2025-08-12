@@ -122,6 +122,8 @@ const fn parse_extra_precision(buf: &[u8]) -> ExtraPrecision {
 const fn parse_extra_precision_buf(buf: &[u8]) -> ExtraPrecision {
     let digits;
 
+    let len = buf.len() as u32;
+
     if buf.is_empty() {
         digits = 0;
     } else {
@@ -138,5 +140,5 @@ const fn parse_extra_precision_buf(buf: &[u8]) -> ExtraPrecision {
         }
     }
 
-    ExtraPrecision::from_digits(digits)
+    ExtraPrecision::from_digits(digits, len)
 }

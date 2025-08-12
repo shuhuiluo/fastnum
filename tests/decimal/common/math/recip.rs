@@ -36,6 +36,16 @@ macro_rules! test_impl {
 
     (COMMON:: 256, $dec: ident, $D: ident, THIS) => {
         super::test_impl!(COMMON:: 256, $dec, $D);
+
+        #[rstest(::trace)]
+        #[case($dec!(3), $dec!(0.33333333333333333333333333333333333333333333333333333333333333333333333333333))]
+        #[case($dec!(66100475480188776883681620311725717740e40), $dec!(1.5128484216421616758615143136440161153055698870539051891810131466128423029423e-78))]
+        fn test_recip_256(#[case] d: $D, #[case] expected: $D) {
+            let res = d.recip();
+
+            assert_eq!(res, expected);
+            assert_eq!(res.op_signals(), signals![!CP, !INEXACT, !ROUND]);
+        }
     };
     (COMMON:: 256, $dec: ident, $D: ident) => {
         super::test_impl!(COMMON:: 128, $dec, $D);
@@ -58,8 +68,37 @@ macro_rules! test_impl {
 
         #[rstest(::trace)]
         #[case($dec!(3), $dec!(0.333333333333333333333333333333333333333))]
-        #[case($dec!(66100475480188776883681620311725717740e40), $dec!(1.51284842164216167586151431364401611529e-78))]
+        #[case($dec!(66100475480188776883681620311725717740e40), $dec!(1.51284842164216167586151431364401611531e-78))]
         fn test_recip_128(#[case] d: $D, #[case] expected: $D) {
+            let res = d.recip();
+
+            assert_eq!(res, expected);
+            assert_eq!(res.op_signals(), signals![!CP, !INEXACT, !ROUND]);
+        }
+    };
+    (COMMON:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(COMMON:: 64, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    };
+    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(UNSIGNED:: 64, $dec, $D);
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 128, $dec, $D);
+    };
+    (SIGNED:: 128, $dec: ident, $D: ident) => {
+        super::test_impl!(SIGNED:: 64, $dec, $D);
+    };
+
+    (COMMON:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(COMMON:: 64, $dec, $D);
+
+        #[rstest(::trace)]
+        #[case($dec!(3), $dec!(0.3333333333333333333))]
+        #[case($dec!(6610047548018877688e40), $dec!(1.5128484216421616759e-59))]
+        fn test_recip_64(#[case] d: $D, #[case] expected: $D) {
             let res = d.recip();
 
             assert_eq!(res, expected);
@@ -67,7 +106,7 @@ macro_rules! test_impl {
         }
 
     };
-    (COMMON:: 128, $dec: ident, $D: ident) => {
+    (COMMON:: 64, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
         #[case($dec!(2), $dec!(0.5))]
         #[case($dec!(2.0), $dec!(0.5))]
@@ -95,16 +134,16 @@ macro_rules! test_impl {
             assert_eq!(res.op_signals(), signals![!CP, !INEXACT, !ROUND]);
         }
     };
-    (UNSIGNED:: 128, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(UNSIGNED:: 128, $dec, $D);
+    (UNSIGNED:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(UNSIGNED:: 64, $dec, $D);
     };
-    (UNSIGNED:: 128, $dec: ident, $D: ident) => {
+    (UNSIGNED:: 64, $dec: ident, $D: ident) => {
 
     };
-    (SIGNED:: 128, $dec: ident, $D: ident, THIS) => {
-        super::test_impl!(SIGNED:: 128, $dec, $D);
+    (SIGNED:: 64, $dec: ident, $D: ident, THIS) => {
+        super::test_impl!(SIGNED:: 64, $dec, $D);
     };
-    (SIGNED:: 128, $dec: ident, $D: ident) => {
+    (SIGNED:: 64, $dec: ident, $D: ident) => {
         #[rstest(::trace)]
         #[case($dec!(-2), $dec!(-0.5))]
         #[case($dec!(-4), $dec!(-0.25))]

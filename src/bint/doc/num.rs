@@ -281,6 +281,36 @@ macro_rules! div {
 
 pub(crate) use div;
 
+macro_rules! div_digit {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Performs division of a multi-precision integer by a single 64-bit digit.\n\n"
+            "This method implements an optimized division algorithm when the divisor is a single digit (u64).\n"
+            "The optimization is significant because single-digit division is a common operation in decimal arithmetic and other numerical algorithms.\n\n"
+            "# Algorithm\n\n"
+            "1. For 64-bit numbers: Uses native CPU division\n"
+            "2. For 128-bit numbers: Uses optimized two-word by one-word division\n"
+            "2. 3. For larger numbers: Uses long division algorithm with digit-by-digit processing\n\n"
+
+            "# Returns\n\n"
+            "Returns the quotient as a new number of the same size as the dividend\n\n"
+
+            "# Panics\n\n"
+            "This function will panic if digit is zero.\n\n"
+
+            "# Performance\n\n"
+            "This operation is typically much faster than full multi-precision division,\n"
+            "especially for larger numbers, as it avoids the complexity of multi-digit division.",
+
+            "let n = " doc::m!($sign $bits) "(1000000000000000000);\n"
+            "assert_eq!(n.div_digit(1000000000), " doc::m!($sign $bits) "(1000000000));\n"
+        }
+    };
+}
+
+pub(crate) use div_digit;
+
 macro_rules! rem {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
@@ -313,8 +343,8 @@ macro_rules! rem_euclid {
         doc::doc_comment! {
             #rem_euclid,
             $sign $bits,
-            "Calculates the least remainder of self (mod rhs).\n\n"
-            "Since, for the positive integers, all common definitions of division are equal, this is exactly equal to self % rhs.\n\n"
+            "Calculates the least remainder of `self` (mod `rhs`).\n\n"
+            "Since, for the positive integers, all common definitions of division are equal, this is exactly equal to `self % rhs`.\n\n"
 
             "# Panics\n\n"
             "This function will panic if rhs is zero."
@@ -378,16 +408,7 @@ macro_rules! ilog10 {
             "Find integer log<sub>10</sub>(x) of an integer.\n\n"
 
             "`fastnum` use the most efficient algorithm based on relationship:\n"
-            "_log<sub>10</sub>(x) = log<sub>2</sub>(x)/log<sub>2</sub>(10)_,\n"
-            "we can compute the _log<sub>10</sub>(x)_ as `ilog2(x)` multiplied by\n"
-
-            "_1/log<sub>2</sub>(10)_, which is approximately `1233/4096`, or `1233`"
-            "followed by a right shift of `12`."
-            "_((`ilog2`(x) + 1) * 1233) >> 12_\n\n"
-            "Adding one is needed because the `ilog2()` rounds down. Finally, since the"
-            "resulting value is only an approximation that may be off by one, the exact"
-            "value is found by subtracting `1` if `x < PowersOf10[res]` (lookup table)."
-            "This method takes `6` more operations than `ilog2()`.",
+            "_log<sub>10</sub>(x) = log<sub>2</sub>(x)/log<sub>2</sub>(10)_",
 
             "let n = " doc::m!($sign $bits) "(150);\n"
             "assert_eq!(n.ilog10(), 2);\n"
@@ -419,7 +440,7 @@ macro_rules! abs_diff {
         doc::doc_comment! {
             #abs_diff,
             $sign $bits,
-            "Computes the absolute difference between self and other."
+            "Computes the absolute difference between `self` and `other`."
         }
     };
 }
@@ -431,7 +452,7 @@ macro_rules! next_multiple_of {
         doc::doc_comment! {
             #next_multiple_of,
             $sign $bits,
-            "Calculates the smallest value greater than or equal to self that is a multiple of rhs.\n\n"
+            "Calculates the smallest value greater than or equal to `self` that is a multiple of `rhs`.\n\n"
 
             "# Panics\n\n"
             "This function will panic if rhs is zero.\n\n"
@@ -467,7 +488,7 @@ macro_rules! div_ceil {
             "Calculates the quotient of self and rhs, rounding the result towards positive infinity.\n\n"
 
             "# Panics\n\n"
-            "This function will panic if rhs is zero.\n\n"
+            "This function will panic if `rhs` is zero.\n\n"
         }
     };
 }
@@ -647,7 +668,7 @@ macro_rules! unsigned_abs {
         doc::doc_comment! {
             #unsigned_abs,
             I $bits,
-            "Computes the absolute value of self as unsigned integer without panicking."
+            "Computes the absolute value of `self` as unsigned integer without panicking."
 
             "let a = " doc::m!(I $bits) "(-50);\n"
             "let b = " doc::m!(U $bits) "(50);\n\n"
@@ -663,7 +684,7 @@ macro_rules! abs {
         doc::doc_comment! {
             #abs,
             I $bits,
-            "Computes the absolute value of self.\n\n"
+            "Computes the absolute value of `self`.\n\n"
 
             "## Overflow behavior\n\n"
             "The absolute value of i128::MIN cannot be represented as an i128, and attempting to calculate it will cause an overflow. This means that code in debug mode will trigger a panic on this case and optimized code will return i128::MIN without a panic. If you do not want this behavior, consider using unsigned_abs instead.\n\n"
@@ -701,7 +722,7 @@ macro_rules! is_positive {
         doc::doc_comment! {
             #is_positive,
             I $bits,
-            "Returns true if self is positive and false if the number is zero or negative."
+            "Returns true if `self` is positive and false if the number is zero or negative."
         }
     };
 }
@@ -713,7 +734,7 @@ macro_rules! is_negative {
         doc::doc_comment! {
             #is_negative,
             I $bits,
-            "Returns true if self is negative and false if the number is zero or positive."
+            "Returns true if `self` is negative and false if the number is zero or positive."
         }
     };
 }
@@ -724,7 +745,7 @@ macro_rules! power_of_five {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Returns an integer whose value is 5^power.\n\n"
+            "Returns an integer whose value is `5^power`.\n\n"
 
             "# Panics\n\n"
             "This function will panic if `5^power` is greater than [Self::MAX]",
@@ -740,7 +761,7 @@ macro_rules! power_of_ten {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Returns an integer whose value is 10^power.\n\n"
+            "Returns an integer whose value is `10^power`.\n\n"
 
             "# Panics\n\n"
             "This function will panic if `10^power` is greater than [Self::MAX]",
@@ -756,8 +777,8 @@ macro_rules! mul_digit {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Integer multiplication by [u64].\n\n"
-            "Computes self * rhs, panicking if overflow occurred.\n\n"
+            "Integer multiplication by [`u64`].\n\n"
+            "Computes `self * digit`, panicking if overflow occurred.\n\n"
 
             "## Overflow behavior\n\n"
             "On overflow, this function will panic if overflow checks are enabled (default in debug mode) and wrap if overflow checks are disabled (default in release mode).\n\n"
@@ -766,3 +787,91 @@ macro_rules! mul_digit {
 }
 
 pub(crate) use mul_digit;
+
+macro_rules! decimal_digits {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "This method efficiently calculates the number of base-10 digits needed to represent the number without leading zeros.\n\n"
+            "The implementation uses optimized algorithms based on the size of the number.\n\n"
+
+            "# Returns\n\n"
+            "- Returns 0 for zero\n"
+            "- For non-zero numbers, returns `⌊log10(n)⌋ + 1`\n\n",
+
+            "assert_eq!(" doc::m!(U $bits) "(0).decimal_digits(), 0);\n"
+            "assert_eq!(" doc::m!(U $bits) "(1).decimal_digits(), 1);\n"
+            "assert_eq!(" doc::m!(U $bits) "(9).decimal_digits(), 1);\n"
+            "assert_eq!(" doc::m!(U $bits) "(10).decimal_digits(), 2);\n"
+            "assert_eq!(" doc::m!(U $bits) "(18446744073709551615).decimal_digits(), 20);\n"
+        }
+    };
+}
+
+pub(crate) use decimal_digits;
+
+macro_rules! remaining_decimal_digits {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Calculates the maximum number of additional decimal digits that can be safely multiplied by this number without overflow.\n\n"
+            "This method is crucial for decimal arithmetic operations to prevent overflow when scaling numbers by powers of 10.\n"
+            "The optimization is significant because single-digit division is a common operation in decimal arithmetic and other numerical algorithms.\n\n"
+
+            "# Returns\n\n"
+            "- For zero: Returns maximum allowed decimal digits\n"
+            "- For non-zero numbers: Returns (MAX_POWER_10 + 1 - current_digits), adjusted if multiplication by 10^result would overflow\n"
+            "- For zero: Returns maximum allowed decimal digits\n\n"
+
+            "# Use Cases\n\n"
+            "- Decimal scaling operations\n"
+            "- Precision calculations\n"
+            "- Overflow prevention in decimal arithmetic\n\n"
+
+            "This method is particularly useful in implementing decimal arithmetic where numbers need to be scaled while avoiding overflow conditions.\n\n"
+
+            "# Performance\n\n"
+
+            "This operation is typically much slower than [Self::can_scaled_by_power_of_ten],\n",
+
+            "assert_eq!(u64!(18446744073709551615).remaining_decimal_digits(), 0); // cannot multiply by 10 (max U64 value is `18446744073709551615`)\n"
+            "assert_eq!(u64!(1844674407370955161).remaining_decimal_digits(), 1); // can multiply by 10 (it will be `18446744073709551610`)\n"
+            "assert_eq!(u64!(2844674407370955161).remaining_decimal_digits(), 0); // cannot multiply by 10 (one remaining decimal digit is formally exists but multiplication will overflow)\n"
+            "assert_eq!(u64!(24576).remaining_decimal_digits(), 14); // can multiply by 10^14\n"
+            "assert_eq!(u64!(14576).remaining_decimal_digits(), 15); // can multiply by 10^15\n\n"
+            "assert_eq!(u256!(115).remaining_decimal_digits(), 75); // can multiply by 10^75\n"
+            "assert_eq!(u256!(116).remaining_decimal_digits(), 74); // can multiply by 10^74 (max U256 value is `115792089237316195423570985008687907853269984665640564039457584007913129639935`)\n"
+        }
+    };
+}
+
+pub(crate) use remaining_decimal_digits;
+
+macro_rules! can_scaled_by_power_of_ten {
+    ($sign: ident $bits: literal) => {
+        doc::doc_comment! {
+            $sign $bits,
+            "Checks if the number can be safely multiplied by a given power of 10 without overflow.\n\n"
+
+            "This method provides a fast way to check if scaling operations are safe without actually performing the multiplication.\n"
+
+            "# Returns\n\n"
+            "- `true` if the number can be multiplied by 10^power without overflow\n"
+            "- `false` if such multiplication would overflow\n"
+
+            "# Performance\n\n"
+            "Uses precomputed lookup table of maximum values divided by powers of 10 for efficient checking and avoid actual multiplication.\n\n"
+
+            "This operation is typically much faster than [Self::remaining_decimal_digits],\n",
+
+            "assert!(!u64!(18446744073709551615).can_scaled_by_power_of_ten(1)); // cannot multiply by 10 (max U64 value is `18446744073709551615`)\n"
+            "assert!(u64!(1844674407370955161).can_scaled_by_power_of_ten(1)); // can multiply by 10 (it will be `18446744073709551610`)\n"
+            "assert!(!u64!(1844674407370955161).can_scaled_by_power_of_ten(2)); // can multiply by 10 (it will be `18446744073709551610`) but not 100\n"
+            "assert!(u64!(24576).can_scaled_by_power_of_ten(14)); // can multiply by 10^14\n"
+            "assert!(!u64!(24576).can_scaled_by_power_of_ten(15)); // can multiply by 10^14 not 10^15\n"
+            "assert!(u64!(14576).can_scaled_by_power_of_ten(15)); // can multiply by 10^15\n\n"
+        }
+    };
+}
+
+pub(crate) use can_scaled_by_power_of_ten;

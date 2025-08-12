@@ -1,10 +1,12 @@
 use std::hint::black_box;
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use fastnum::{U128, U64};
 
-criterion_group!(math, bench);
+criterion_group!(math, mul_digit);
 criterion_main!(math);
 
+#[allow(dead_code)]
 fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("math");
 
@@ -51,6 +53,105 @@ fn bench(c: &mut Criterion) {
         &(a_f, b_f),
         |bench, &(a, b)| bench.iter(|| a.overflowing_mul(black_box(b))),
     );
+
+    group.finish();
+}
+
+#[allow(dead_code)]
+fn add_digit(c: &mut Criterion) {
+    let mut group = c.benchmark_group("add_digit");
+
+    for power in [
+        1,
+        10,
+        100,
+        1000,
+        10000000000000,
+        100000000000000,
+        1000000000000000,
+        1000000000000000000,
+        10000000000000000000,
+    ] {
+        let x = power;
+        let y = 5555555555555555555_u64;
+        group.bench_with_input(BenchmarkId::new("u64", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x) + black_box(*y))
+        });
+
+        let x = U64::from_u64(power);
+        group.bench_with_input(BenchmarkId::new("U64", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x).strict_add_digit(black_box(*y)))
+        });
+    }
+
+    for power in [
+        1,
+        1000,
+        1000000,
+        1000000000,
+        1000000000000,
+        1000000000000000000000000000000000000,
+        100000000000000000000000000000000000000,
+    ] {
+        let x = power;
+        let y = 5555555555555555555_u64;
+        group.bench_with_input(BenchmarkId::new("u128", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x) + black_box(*y) as u128)
+        });
+
+        let x = U128::from_u128(power).unwrap();
+        group.bench_with_input(BenchmarkId::new("U128", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x).strict_add_digit(black_box(*y)))
+        });
+    }
+
+    group.finish();
+}
+
+#[allow(dead_code)]
+fn mul_digit(c: &mut Criterion) {
+    let mut group = c.benchmark_group("mul_digit");
+
+    for power in [
+        1,
+        10,
+        100,
+        1000,
+        1000000000,
+        10000000000000,
+        100000000000000000,
+    ] {
+        let x = power;
+        let y = 11_u64;
+        group.bench_with_input(BenchmarkId::new("u64", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x) * black_box(*y))
+        });
+
+        let x = U64::from_u64(power);
+        group.bench_with_input(BenchmarkId::new("U64", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x).strict_mul_digit(black_box(*y)))
+        });
+    }
+
+    for power in [
+        1,
+        1000,
+        1000000,
+        1000000000000,
+        1000000000000000000000,
+        10000000000000000000000000000000000000,
+    ] {
+        let x = power;
+        let y = 11_u64;
+        group.bench_with_input(BenchmarkId::new("u128", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x) * black_box(*y) as u128)
+        });
+
+        let x = U128::from_u128(power).unwrap();
+        group.bench_with_input(BenchmarkId::new("U128", power), &(x, y), |b, (x, y)| {
+            b.iter(|| black_box(x).strict_mul_digit(black_box(*y)))
+        });
+    }
 
     group.finish();
 }

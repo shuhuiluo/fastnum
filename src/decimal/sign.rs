@@ -18,20 +18,20 @@ pub enum Sign {
 
 impl Sign {
     /// Returns the default `Plus`.
-    #[inline]
+    #[inline(always)]
     pub const fn default() -> Self {
         Self::Plus
     }
 
     /// Returns `true` if sign is negative, and `false` otherwise.
-    #[inline]
+    #[inline(always)]
     pub const fn is_negative(self) -> bool {
         matches!(self, Self::Minus)
     }
 
     /// Tests for `self` and `other` signs to be equal, and is used by `==`
     /// operator.
-    #[inline]
+    #[inline(always)]
     pub const fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Plus, Self::Plus) => true,
@@ -50,7 +50,7 @@ impl Sign {
     /// assert_eq!(Sign::Plus.not(), Sign::Minus);
     /// assert_eq!(Sign::Minus.not(), Sign::Plus);
     /// ```
-    #[inline]
+    #[inline(always)]
     pub const fn not(self) -> Self {
         match self {
             Sign::Minus => Sign::Plus,
@@ -59,7 +59,7 @@ impl Sign {
     }
 
     /// Sign "multiplication".
-    #[inline]
+    #[inline(always)]
     pub const fn mul(self, rhs: Self) -> Self {
         match (self, rhs) {
             (Sign::Plus, Sign::Plus) => Sign::Plus,
@@ -69,7 +69,7 @@ impl Sign {
     }
 
     /// Sign "division".
-    #[inline]
+    #[inline(always)]
     pub const fn div(self, rhs: Self) -> Self {
         self.mul(rhs)
     }

@@ -25,29 +25,48 @@
 //!
 //! https://ridiculousfish.com/blog/
 
-// #[inline(always)]
-// const fn to_double_digit(low: Digit, high: Digit) -> DoubleDigit {
-//     ((high as DoubleDigit) << DIGIT_BITS) | low as DoubleDigit
-// }
-//
-// #[inline]
-// pub const fn div_rem_wide_digit(low: Digit, high: Digit, rhs: Digit) ->
-// (Digit, Digit) {     let a = to_double_digit(low, high);
-//     (
-//         (a / rhs as DoubleDigit) as Digit,
-//         (a % rhs as DoubleDigit) as Digit,
-//     )
-// }
+#[inline(always)]
+pub const fn _div_64(dividend: u64, divisor: u64) -> u64 {
+    debug_assert!(divisor != 0);
+
+    if dividend < divisor {
+        0
+    } else if divisor == 1 {
+        dividend
+    } else if divisor == dividend {
+        1
+    } else {
+        dividend / divisor
+    }
+}
+
+#[inline(always)]
+pub const fn _div_rem_64(dividend: u64, divisor: u64) -> (u64, u64) {
+    debug_assert!(divisor != 0);
+
+    if dividend < divisor {
+        (0, dividend)
+    } else if divisor == 1 {
+        (dividend, 0)
+    } else if divisor == dividend {
+        (1, 0)
+    } else {
+        let q = dividend / divisor;
+        let r = dividend % divisor;
+        (q, r)
+    }
+}
 
 /// Divides a 128-bit uint {low: u64, high: u64} by a 64-bit uint {den}.
 /// The result must fit in 64 bits.
 ///
 /// Returns the (quotient, remainder).
 ///
-/// This is port of `libdivide_128_div_64_to_64` from [`libdivide`](https://github.com/ridiculousfish/libdivide).
+/// This is a port of `libdivide_128_div_64_to_64`
+/// from [`libdivide`](https://github.com/ridiculousfish/libdivide).
 #[inline]
 #[allow(clippy::needless_late_init)]
-pub const fn div_rem_wide_digit(mut low: u64, mut high: u64, mut den: u64) -> (u64, u64) {
+pub const fn _div_rem_128_64(mut low: u64, mut high: u64, mut den: u64) -> (u64, u64) {
     debug_assert!(high < den);
 
     // We work in base 2^32.

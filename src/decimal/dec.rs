@@ -195,7 +195,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(+1.0).sign(),  Sign::Plus);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn sign(&self) -> Sign {
         self.cb.get_sign()
     }
@@ -434,7 +434,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// [`Infinity`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_infinite(&self) -> bool {
         self.cb.is_infinity()
     }
@@ -455,7 +455,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_nan(&self) -> bool {
         self.cb.is_nan()
     }
@@ -545,9 +545,9 @@ impl<const N: usize> Decimal<N> {
     ///
     /// [`±0.0`]: crate#signed-zero
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_zero(&self) -> bool {
-        self.digits.is_zero() && !self.cb.is_special()
+        self.digits.is_zero() && !self.cb.is_special() && !self.cb.has_extra_precision()
     }
 
     /// Return `true` if the referenced decimal is strictly `1` and `false`
@@ -565,12 +565,13 @@ impl<const N: usize> Decimal<N> {
     /// assert!(!b.is_one());
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_one(&self) -> bool {
         self.digits.is_one()
             && self.cb.get_scale() == 0
             && !self.cb.is_negative()
             && !self.cb.is_special()
+            && !self.cb.has_extra_precision()
     }
 
     /// Return `true` if this value is positive, including [`+0.0`],
@@ -663,7 +664,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(-1.0).neg(), dec256!(1.0));
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn neg(mut self) -> Self {
         self.cb.neg();
         self
@@ -680,7 +681,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(-1.0).abs(), dec256!(1.0));
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn abs(self) -> Self {
         math::abs::abs(self).check()
     }
@@ -797,7 +798,7 @@ impl<const N: usize> Decimal<N> {
     /// Tests for `self` and `other` values to be equal, and is used by `==`
     /// operator.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn eq(&self, other: &Self) -> bool {
         cmp::eq(self, other)
     }
@@ -805,7 +806,7 @@ impl<const N: usize> Decimal<N> {
     /// Tests for `self` and `other` values to be equal, and is used by `==`
     /// operator.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn ne(&self, other: &Self) -> bool {
         cmp::ne(self, other)
     }
@@ -921,13 +922,9 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(2.0).lt(&dec256!(1.0)), false);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn lt(&self, other: &Self) -> bool {
-        #[allow(clippy::match_like_matches_macro)]
-        match self.cmp(other) {
-            Ordering::Less => true,
-            _ => false,
-        }
+        matches!(self.cmp(other), Ordering::Less)
     }
 
     /// Tests signed decimal `self` less than or equal to `other` and is used by
@@ -943,13 +940,9 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(2.0).le(&dec256!(1.0)), false);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn le(&self, other: &Self) -> bool {
-        #[allow(clippy::match_like_matches_macro)]
-        match self.cmp(other) {
-            Ordering::Less | Ordering::Equal => true,
-            _ => false,
-        }
+        matches!(self.cmp(other), Ordering::Less | Ordering::Equal)
     }
 
     /// Tests signed decimal `self` greater than `other` and is used by the `>`
@@ -965,13 +958,9 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(2.0).gt(&dec256!(1.0)), true);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn gt(&self, other: &Self) -> bool {
-        #[allow(clippy::match_like_matches_macro)]
-        match self.cmp(other) {
-            Ordering::Greater => true,
-            _ => false,
-        }
+        matches!(self.cmp(other), Ordering::Greater)
     }
 
     /// Tests signed decimal `self` greater than or equal to `other` and is used
@@ -987,13 +976,9 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(2.0).ge(&dec256!(1.0)), true);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn ge(&self, other: &Self) -> bool {
-        #[allow(clippy::match_like_matches_macro)]
-        match self.cmp(other) {
-            Ordering::Greater | Ordering::Equal => true,
-            _ => false,
-        }
+        matches!(self.cmp(other), Ordering::Greater | Ordering::Equal)
     }
 
     /// This method returns an [`Ordering`] between `self` and `other`.
@@ -1012,7 +997,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(dec256!(5).cmp(&dec256!(5)), Ordering::Equal);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn cmp(&self, other: &Self) -> Ordering {
         cmp::cmp(self, other)
     }
@@ -1049,7 +1034,7 @@ impl<const N: usize> Decimal<N> {
     /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn add(self, rhs: Self) -> Self {
         math::add::add(self, rhs).round_extra_precision().check()
     }
@@ -1085,7 +1070,7 @@ impl<const N: usize> Decimal<N> {
     /// See more about [add and subtract](crate#addition-and-subtraction).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn sub(self, rhs: Self) -> Self {
         math::sub::sub(self, rhs).round_extra_precision().check()
     }
@@ -1122,7 +1107,7 @@ impl<const N: usize> Decimal<N> {
     /// See more about [multiplication](crate#multiplication).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn mul(self, rhs: Self) -> Self {
         math::mul::mul(self, rhs).round_extra_precision().check()
     }
@@ -1159,7 +1144,7 @@ impl<const N: usize> Decimal<N> {
     /// See more about [division](crate#division).
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn div(self, rhs: Self) -> Self {
         math::div::div(self, rhs).round_extra_precision().check()
     }
@@ -1183,7 +1168,7 @@ impl<const N: usize> Decimal<N> {
     /// ```
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn rem(self, rhs: Self) -> Self {
         math::rem::rem(self, rhs).round_extra_precision().check()
     }
@@ -1566,7 +1551,7 @@ impl<const N: usize> Decimal<N> {
     /// - [RoundingMode].
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn round(self, digits: i16) -> Self {
         self.rescale(digits)
     }
@@ -1657,7 +1642,7 @@ impl<const N: usize> Decimal<N> {
     /// - [Self::quantize].
     #[must_use = doc::must_use_op!()]
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn rescale(mut self, new_scale: i16) -> Self {
         scale::rescale(&mut self, new_scale);
         self.round_extra_precision().check()
@@ -2334,14 +2319,14 @@ impl<const N: usize> Decimal<N> {
         self
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn set_ctx(mut self, ctx: Context) -> Self {
         self.cb.set_context(ctx);
         self
     }
 
     #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn check(mut self) -> Self {
         let trapped = self.cb.trap_signals();
 
@@ -2353,7 +2338,7 @@ impl<const N: usize> Decimal<N> {
         self
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn ok_or_err(self) -> Result<Self, DecimalError> {
         let trapped = self.cb.trap_signals();
 

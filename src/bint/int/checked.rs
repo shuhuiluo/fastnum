@@ -19,6 +19,13 @@ impl<const N: usize> Int<N> {
         tuple_to_option(self.overflowing_sub_unsigned(rhs))
     }
 
+    #[doc = doc::checked::checked_mul!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn checked_mul(self, rhs: Self) -> Option<Self> {
+        tuple_to_option(self.overflowing_mul(rhs))
+    }
+
     #[doc = doc::checked::checked_ilog2!(I 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]

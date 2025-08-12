@@ -44,7 +44,7 @@ impl SignalsTraps {
         self
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn trap(&self, raised: Signals) -> Signals {
         self.0.intersect(raised)
     }

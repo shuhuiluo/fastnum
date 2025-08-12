@@ -48,7 +48,7 @@ impl ControlBlock {
         let extra_digits = self.take_extra_precision();
         let mut extra_digit = 0;
 
-        if !extra_digits.is_empty() {
+        if !extra_digits.is_zero() {
             self.raise_signals(Signals::OP_ROUNDED.combine(Signals::OP_INEXACT));
             extra_digit = extra_digits.get_round_reminder();
         }
@@ -86,7 +86,10 @@ impl ControlBlock {
 
     #[inline(always)]
     pub const fn get_extra_precision(&self) -> ExtraPrecision {
-        ExtraPrecision::from_digits(self.get_extra_digits())
+        ExtraPrecision::from_digits(
+            self.get_extra_digits(),
+            ExtraPrecision::EXTRA_PRECISION_DIGITS,
+        )
     }
 
     #[inline(always)]
@@ -100,7 +103,7 @@ impl ControlBlock {
         self.reset_extra_digits();
     }
 
-    #[inline]
+    #[inline(always)]
     pub const fn take_extra_precision(&mut self) -> ExtraPrecision {
         let extra_precision = self.get_extra_precision();
         self.reset_extra_digits();

@@ -10,6 +10,7 @@ mod extras;
 mod format;
 mod from;
 mod hash;
+mod intrinsics;
 mod math;
 mod parse;
 mod quantize;

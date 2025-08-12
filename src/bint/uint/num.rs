@@ -1,14 +1,35 @@
 use crate::bint::{
     doc,
-    intrinsics::{Digit, Digits, ExpType},
+    math::last_digit_index,
     num::num_impl,
-    uint::math,
+    uint::{
+        intrinsics::{Digit, Digits, ExpType},
+        math, powers,
+    },
     Int, UInt,
 };
 
 num_impl!(UInt, U);
 
 impl<const N: usize> UInt<N> {
+    #[doc = doc::num::mul!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn mul(self, rhs: Self) -> Self {
+        #[cfg(debug_assertions)]
+        return self.strict_mul(rhs);
+
+        #[cfg(not(debug_assertions))]
+        self.wrapping_mul(rhs)
+    }
+
+    #[doc = doc::num::div!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn div(self, rhs: Self) -> Self {
+        math::div::div(self, rhs)
+    }
+
     #[doc = doc::num::neg!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
@@ -41,25 +62,39 @@ impl<const N: usize> UInt<N> {
         Int(self.0.cast_signed())
     }
 
+    #[doc = doc::num::div_digit!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn div_digit(self, rhs: Digit) -> Self {
+        math::div::div_digit(self, rhs)
+    }
+
     #[doc = doc::num::div_rem!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn div_rem(self, rhs: Self) -> (Self, Self) {
-        math::div_rem(self, rhs)
+        math::div::div_rem(self, rhs)
     }
 
     #[doc = doc::num::div_rem_digit!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn div_rem_digit(self, rhs: Digit) -> (Self, Digit) {
-        math::div_rem_digit(self, rhs)
+        math::div::div_rem_digit(self, rhs)
     }
 
     #[doc = doc::num::mul_div_rem!(U 256)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn mul_div_rem(self, rhs: Self, divisor: Self) -> (Self, Self) {
-        math::mul_div_rem(self, rhs, divisor)
+        math::div::mul_div_rem(self, rhs, divisor)
+    }
+
+    #[doc = doc::num::mul_div_rem!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn mul_div(self, rhs: Self, divisor: Self) -> Self {
+        math::div::mul_div(self, rhs, divisor)
     }
 
     #[doc = doc::num::from_digits!(U 256)]
@@ -113,5 +148,31 @@ impl<const N: usize> UInt<N> {
 
         #[cfg(not(debug_assertions))]
         self.wrapping_mul_digit(digit)
+    }
+
+    #[doc = doc::num::decimal_digits!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn decimal_digits(&self) -> ExpType {
+        powers::decimal_digits(self)
+    }
+
+    #[doc = doc::num::remaining_decimal_digits!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn remaining_decimal_digits(&self) -> ExpType {
+        powers::remaining_decimal_digits(self)
+    }
+
+    #[doc = doc::num::can_scaled_by_power_of_ten!(U 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn can_scaled_by_power_of_ten(&self, power: ExpType) -> bool {
+        powers::can_scaled_by_power_of_ten(self, power)
+    }
+
+    #[inline(always)]
+    pub(crate) const fn last_digit_index(&self) -> usize {
+        last_digit_index(self.digits())
     }
 }

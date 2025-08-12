@@ -40,7 +40,7 @@ pub const fn basecase_div_rem<const N: usize>(
 
         // q_hat will be either `q` or `q + 1`
         let mut q_hat = if u_jn < v_n_m1 {
-            let (mut q_hat, r_hat) = div_rem_wide_digit(u.digit(j + n - 1), u_jn, v_n_m1); // D3
+            let (mut q_hat, r_hat) = _div_rem_128_64(u.digit(j + n - 1), u_jn, v_n_m1); // D3
 
             if tuple_gt(
                 widening_mul(q_hat, v_n_m2),
@@ -77,17 +77,6 @@ pub const fn basecase_div_rem<const N: usize>(
         q[j] = q_hat;
     }
     (q, u.shr(shift))
-}
-
-#[inline]
-const fn carrying_add(a: Digit, b: Digit, carry: bool) -> (Digit, bool) {
-    let (s1, o1) = a.overflowing_add(b);
-    if carry {
-        let (s2, o2) = s1.overflowing_add(1);
-        (s2, o1 || o2)
-    } else {
-        (s1, o1)
-    }
 }
 
 #[inline]
@@ -171,7 +160,7 @@ impl<const N: usize> Remainder<N> {
         let mut carry = false;
         let mut i = 0;
         while i < range {
-            let (sum, overflow) = carrying_add(self.digit(i + start), rhs[i], carry);
+            let (sum, overflow) = _carrying_add_64(self.digit(i + start), rhs[i], carry);
             if start == 0 && i == 0 {
                 self.first = sum;
             } else {
@@ -205,7 +194,7 @@ impl<const N: usize> Mul<N> {
         let mut carry: Digit = 0;
         let mut i = 0;
         while i < N {
-            let (prod, c) = carrying_mul(digits[i], rhs, carry);
+            let (prod, c) = _carrying_mul_64(digits[i], rhs, carry);
             carry = c;
             rest[i] = prod;
             i += 1;

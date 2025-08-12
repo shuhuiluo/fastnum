@@ -4,7 +4,10 @@ use core::{
 };
 
 use crate::{
-    bint::UInt,
+    bint::{
+        intrinsics::{min, ExpType, DIGIT_POWERS_10},
+        UInt,
+    },
     decimal::{
         dec::{construct::construct, ControlBlock},
         Context, Decimal, Sign, Signals,
@@ -25,9 +28,9 @@ pub(crate) struct ExtraPrecision {
 
 impl ExtraPrecision {
     pub const EXTRA_PRECISION_DIGITS: u32 = 7;
+    pub const EXTRA_PRECISION_CARRY: u64 = 10_000_000;
 
     const EXTRA_PRECISION_SCALE: u32 = 1_000_000;
-    const EXTRA_PRECISION_CARRY: u64 = 10_000_000;
     const EXTRA_PRECISION_DIGIT_7: u64 = 1_000_000;
     const EXTRA_PRECISION_DIGIT_6: u64 = 100_000;
     const EXTRA_PRECISION_DIGIT_5: u64 = 10_000;
@@ -49,13 +52,8 @@ impl ExtraPrecision {
     }
 
     #[inline(always)]
-    pub const fn count(&self) -> u32 {
-        self.count
-    }
-
-    #[inline(always)]
-    pub const fn is_empty(&self) -> bool {
-        self.digits == 0 && self.count == 0
+    pub const fn is_zero(&self) -> bool {
+        self.digits == 0
     }
 
     #[inline(always)]
@@ -63,12 +61,20 @@ impl ExtraPrecision {
         (self.digits / Self::EXTRA_PRECISION_SCALE) as u8
     }
 
+    #[inline]
+    pub const fn from_digits(digits: u64, count: ExpType) -> Self {
+        let (digits, count) = normalize_digits(digits, count);
+
+        debug_assert!(count <= Self::EXTRA_PRECISION_DIGITS);
+        Self { digits, count }
+    }
+
     #[inline(always)]
-    pub const fn from_digits(digits: u64) -> Self {
-        debug_assert!(digits < Self::EXTRA_PRECISION_CARRY);
-        Self {
-            digits: digits as u32,
-            count: count_digits(digits),
+    pub const fn push_digit(&mut self, digit: u64) {
+        debug_assert!(digit < 10);
+        self.digits = (digit as u32) * Self::EXTRA_PRECISION_SCALE + self.digits / 10;
+        if self.count < Self::EXTRA_PRECISION_DIGITS {
+            self.count += 1;
         }
     }
 
@@ -108,13 +114,50 @@ impl ExtraPrecision {
     }
 
     #[inline(always)]
-    pub const fn push_digit(&mut self, digit: u64) {
-        debug_assert!(digit < 10);
-        self.digits = (digit as u32) * Self::EXTRA_PRECISION_SCALE + self.digits / 10;
-        self.count += 1;
+    pub const fn append(&mut self, tail: u64, count: ExpType) {
+        debug_assert!(self.count < Self::EXTRA_PRECISION_DIGITS);
+
+        if tail == 0 {
+            return;
+        }
+
+        let (tail, count) = normalize_digits(tail, count);
+
+        match self.count {
+            6 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_7 as u32;
+                self.count += min(1, count);
+            }
+            5 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_6 as u32;
+                self.count += min(2, count);
+            }
+            4 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_5 as u32;
+                self.count += min(3, count);
+            }
+            3 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_4 as u32;
+                self.count += min(4, count);
+            }
+            2 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_3 as u32;
+                self.count += min(5, count);
+            }
+            1 => {
+                self.digits += tail / Self::EXTRA_PRECISION_DIGIT_2 as u32;
+                self.count += min(6, count);
+            }
+            0 => {
+                self.digits = tail;
+                self.count = count;
+            }
+            _ => {}
+        }
     }
 
-    #[inline]
+    // FIXME
+    #[inline(always)]
     pub const fn scale_up<const N: usize>(&mut self, mut power: u32) -> Option<D<N>> {
         if self.digits == 0 {
             return None;
@@ -177,6 +220,8 @@ impl ExtraPrecision {
     pub const fn as_decimal<const N: usize>(self, exp: i32, sign: Sign, ctx: Context) -> D<N> {
         let extra_digits = self.digits as u64;
 
+        debug_assert!(self.count == Self::EXTRA_PRECISION_DIGITS);
+
         if extra_digits != 0 {
             construct(
                 UInt::from_digit(extra_digits),
@@ -189,15 +234,6 @@ impl ExtraPrecision {
         } else {
             D::ZERO.set_sign(sign).set_ctx(ctx)
         }
-    }
-}
-
-#[inline(always)]
-pub const fn min(lhs: u32, rhs: u32) -> u32 {
-    if lhs < rhs {
-        lhs
-    } else {
-        rhs
     }
 }
 
@@ -221,6 +257,20 @@ const fn count_digits(digits: u64) -> u32 {
     } else {
         1
     }
+}
+
+#[inline(always)]
+const fn normalize_digits(mut digits: u64, mut count: ExpType) -> (u32, ExpType) {
+    if count > ExtraPrecision::EXTRA_PRECISION_DIGITS {
+        let mp = DIGIT_POWERS_10[(count - ExtraPrecision::EXTRA_PRECISION_DIGITS) as usize];
+        digits /= mp;
+        count = ExtraPrecision::EXTRA_PRECISION_DIGITS;
+    } else if count < ExtraPrecision::EXTRA_PRECISION_DIGITS {
+        let mp = DIGIT_POWERS_10[(ExtraPrecision::EXTRA_PRECISION_DIGITS - count) as usize];
+        digits *= mp;
+    }
+
+    (digits as u32, count)
 }
 
 impl Display for ExtraPrecision {

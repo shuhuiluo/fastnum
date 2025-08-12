@@ -9,10 +9,6 @@ pub(crate) const E_LIMIT: i32 = -(i16::MIN as i32);
 pub(crate) const E_MIN: i32 = -(i16::MAX as i32);
 
 impl<const N: usize> Intrinsics<N> {
-    pub(crate) const COEFF_MAX: UInt<N> = UInt::<N>::MAX;
-
-    pub(crate) const COEFF_MEDIUM: UInt<N> = Self::COEFF_MAX.div(UInt::<N>::TEN);
-
     /// Max length of the _coefficient_ in decimal digits.
     pub(crate) const MAX_CLENGTH: u32 = clength(UInt::<N>::MAX);
 
