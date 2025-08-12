@@ -2,7 +2,7 @@ macro_rules! to_int_impl {
     ($($to_int:ident -> $int:ident),*) => {
         $(
             impl<const N: usize> Int<N> {
-                #[doc = concat!("Converts [Self] into [`", stringify!($int), "`].")]
+                #[doc = concat!("Converts [Self] into [`prim@", stringify!($int), "`].")]
                 #[inline]
                 pub const fn $to_int(self) -> Result<$int, ParseError> {
                     use intrinsics::{Digit, DIGIT_BIT_SHIFT, DIGIT_BITS};

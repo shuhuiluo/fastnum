@@ -4,7 +4,7 @@
 //! of a float to the decimal exponent, with minimal rounding
 //! errors, in a 128 or 192-bit representation.
 //!
-//! DO NOT MODIFY: https://github.com/rust-lang/rust/blob/master/library/core/src/num/dec2flt/table.rs
+//! DO NOT MODIFY: <https://github.com/rust-lang/rust/blob/master/library/core/src/num/dec2flt/table.rs>
 
 pub(super) const SMALLEST_POWER_OF_FIVE: i32 = -342;
 pub(super) const LARGEST_POWER_OF_FIVE: i32 = 308;

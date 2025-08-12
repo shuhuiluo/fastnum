@@ -2,7 +2,7 @@ macro_rules! from {
     ($from: ident $sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Converts [`" stringify!($from) "`] to " doc::link_type_str!($sign $bits) "."
+            "Converts [`prim@" stringify!($from) "`] to " doc::link_type_str!($sign $bits) "."
         }
     };
 }
@@ -13,7 +13,7 @@ macro_rules! to {
     ($to: ident $sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Converts " doc::link_type_str!($sign $bits) " to [`" stringify!($to) "`]."
+            "Converts " doc::link_type_str!($sign $bits) " to [`prim@" stringify!($to) "`]."
         }
     };
 }

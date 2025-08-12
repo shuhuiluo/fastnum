@@ -12,18 +12,18 @@
 //! `__udivmodti4`.
 //!
 //! Unfortunately native dividing the 128-bit number by a 64-bit number is very
-//! slow. About 90-150 nanoseconds O_O !
+//! slow. About 90-150 nanoseconds O_O!
 //!
 //! On ARM64 everything is very bad:
-//! https://www.reddit.com/r/rust/comments/1gy6tae/rust_slower_on_m4_pro/
+//! <https://www.reddit.com/r/rust/comments/1gy6tae/rust_slower_on_m4_pro/>
 //!
 //! Links:
 //!
-//! https://danlark.org/2020/06/14/128-bit-division/
+//! <https://danlark.org/2020/06/14/128-bit-division/>
 //!
-//! https://github.com/ridiculousfish/libdivide
+//! <https://github.com/ridiculousfish/libdivide>
 //!
-//! https://ridiculousfish.com/blog/
+//! <https://ridiculousfish.com/blog/>
 
 #[inline(always)]
 pub const fn _div_64(dividend: u64, divisor: u64) -> u64 {

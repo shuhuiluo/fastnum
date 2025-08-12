@@ -62,7 +62,7 @@ macro_rules! strict_mul_digit {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Strict integer multiplication by [u64].\n\n"
+            "Strict integer multiplication by [`prim@u64`].\n\n"
             "Computes self * rhs, panicking if overflow occurred.\n\n"
 
             "# Panics\n\n"

@@ -52,7 +52,7 @@ macro_rules! cmp {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "This method returns an [`Ordering`] between `self` and `other`.\n\n"
+            "This method returns an [core::cmp::Ordering] between `self` and `other`.\n\n"
             "By convention, `self.cmp(&other)` returns the ordering matching the expression\n"
             "`self <operator> other` if true."
         }

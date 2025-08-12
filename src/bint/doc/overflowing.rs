@@ -30,7 +30,7 @@ macro_rules! overflowing_mul_digit {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Calculates the multiplication of self and [u64] rhs.\n\n"
+            "Calculates the multiplication of self and [`prim@u64`] rhs.\n\n"
             "Returns a tuple of the multiplication along with a boolean indicating whether an arithmetic overflow would occur.\n"
             "If an overflow would have occurred then the wrapped value is returned."
         }

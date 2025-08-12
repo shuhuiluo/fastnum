@@ -1072,7 +1072,7 @@ assert_eq!(D256::NEG_INFINITY.powi(2), D256::INFINITY);
 
 If the operand is a [special value] then the [general rules] apply.
 Otherwise, the ideal exponent of the result is defined to be half the exponent of the operand (rounded to an integer,
-towards [`–Infinity`], if necessary) and then:
+towards [`-Infinity`], if necessary) and then:
 
 * If the operand is less than zero, an ['Invalid operation'] condition is raised.
 * If the operand is greater than zero, the result is the square root of the operand.
@@ -1109,7 +1109,7 @@ Square-root can also be calculated by using the power operation (with a second o
 
 If the operand is a [special value], then the [general rules] apply.
 Otherwise, the ideal exponent of the result is defined to be half the exponent of the operand (rounded to an integer,
-towards [`–Infinity`], if necessary) and then:
+towards [`-Infinity`], if necessary) and then:
 
 * If the operand is less than zero and `n` is even, an ['Invalid operation'] condition is raised.
 * If the operand is equal to zero, the result will be the zero with the same sign as the operand and with the ideal
@@ -1139,7 +1139,7 @@ Otherwise,
 the result is [`e`](https://en.wikipedia.org/wiki/E_(mathematical_constant)) raised to the power of the operand,
 with the following cases:
 
-* If the operand is [`–Infinity`], the result is `0` and exact.
+* If the operand is [`-Infinity`], the result is `0` and exact.
 * If the operand is a zero, the result is `1` and exact.
 * If the operand is [`Infinity`], the result is [`Infinity`] and exact. Otherwise, the result is inexact and will be
   rounded using the context rounding mode.
@@ -1171,7 +1171,7 @@ The standard Taylor series expansion method is used for calculation _e<sup>x</su
 If the operand is a [special value] then the [general rules] apply.
 Otherwise, the result is `2` raised to the power of the operand, with the following cases:
 
-* If the operand is [`–Infinity`], the result is `0` and exact.
+* If the operand is [`-Infinity`], the result is `0` and exact.
 * If the operand is a zero, the result is `1` and exact.
 * If the operand is [`Infinity`], the result is [`Infinity`] and exact.
 * Otherwise, the result is inexact and will be rounded using the context rounding mode.
@@ -1208,7 +1208,7 @@ If the operand is a [special value] then the [general rules] apply.
 Otherwise, the operand must be a zero or positive, and the result is the logarithm base _base_ of the operand, with
 the following cases:
 
-* If the operand is a zero, the result is [`–Infinity`] and exact.
+* If the operand is a zero, the result is [`-Infinity`] and exact.
 * If the operand is [`+Infinity`], the result is [`+Infinity`] and exact.
 * If the operand equals one, the result is `0` and exact.
 * Otherwise, the result is inexact and will be correctly rounded using the [Context] rounding setting.

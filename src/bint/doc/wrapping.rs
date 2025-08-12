@@ -47,7 +47,7 @@ macro_rules! wrapping_mul_digit {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Wrapping (modular) multiplication by [u64]. Computes self * rhs, wrapping around at the boundary of the type."
+            "Wrapping (modular) multiplication by [`prim@u64`]. Computes self * rhs, wrapping around at the boundary of the type."
         }
     };
 }

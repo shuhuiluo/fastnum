@@ -777,7 +777,7 @@ macro_rules! mul_digit {
     ($sign: ident $bits: literal) => {
         doc::doc_comment! {
             $sign $bits,
-            "Integer multiplication by [`u64`].\n\n"
+            "Integer multiplication by [`prim@u64`].\n\n"
             "Computes `self * digit`, panicking if overflow occurred.\n\n"
 
             "## Overflow behavior\n\n"

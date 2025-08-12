@@ -312,8 +312,6 @@ Convert [`D64`]/[`D128`] decimals into `f64` floating point.
 |       36       |   104.97 ns    |      -       |   18.954 ns   |        271.89 ns         |
 |       41       |       -        |      -       |   36.271 ns   |        368.55 ns         |
 
--
-
 <sup>*</sup> `bigdecimal` to float conversion is not pretty accurate.
 
 You can run benchmark tests with [`Criterion.rs`](https://bheisler.github.io/criterion.rs/book/criterion_rs.html) tool:
