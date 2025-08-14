@@ -4,7 +4,7 @@ use crate::bint::{intrinsics::_transmute, Int};
 #[inline(always)]
 pub const unsafe fn transmute<const N: usize, const M: usize>(v: Int<N>) -> Int<M> {
     let bits = v.to_bits();
-    
+
     if N <= M {
         Int::from_digits(_transmute::<_, _, N>(bits.digits()))
     } else {

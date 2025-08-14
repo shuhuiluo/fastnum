@@ -1,7 +1,5 @@
 use crate::{
-    bint::{
-        Int, ParseError, UInt,
-    },
+    bint::{Int, ParseError, UInt},
     utils::const_generics::{Dimension, Narrow, Widen},
     Cast, TryCast,
 };

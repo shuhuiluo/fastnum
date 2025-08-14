@@ -1,5 +1,6 @@
 pub(crate) mod bits;
 pub(crate) mod carrying;
+pub(crate) mod cast;
 pub(crate) mod checked;
 pub(crate) mod cmp;
 pub(crate) mod consts;
@@ -12,7 +13,6 @@ pub(crate) mod saturating;
 pub(crate) mod strict;
 pub(crate) mod widening;
 pub(crate) mod wrapping;
-pub(crate) mod cast;
 
 pub(crate) use crate::doc::*;
 

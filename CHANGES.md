@@ -8,9 +8,28 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ### Added
 
+- Type conversion traits for integers and decimals:
+    - `Cast` — type-safe, infallible conversion (e.g., widening or lossless transforms).
+    - `TryCast` — checked conversion returning an error on overflow, sign mismatch, or incompatible scale.
+    - Supported families: unsigned/signed big integers (`U64`, `U128`, `U256`, `U512`, `U1024`, and `I64`, `I128`,
+      `I256`, `I512`, `I1024`) [#42](https://github.com/neogenie/fastnum/issues/42) and decimals (`UD64`, `UD128`, `UD256`, `UD512`, `UD1024`, and `D64`, `D128`, `D256`,
+      `D512`, `D1024`).
+    - Common scenarios:
+        - Widening cast for integers — via `Cast`.
+        - Checked narrowing cast — via `TryCast`, with overflow errors.
+        - Conversions between unsigned and signed integers — `TryCast` rejects negative/out-of-range values.
+        - Conversions between `UD*` and `D*` — proper sign/scale propagation with checks in `TryCast`.
+- Const-generic “dimensions” for conversion direction checks:
+    - Internal `Widen`/`Narrow` markers ensure `Cast`/`TryCast` correctness without unstable generic const expressions.
+
+### Deprecated
+
+- Decimal `.transmute()` is now deprecated (since "0.5.0"); removal is planned for a future major release.
+  Use `.resize()` or cast via `Cast` and `TryCast` traits instead.
+
 ### Documentation
 
-- Minor fixes.
+- Minor fixes and clarifications; added usage examples for type conversions.
 
 # [0.4.5] - 2025-08-12
 
@@ -50,6 +69,7 @@ This release is mostly focused on fix: [#32](https://github.com/neogenie/fastnum
 A lot of work was done, but a huge part of the optimization should still be completed.
 
 ### Added
+
 - Added core mathematical operations:
     - `widening_mul`: full 256-bit multiplication for 128-bit integers
     - `div_digit`: optimized division by single 64-bit digit
@@ -58,18 +78,21 @@ A lot of work was done, but a huge part of the optimization should still be comp
     - `can_scaled_by_power_of_ten`: overflow prevention for decimal operations
 
 ### Fixed
+
 - Fixed postgres padding overflowing [#43](https://github.com/neogenie/fastnum/issues/43).
 - Fixed bug in `widening_mul` for u128 where high bits were incorrectly handled.
 - Fixed incorrect overflow detection in large number multiplication.
 - Fixed edge cases in power-of-ten scaling operations.
 
 ### Performance
+
 - Optimized division algorithm for decimal numbers.
 - Optimized multiplication algorithm for 128-bit integers.
 - Improved overflow checking using precomputed values.
 - Enhanced decimal digit counting performance.
 
 ### Internal
+
 - Improved code documentation with detailed algorithm descriptions.
 - Added comprehensive examples for core numeric operations.
 - Enhanced performance-related documentation.
@@ -87,12 +110,16 @@ A lot of work was done, but a huge part of the optimization should still be comp
 This release is mostly focused on fix: [#34](https://github.com/neogenie/fastnum/issues/34).
 
 Converting decimal numbers to floating point IEEE 754 was completely redesigned.
-Implementation is based on LLVM’s libc experience: https://llvm.org/devmtg/2022-11/slides/QuickTalk3-ApproximatingatScale-StringToFloat.pdf
+Implementation is based on LLVM’s libc
+experience: https://llvm.org/devmtg/2022-11/slides/QuickTalk3-ApproximatingatScale-StringToFloat.pdf
 Algorithms:
 
-- First pass: Clinger’s Fast Path: [Clinger WD. How to Read Floating Point Numbers Accurately](https://doi.org/10.1145/93548.93557).
-- Second Pass: Eisel-Lemire fast_float: [Number Parsing at a Gigabyte per Second](https://arxiv.org/abs/2101.11408) and [Noble Mushtak, Daniel Lemire. Fast number parsing without fallback](https://doi.org/10.1002/spe.3198).
-- Third Pass: Simple Decimal Conversion [Nigel Tao’s description of the Simple Decimal Conversion algorithm](https://nigeltao.github.io/blog/2020/parse-number-f64-simple.html).
+- First pass: Clinger’s Fast
+  Path: [Clinger WD. How to Read Floating Point Numbers Accurately](https://doi.org/10.1145/93548.93557).
+- Second Pass: Eisel-Lemire fast_float: [Number Parsing at a Gigabyte per Second](https://arxiv.org/abs/2101.11408)
+  and [Noble Mushtak, Daniel Lemire. Fast number parsing without fallback](https://doi.org/10.1002/spe.3198).
+- Third Pass: Simple Decimal
+  Conversion [Nigel Tao’s description of the Simple Decimal Conversion algorithm](https://nigeltao.github.io/blog/2020/parse-number-f64-simple.html).
 
 ### Documentation
 
@@ -102,10 +129,11 @@ Algorithms:
 
 ### Changed
 
-- Bump Rust version to `1.87` (stabilize [`#![feature(integer_sign_cast)]`](https://github.com/rust-lang/rust/issues/125882)).
+- Bump Rust version to `1.87` (stabilize [
+  `#![feature(integer_sign_cast)]`](https://github.com/rust-lang/rust/issues/125882)).
 - Replace big integer's implementation from `bnum` type aliasing to wrapped types.
 - Some minor performance optimizations.
-    
+
 ## [0.2.10] – 2025-06-04
 
 ### Fixed

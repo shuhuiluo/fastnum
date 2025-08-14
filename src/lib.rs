@@ -8,9 +8,9 @@ extern crate core;
 pub mod bint;
 pub mod decimal;
 
+mod cast;
 mod doc;
 mod utils;
-mod cast;
 
 pub use cast::{Cast, TryCast};
 

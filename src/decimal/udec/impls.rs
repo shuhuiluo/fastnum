@@ -1,3 +1,4 @@
+mod cast;
 mod cmp;
 mod default;
 mod fmt;
@@ -8,7 +9,6 @@ mod iter;
 mod ops;
 mod ord;
 mod to;
-mod cast;
 
 #[cfg(feature = "numtraits")]
 mod numtraits;
