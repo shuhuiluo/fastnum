@@ -6,14 +6,12 @@ use crate::{
 type D<const N: usize> = Decimal<N>;
 
 #[inline]
-pub(crate) const fn transmute<const N: usize, const M: usize>(mut d: D<N>) -> D<M> {
-    let mut digits = [0; M];
-    let mut i = 0;
-
+pub(crate) const fn resize<const N: usize, const M: usize>(mut d: D<N>) -> D<M> {
     if M >= N {
-        while i < N {
-            digits[i] = d.digits.digits()[i];
-            i += 1;
+        // SAFETY: M >= N
+        #[allow(unsafe_code)]
+        unsafe {
+            d._transmute()
         }
     } else {
         let power = d
@@ -32,11 +30,10 @@ pub(crate) const fn transmute<const N: usize, const M: usize>(mut d: D<N>) -> D<
 
         debug_assert!(d.digits.last_digit_index() < M);
 
-        while i < M {
-            digits[i] = d.digits.digits()[i];
-            i += 1;
+        // SAFETY: d.digits now contains at most M digits
+        #[allow(unsafe_code)]
+        unsafe {
+            d._transmute()
         }
     }
-
-    D::new(UInt::from_digits(digits), d.cb)
 }

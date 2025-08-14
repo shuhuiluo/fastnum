@@ -39,7 +39,7 @@ const fn decimal_round<const N: usize>(d: D<N>) -> u64 {
     // TODO: performance optimization
     let rounded = d.with_rounding_mode(RoundingMode::HalfEven).round(0);
 
-    let digits = rounded.transmute().digits();
+    let digits = rounded.resize().digits();
 
     if digits.ge(&U::<1>::MAX) {
         return u64::MAX;

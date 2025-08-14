@@ -11,9 +11,9 @@ mod format;
 mod impls;
 mod intrinsics;
 mod parse;
+mod resize;
 mod round;
 mod scale;
-mod transmute;
 
 pub(crate) mod math;
 pub(crate) mod utils;
@@ -1810,23 +1810,68 @@ impl<const N: usize> Decimal<N> {
         output
     }
 
-    /// Transmute the given n-bits decimal number to m-bits decimal number.
-    #[doc = doc::decimal_operation_panics!("transmute operation")]
+    /// _Deprecated_, use [`resize`](Self::resize) instead.
+    #[deprecated(since = "0.5.0")]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn transmute<const M: usize>(self) -> Decimal<M> {
+        self.resize()
+    }
+
+    /// Resizes the underlying decimal to use `M` limbs while preserving the
+    /// numeric value when possible.
+    ///
+    /// This operation can either widen or narrow the internal representation:
+    /// - Widening (`M >= N`) is lossless: the value is preserved.
+    /// - Narrowing (`M < N`) may reduce available capacity. In this case the
+    ///   value is rounded according to the current [`Context`] and
+    ///   corresponding status flags are set.
+    ///
+    /// Behavior details:
+    /// - Rounding: extra precision is rounded using the active [`RoundingMode`]
+    ///   from the current context.
+    /// - Signals: status flags such as `Inexact`, `Rounded`, `Clamped`,
+    ///   `Overflow`, or `Underflow` may be raised depending on the operation
+    ///   outcome and context limits.
+    ///
+    /// Note: lossless, no-rounding conversions
+    /// - If you need to change width without any rounding:
+    ///   - Use [`Cast`] for guaranteed-lossless widening (value-preserving by
+    ///     definition).
+    ///   - Use [`TryCast`] for potential narrowing without rounding; it returns
+    ///     an error if the value does not fit into the target width, thus
+    ///     guaranteeing no silent rounding or truncation.
+    #[doc = doc::decimal_operation_panics!("resize operation")]
     /// # Examples
+    /// ## Lossless widening:
     ///
     /// ```
     /// use fastnum::*;
     ///
-    /// let d = dec256!(1.2345);
+    /// let x = dec64!(123.45);
     ///
-    /// assert_eq!(d.transmute(), dec128!(1.2345));
-    /// assert_eq!(d.transmute(), dec512!(1.2345));
+    /// // Increase internal width from 2 to 4 limbs — value is preserved.
+    /// let y: D128 = x.resize();
+    /// assert_eq!(y, dec128!(123.45));
+    /// assert!(y.is_op_ok());
+    /// ```
+    ///
+    /// ## Narrowing with possible rounding:
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// let x = dec128!(1.8446744073709551616);
+    ///
+    /// // Reduce width; value may be rounded according to context.
+    /// let y: D64 = x.resize();
+    /// // Rounding/precision-loss indicators may be set, depending on capacity and context:
+    /// assert_eq!(y, dec64!(1.844674407370955162));
+    /// assert!(y.is_op_inexact() && y.is_op_rounded());
     /// ```
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
-    pub const fn transmute<const M: usize>(self) -> Decimal<M> {
-        transmute::transmute(self).round_extra_precision().check()
+    #[inline(always)]
+    pub const fn resize<const M: usize>(self) -> Decimal<M> {
+        resize::resize(self).round_extra_precision().check()
     }
 
     /// Returns `true` if the decimal number is even.
@@ -2415,5 +2460,11 @@ impl<const N: usize> Decimal<N> {
         let digits = self.digits.to_str_radix(10);
         let scale = self.cb.get_scale();
         format::write_engineering_notation(digits, scale, w)
+    }
+
+    #[allow(unsafe_code)]
+    #[inline(always)]
+    pub(crate) const unsafe fn _transmute<const M: usize>(self) -> Decimal<M> {
+        Decimal::new(self.digits._transmute(), self.cb)
     }
 }

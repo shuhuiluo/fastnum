@@ -1,3 +1,5 @@
+pub(crate) mod const_generics;
+
 macro_rules! err_prefix {
     () => {
         "(fastnum)"

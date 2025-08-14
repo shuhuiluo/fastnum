@@ -1,20 +1,6 @@
 use crate::bint::intrinsics::*;
 
 #[inline]
-pub const fn last_digit_index<const N: usize>(digits: &Digits<N>) -> usize {
-    let mut index = 0;
-    let mut i = 1;
-
-    while i < N {
-        if digits[i] != 0 {
-            index = i;
-        }
-        i += 1;
-    }
-    index
-}
-
-#[inline]
 pub const fn basecase_div_rem<const N: usize>(
     digits: Digits<N>,
     mut v: Digits<N>,

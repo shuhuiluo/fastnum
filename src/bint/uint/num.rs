@@ -1,8 +1,9 @@
 use crate::bint::{
     doc,
-    math::last_digit_index,
+    intrinsics::last_digit_index,
     num::num_impl,
     uint::{
+        intrinsics,
         intrinsics::{Digit, Digits, ExpType},
         math, powers,
     },
@@ -174,5 +175,11 @@ impl<const N: usize> UInt<N> {
     #[inline(always)]
     pub(crate) const fn last_digit_index(&self) -> usize {
         last_digit_index(self.digits())
+    }
+
+    #[allow(unsafe_code)]
+    #[inline(always)]
+    pub(crate) const unsafe fn _transmute<const M: usize>(self) -> UInt<M> {
+        intrinsics::transmute(self)
     }
 }

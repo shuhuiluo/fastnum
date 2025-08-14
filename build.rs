@@ -10,6 +10,12 @@ const FMT_MAX_INTEGER_PADDING: &str = "1000";
 const SERDE_DESERIALIZE_MODE: &str = "Strict";
 
 fn main() {
+    // Enable when `generic_const_exprs` are relatively stable in nightly.
+    // println!("cargo::rustc-check-cfg=cfg(nightly)");
+    // if rustversion::cfg!(nightly) {
+    //     println!("cargo:rustc-cfg=nightly");
+    // }
+
     let out_dir: PathBuf = env::var_os("OUT_DIR").unwrap().into();
     write_default_rounding_mode(&out_dir);
     write_exponential_format_threshold(&out_dir);

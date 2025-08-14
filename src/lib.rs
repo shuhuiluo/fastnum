@@ -1,5 +1,6 @@
 #![doc = include_str!("../doc/LIB.md")]
 #![deny(unsafe_code, missing_docs, clippy::all, clippy::cargo)]
+// #![cfg_attr(nightly, feature(generic_const_exprs))]
 
 extern crate alloc;
 extern crate core;
@@ -9,6 +10,9 @@ pub mod decimal;
 
 mod doc;
 mod utils;
+mod cast;
+
+pub use cast::{Cast, TryCast};
 
 // pub use bint::{I1024, I128, I2048, I256, I4096, I512, I64, I8192};
 pub use bint::{I1024, I128, I256, I512, I64};

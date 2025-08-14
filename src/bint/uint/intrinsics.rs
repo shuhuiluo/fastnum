@@ -1,10 +1,12 @@
 mod powers;
+mod transmute;
 
 use powers::*;
 
 use crate::bint::UInt;
 
 pub use crate::bint::intrinsics::*;
+pub use transmute::*;
 
 pub struct Intrinsics<const N: usize>;
 

@@ -12,6 +12,7 @@ pub(crate) mod saturating;
 pub(crate) mod strict;
 pub(crate) mod widening;
 pub(crate) mod wrapping;
+pub(crate) mod cast;
 
 pub(crate) use crate::doc::*;
 

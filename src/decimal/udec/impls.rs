@@ -8,6 +8,7 @@ mod iter;
 mod ops;
 mod ord;
 mod to;
+mod cast;
 
 #[cfg(feature = "numtraits")]
 mod numtraits;

@@ -1,4 +1,10 @@
-use crate::bint::{doc, int::math, intrinsics::ExpType, num::num_impl, Int, UInt};
+use crate::bint::{
+    doc,
+    int::{intrinsics, math},
+    intrinsics::{Digits, ExpType},
+    num::num_impl,
+    Int, UInt,
+};
 
 num_impl!(Int, I);
 
@@ -92,5 +98,24 @@ impl<const N: usize> Int<N> {
     #[inline(always)]
     pub const fn div_rem(self, rhs: Self) -> (Self, Self) {
         math::div_rem(self, rhs)
+    }
+
+    #[doc = doc::num::from_digits!(I 256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn from_digits(digits: Digits<N>) -> Self {
+        Self(bnum::BInt::from_bits(bnum::BUint::from_digits(digits)))
+    }
+
+    #[inline(always)]
+    pub(crate) const fn last_digit_index(&self) -> usize {
+        let bits = self.to_bits();
+        bits.last_digit_index()
+    }
+
+    #[allow(unsafe_code)]
+    #[inline(always)]
+    pub(crate) const unsafe fn _transmute<const M: usize>(self) -> Int<M> {
+        intrinsics::transmute(self)
     }
 }

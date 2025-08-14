@@ -5,6 +5,8 @@ mod ilog;
 mod mul;
 mod powers;
 mod u128;
+mod transmute;
+mod digits;
 
 pub use add::*;
 pub use cmp::*;
@@ -13,6 +15,8 @@ pub use ilog::*;
 pub use mul::*;
 pub use powers::*;
 pub use u128::*;
+pub use transmute::*;
+pub use digits::*;
 
 pub type Digit = u64;
 pub type DoubleDigit = u128;

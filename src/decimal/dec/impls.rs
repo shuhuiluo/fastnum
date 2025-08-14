@@ -1,3 +1,4 @@
+mod cast;
 mod cmp;
 mod default;
 mod fmt;

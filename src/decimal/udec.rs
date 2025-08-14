@@ -1301,24 +1301,70 @@ impl<const N: usize> UnsignedDecimal<N> {
         Ok(Self::new(d))
     }
 
-    /// Transmute the given n-bits unsigned decimal number to m-bits unsigned
-    /// decimal number.
-    #[doc = doc::decimal_operation_panics!("transmute operation")]
+    /// _Deprecated_, use [`resize`](Self::resize) instead.
+    #[deprecated(since = "0.5.0")]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn transmute<const M: usize>(self) -> UnsignedDecimal<M> {
+        self.resize()
+    }
+
+    /// Resizes the underlying unsigned decimal to use `M` limbs while
+    /// preserving the numeric value when possible.
+    ///
+    /// This operation can either widen or narrow the internal representation:
+    /// - Widening (`M >= N`) is lossless: the value is preserved.
+    /// - Narrowing (`M < N`) may reduce available capacity. In this case the
+    ///   value is rounded according to the current [`Context`] and
+    ///   corresponding status flags are set.
+    ///
+    /// Behavior details:
+    /// - Rounding: extra precision is rounded using the active [`RoundingMode`]
+    ///   from the current context.
+    /// - Signals: status flags such as `Inexact`, `Rounded`, `Clamped`,
+    ///   `Overflow`, or `Underflow` may be raised depending on the operation
+    ///   outcome and context limits.
+    ///
+    /// Note: lossless, no-rounding conversions
+    /// - If you need to change width without any rounding:
+    ///   - Use [`Cast`] for guaranteed-lossless widening (value-preserving by
+    ///     definition).
+    ///   - Use [`TryCast`] for potential narrowing without rounding; it returns
+    ///     an error if the value does not fit into the target width, thus
+    ///     guaranteeing no silent rounding or truncation.
+    #[doc = doc::decimal_operation_panics!("resize operation")]
     /// # Examples
+    /// ## Lossless widening:
     ///
     /// ```
     /// use fastnum::*;
     ///
-    /// let d = udec256!(1.2345);
+    /// let x = udec64!(123.45);
     ///
-    /// assert_eq!(d.transmute(), udec128!(1.2345));
-    /// assert_eq!(d.transmute(), udec512!(1.2345));
+    /// // Increase internal width from 2 to 4 limbs — value is preserved.
+    /// let y: UD128 = x.resize();
+    /// assert_eq!(y, udec128!(123.45));
+    /// assert!(y.is_op_ok());
+    /// ```
+    ///
+    /// ## Narrowing with possible rounding:
+    ///
+    /// ```
+    /// use fastnum::*;
+    ///
+    /// let x = udec128!(1.8446744073709551616);
+    ///
+    /// // Reduce width; value may be rounded according to context.
+    /// let y: UD64 = x.resize();
+    ///
+    /// // Rounding/precision-loss indicators may be set, depending on capacity and context:
+    /// assert_eq!(y, udec64!(1.844674407370955162));
+    /// assert!(y.is_op_inexact() && y.is_op_rounded());
     /// ```
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
-    pub const fn transmute<const M: usize>(self) -> UnsignedDecimal<M> {
-        UnsignedDecimal::new(self.0.transmute())
+    #[inline(always)]
+    pub const fn resize<const M: usize>(self) -> UnsignedDecimal<M> {
+        UnsignedDecimal::new(self.0.resize())
     }
 }
 

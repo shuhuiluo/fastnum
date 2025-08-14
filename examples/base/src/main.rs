@@ -16,13 +16,6 @@ use fastnum::*;
 
 fn main() {
     println!("Hello, fastnum!");
-    let uint = u128!(1234567890);
-    println!("U128: {uint}");
-
-    let lz = uint.leading_zeros();
-    println!("leading zeros: {lz}");
-
-    let uint = U128::from_u128(1234);
 
     let dec = dec128!(0.8);
     println!("Input ({dec})");

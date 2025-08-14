@@ -173,7 +173,7 @@ const fn div_rem_long<const N: usize>(dividend: U<N>, divisor: U<N>) -> (U<N>, U
 // TODO(!)
 #[inline(always)]
 const fn div_rem_wide_long<const N: usize>(low: U<N>, high: U<N>, divisor: U<N>) -> (U<N>, U<N>) {
-    debug_assert!(N % 2 == 0);
+    debug_assert!(N.is_multiple_of(2));
 
     let mut d = divisor;
     let mut l = low;
@@ -200,7 +200,7 @@ const fn div_rem_wide_long<const N: usize>(low: U<N>, high: U<N>, divisor: U<N>)
 
 #[inline]
 const fn split<const N: usize>(value: U<N>) -> (U<N>, U<N>) {
-    debug_assert!(N % 2 == 0);
+    debug_assert!(N.is_multiple_of(2));
 
     let mut low = [0; N];
     let mut high = [0; N];
@@ -223,7 +223,7 @@ const fn split<const N: usize>(value: U<N>) -> (U<N>, U<N>) {
 
 #[inline]
 const fn join<const N: usize>(low: U<N>, high: U<N>) -> U<N> {
-    debug_assert!(N % 2 == 0);
+    debug_assert!(N.is_multiple_of(2));
 
     let mut out = [0; N];
 

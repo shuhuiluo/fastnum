@@ -1,3 +1,7 @@
+mod transmute;
+
+pub use transmute::*;
+
 use crate::bint::{Int, UInt};
 
 pub use crate::bint::intrinsics::*;
