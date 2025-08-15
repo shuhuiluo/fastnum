@@ -83,13 +83,13 @@ get rid of one indirect addressing, which improves cache-friendliness and reduce
 To install and use `fastnum`, add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.5"
+fastnum = "0.6"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.5", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.6", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example usage
@@ -813,7 +813,7 @@ assert_eq!(dec256!(-1.3).unsigned_abs(), udec256!(1.3));
 
 [`add(self, other)`](crate::decimal::Decimal::add) | [`sub(self, other)`](crate::decimal::Decimal::sub)
 
-If either operand is a [special value] then the [general rules] apply.
+If either operand is a [special value], then the [general rules] apply.
 Otherwise, the operands are added (after inverting the sign used for the second operand if the operation is a
 subtraction), as follows:
 
@@ -850,7 +850,7 @@ assert_eq!(dec256!(1.3) - dec256!(2.07), dec256!(-0.77));
 
 [`div(dividend, divisor)`](crate::decimal::Decimal::div)
 
-If either operand is a [special value] then the [general rules] apply.
+If either operand is a [special value], then the [general rules] apply.
 Otherwise, if the divisor is zero then the [`Division by zero`] condition is raised and the result is an [`Infinity`]
 with a sign which is the exclusive or of the signs of the operands.
 
@@ -912,7 +912,7 @@ exponent will be set appropriately.
 
 [`mul(self, other)`](crate::decimal::Decimal::mul)
 
-If either operand is a [special value] then the [general rules] apply.
+If either operand is a [special value], then the [general rules] apply.
 Otherwise, the operands are multiplied together (_long multiplication_), resulting in a number which may be as long as
 the sum of the lengths of the two operands, as follows:
 
@@ -965,7 +965,7 @@ assert_eq!(dec128!(1.0).mul_add(dec128!(2), dec128!(0.5)), dec128!(2.5));
 [`rem(self, other)`](crate::decimal::Decimal::rem) | [`rem(self, other)`](crate::decimal::UnsignedDecimal::rem)
 
 Remainder takes two operands; it returns the remainder from integer division.
-If either operand is a [special value] then the [general rules] apply.
+If either operand is a [special value], then the [general rules] apply.
 
 Otherwise, the result is the residue of the dividend after the operation of calculating integer division, rounded to
 precision digits if necessary.
@@ -1006,7 +1006,7 @@ Notes:
 
 [`powi(self, n)`](crate::decimal::Decimal::powi) | [`pow(self, n)`](crate::decimal::Decimal::pow)
 
-If either operand is a [special value] then the [general rules] apply.
+If either operand is a [special value], then the [general rules] apply.
 
 The following rules apply:
 
@@ -1499,7 +1499,7 @@ Returns a value equal to `self` (rounded), having the exponent of `other`.
 The `quantize` semantics specifies the desired quantum by example.                        
 The sign and coefficient of the `other` are ignored.
 
-If either operand is a [special value] then the [general rules] apply,                    
+If either operand is a [special value], then the [general rules] apply,                    
 except that:
 
 - if either operand is infinite and the other is finite, an [`Invalid operation`] condition is raised and the result
@@ -1551,6 +1551,39 @@ precision, then an [`Invalid operation`] condition is raised.
 This guarantees that, unless there is an error condition, the exponent of the `quantize` result is always equal to that
 of the second operand.                                                                                  
 Also, unlike other operations, `quantize` will never raise [`Underflow`], even if the result is subnormal and inexact.
+
+## Truncate
+
+[truncate]: #truncate
+
+[`trunc(self)`](crate::decimal::Decimal::trunc)
+[`trunc_with_scale(self, scale)`](crate::decimal::Decimal::trunc_with_scale)
+
+If `self` is a [special value] then the [general rules] apply, and an [`Invalid operation`] condition is raised
+and the result is [`NaN`].
+Otherwise, `truncate` quantize the `self` decimal number specified to the power of ten of the quantum (`scale`).
+
+The coefficient:
+
+- **Is not rounded**, in opposition to rescale
+
+### Examples
+
+```
+use fastnum::{*, decimal::*};                                                     
+
+assert_eq!(dec256!(2.17).trunc_with_scale(3),dec256!(2.170));
+assert_eq!(dec256!(2.17).trunc_with_scale(2), dec256!(2.17));
+assert_eq!(dec256!(2.17).trunc_with_scale(1), dec256!(2.1));
+assert_eq!(dec256!(2.9).trunc(), dec256!(2));
+assert_eq!(dec256!(2.17).trunc_with_scale(-1), dec256!(0));
+
+let ctx = Context::default().without_traps();   
+
+assert!(D256::INFINITY.with_ctx(ctx).trunc_with_scale(2).is_nan());
+assert!(D256::NEG_INFINITY.with_ctx(ctx).trunc_with_scale(2).is_nan());
+assert!(D256::NAN.with_ctx(ctx).trunc_with_scale(1).is_nan());
+```
 
 ## Rounding
 

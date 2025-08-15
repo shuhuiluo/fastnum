@@ -451,15 +451,6 @@ impl<const N: usize> UnsignedDecimal<N> {
         self
     }
 
-    /// _Deprecated_, use [`quantum`](Self::quantum) instead.
-    #[must_use]
-    #[deprecated(since = "0.1.2")]
-    #[track_caller]
-    #[inline]
-    pub const fn from_scale(exp: i16) -> Self {
-        Self::quantum(exp as i32, Context::default())
-    }
-
     /// The quantum of a finite number is given by: 1 × 10<sup>exp</sup>.
     /// This is the value of a unit in the least significant position of the
     /// coefficient of a finite number.
@@ -504,15 +495,6 @@ impl<const N: usize> UnsignedDecimal<N> {
     #[inline]
     pub const fn reduce(self) -> Self {
         Self::new(self.0.reduce())
-    }
-
-    /// _Deprecated_, use [`reduce`](Self::reduce) instead.
-    #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[deprecated(since = "0.1.4")]
-    #[inline]
-    pub const fn normalized(self) -> Self {
-        self.reduce()
     }
 
     /// Invert sign of the given unsigned decimal.
@@ -733,6 +715,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Calculates `self` + `rhs`.
     ///
     /// Is internally used by the `+` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("addition operation")]
     /// # Examples
     ///
@@ -769,6 +753,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Calculates `self` – `rhs`.
     ///
     /// Is internally used by the `-` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("subtract operation")]
     /// # Examples
     ///
@@ -806,6 +792,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Calculates `self` × `rhs`.
     ///
     /// Is internally used by the `*` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("multiplication operation")]
     /// # Examples
     ///
@@ -843,6 +831,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Calculates `self` ÷ `rhs`.
     ///
     /// Is internally used by the `/` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("divide operation")]
     /// # Examples
     ///
@@ -880,6 +870,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Calculates `self` % `rhs`.
     ///
     /// Is internally used by the `%` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("reminder operation")]
     /// # Examples
     ///
@@ -902,6 +894,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     }
 
     /// Takes the reciprocal (inverse) of a number, `1/x`.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("reciprocal operation")]
     #[doc = doc::decimal_inexact!("reciprocal")]
     /// # Examples
@@ -922,6 +916,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     ///
     /// Using this function is generally slower than using `powi` for integer
     /// exponents or `sqrt` method for `1/2` exponent.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("power operation")]
     /// # Examples
     ///
@@ -945,6 +941,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Raise an unsigned decimal number to an integer power.
     ///
     /// Using this function is generally faster than using `pow`
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("power operation")]
     /// # Examples
     ///
@@ -973,6 +971,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     /// Square-root can also be calculated by using the `power` operation (with
     /// a second operand of `0.5`). The result in that case will not be exact
     /// and may not be correctly rounded.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("sqrt operation")]
     /// # Examples
     ///
@@ -995,6 +995,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     }
 
     /// Returns _e<sup>self</sup>_, (the exponential function).
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("exponent operation")]
     /// # Examples
     ///
@@ -1015,6 +1017,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     }
 
     /// Returns the natural logarithm of the unsigned decimal number.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1036,6 +1040,8 @@ impl<const N: usize> UnsignedDecimal<N> {
 
     /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
     /// error, yielding a more accurate result than an unfused multiply-add.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("multiply-add operation")]
     /// # Examples
     ///
@@ -1057,6 +1063,8 @@ impl<const N: usize> UnsignedDecimal<N> {
 
     /// Returns the given decimal number rounded to `digits` precision after the
     /// decimal point, using [RoundingMode] from it [Context].
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("round operation (up-scale or down-scale)")]
     /// # Examples
     ///
@@ -1124,17 +1132,10 @@ impl<const N: usize> UnsignedDecimal<N> {
         Self::new(self.0.ceil())
     }
 
-    /// _Deprecated_, use [`rescale`](Self::rescale) instead.
-    #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
-    #[deprecated(since = "0.1.4")]
-    pub const fn with_scale(self, new_scale: i16) -> Self {
-        Self::rescale(self, new_scale)
-    }
-
     /// Returns the given decimal number _re-scaled_ to `digits` precision after
     /// the decimal point.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("rescale operation")]
     /// # Examples
     ///
@@ -1166,6 +1167,8 @@ impl<const N: usize> UnsignedDecimal<N> {
 
     /// Returns a value equal to `self` (rounded), having the exponent of
     /// `other`.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("quantize operation")]
     /// # Examples
     ///
@@ -1204,6 +1207,20 @@ impl<const N: usize> UnsignedDecimal<N> {
     pub const fn quantize(mut self, other: Self) -> Self {
         self.0 = self.0.quantize(other.0);
         self
+    }
+
+    #[doc = doc::trunc::trunc!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn trunc(self) -> Self {
+        Self::new(self.0.trunc())
+    }
+
+    #[doc = doc::trunc::trunc_with_scale!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn trunc_with_scale(self, scale: i16) -> Self {
+        Self::new(self.0.trunc_with_scale(scale))
     }
 
     /// Returns:
@@ -1309,58 +1326,7 @@ impl<const N: usize> UnsignedDecimal<N> {
         self.resize()
     }
 
-    /// Resizes the underlying unsigned decimal to use `M` limbs while
-    /// preserving the numeric value when possible.
-    ///
-    /// This operation can either widen or narrow the internal representation:
-    /// - Widening (`M >= N`) is lossless: the value is preserved.
-    /// - Narrowing (`M < N`) may reduce available capacity. In this case the
-    ///   value is rounded according to the current [`Context`] and
-    ///   corresponding status flags are set.
-    ///
-    /// Behavior details:
-    /// - Rounding: extra precision is rounded using the active [`RoundingMode`]
-    ///   from the current context.
-    /// - Signals: status flags such as `Inexact`, `Rounded`, `Clamped`,
-    ///   `Overflow`, or `Underflow` may be raised depending on the operation
-    ///   outcome and context limits.
-    ///
-    /// Note: lossless, no-rounding conversions
-    /// - If you need to change width without any rounding:
-    ///   - Use [`Cast`] for guaranteed-lossless widening (value-preserving by
-    ///     definition).
-    ///   - Use [`TryCast`] for potential narrowing without rounding; it returns
-    ///     an error if the value does not fit into the target width, thus
-    ///     guaranteeing no silent rounding or truncation.
-    #[doc = doc::decimal_operation_panics!("resize operation")]
-    /// # Examples
-    /// ## Lossless widening:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// let x = udec64!(123.45);
-    ///
-    /// // Increase internal width from 2 to 4 limbs — value is preserved.
-    /// let y: UD128 = x.resize();
-    /// assert_eq!(y, udec128!(123.45));
-    /// assert!(y.is_op_ok());
-    /// ```
-    ///
-    /// ## Narrowing with possible rounding:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// let x = udec128!(1.8446744073709551616);
-    ///
-    /// // Reduce width; value may be rounded according to context.
-    /// let y: UD64 = x.resize();
-    ///
-    /// // Rounding/precision-loss indicators may be set, depending on capacity and context:
-    /// assert_eq!(y, udec64!(1.844674407370955162));
-    /// assert!(y.is_op_inexact() && y.is_op_rounded());
-    /// ```
+    #[doc = doc::resize::resize!(64 U)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn resize<const M: usize>(self) -> UnsignedDecimal<M> {

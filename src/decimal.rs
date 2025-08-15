@@ -35,15 +35,13 @@ pub use sign::Sign;
 pub use signals::Signals;
 pub use udec::UnsignedDecimal;
 
-use crate::decimal::doc::decimal_type_doc;
-
 macro_rules! decimal_types {
     ( $($bits: literal $u: ident $s: ident; ) *)  => {
         $(
-            #[doc = decimal_type_doc!($bits, "unsigned")]
+            #[doc = doc::decimal_type_doc!($bits U)]
             pub type $u = UnsignedDecimal::<{$bits / 64}>;
 
-            #[doc = decimal_type_doc!($bits, "signed")]
+            #[doc = doc::decimal_type_doc!($bits)]
             pub type $s = Decimal::<{$bits / 64}>;
         )*
     };

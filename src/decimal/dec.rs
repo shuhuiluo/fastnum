@@ -14,6 +14,7 @@ mod parse;
 mod resize;
 mod round;
 mod scale;
+mod truncate;
 
 pub(crate) mod math;
 pub(crate) mod utils;
@@ -703,14 +704,6 @@ impl<const N: usize> Decimal<N> {
         UnsignedDecimal::new(self.abs())
     }
 
-    /// _Deprecated_, use [`quantum`](Self::quantum) instead.
-    #[must_use]
-    #[deprecated(since = "0.1.2")]
-    #[inline]
-    pub const fn from_scale(exp: i16) -> Self {
-        Self::quantum(exp as i32, Context::default())
-    }
-
     /// The quantum of a finite number is given by: 1 × 10<sup>exp</sup>.
     /// This is the value of a unit in the least significant position of the
     /// coefficient of a finite number.
@@ -762,14 +755,6 @@ impl<const N: usize> Decimal<N> {
         } else {
             Self::ONE
         }
-    }
-
-    /// _Deprecated_, use [`reduce`](Self::reduce) instead.
-    #[must_use = doc::must_use_op!()]
-    #[deprecated(since = "0.1.4")]
-    #[inline]
-    pub const fn normalized(self) -> Self {
-        self.reduce()
     }
 
     /// Reduces a decimal number to its shortest (coefficient)
@@ -1005,6 +990,8 @@ impl<const N: usize> Decimal<N> {
     /// Calculates `self` + `rhs`.
     ///
     /// Is internally used by the `+` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("addition operation")]
     /// # Examples
     ///
@@ -1042,6 +1029,8 @@ impl<const N: usize> Decimal<N> {
     /// Calculates `self` – `rhs`.
     ///
     /// Is internally used by the `-` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("subtract operation")]
     /// # Examples
     ///
@@ -1078,6 +1067,8 @@ impl<const N: usize> Decimal<N> {
     /// Calculates `self` × `rhs`.
     ///
     /// Is internally used by the `*` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("multiplication operation")]
     /// # Examples
     ///
@@ -1115,6 +1106,8 @@ impl<const N: usize> Decimal<N> {
     /// Calculates `self` ÷ `rhs`.
     ///
     /// Is internally used by the `/` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("divide operation")]
     /// # Examples
     ///
@@ -1152,6 +1145,8 @@ impl<const N: usize> Decimal<N> {
     /// Calculates `self` % `rhs`.
     ///
     /// Is internally used by the `%` operator.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("reminder operation")]
     /// # Examples
     ///
@@ -1178,7 +1173,7 @@ impl<const N: usize> Decimal<N> {
     /// Using this function is generally slower than using `powi` for integer
     /// powers or `sqrt` method for `1/2` exponent.
     #[doc = doc::decimal_inexact!("power operation")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("power operation")]
     /// # Examples
     ///
@@ -1202,6 +1197,8 @@ impl<const N: usize> Decimal<N> {
     /// Raise a decimal number to an integer power.
     ///
     /// Using this function is generally faster than using `pow`
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("power operation")]
     /// # Examples
     ///
@@ -1232,7 +1229,7 @@ impl<const N: usize> Decimal<N> {
     /// Returns [`NaN`](crate#nan) if `self` is a negative number other than
     /// `-0.0`.
     #[doc = doc::decimal_inexact!("square root operation")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("square root operation")]
     /// # Examples
     ///
@@ -1258,7 +1255,7 @@ impl<const N: usize> Decimal<N> {
     /// Take the cubic root of a decimal number using
     /// [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).
     #[doc = doc::decimal_inexact!("cubic root operation")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("cubic root operation")]
     /// # Examples
     ///
@@ -1281,7 +1278,7 @@ impl<const N: usize> Decimal<N> {
     /// Take the N-th root of the decimal number using
     /// [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method).
     #[doc = doc::decimal_inexact!("N-th root operation")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("N-th root operation")]
     /// # Examples
     ///
@@ -1305,7 +1302,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns _e<sup>self</sup>_, (the exponential function).
     #[doc = doc::decimal_inexact!("exponential function")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("exponent calculation")]
     /// # Examples
     ///
@@ -1327,7 +1324,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns _e<sup>self</sup> – 1_.
     #[doc = doc::decimal_inexact!("exponential function")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("exponent calculation")]
     /// # Examples
     ///
@@ -1348,7 +1345,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns _2<sup>self</sup>_, (the binary exponential function).
     #[doc = doc::decimal_inexact!("binary exponential function")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("binary exponential function")]
     /// # Examples
     ///
@@ -1373,7 +1370,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns the natural logarithm of the decimal number.
     #[doc = doc::decimal_inexact!("natural logarithm")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1395,7 +1392,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns _ln(1 + n)_ (natural logarithm).
     #[doc = doc::decimal_inexact!("natural logarithm")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1416,7 +1413,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns the _base_ logarithm of the decimal number.
     #[doc = doc::decimal_inexact!("logarithm")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1438,7 +1435,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns the binary logarithm of the decimal number.
     #[doc = doc::decimal_inexact!("binary logarithm")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1460,7 +1457,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns the decimal logarithm of the given number.
     #[doc = doc::decimal_inexact!("decimal logarithm")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("logarithm operation")]
     /// # Examples
     ///
@@ -1482,6 +1479,8 @@ impl<const N: usize> Decimal<N> {
 
     /// Calculate the length of the hypotenuse of a right-angle triangle given
     /// legs of length `x` and `y`.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("hypotenuse calculate operation")]
     /// # Examples
     ///
@@ -1507,6 +1506,8 @@ impl<const N: usize> Decimal<N> {
 
     /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
     /// error, yielding a more accurate result than an unfused multiply-add.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("multiply-add operation")]
     /// # Examples
     ///
@@ -1531,6 +1532,8 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns the given decimal number rounded to `digits` precision after the
     /// decimal point, using [RoundingMode] from it [Context].
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("round operation (up-scale or down-scale)")]
     /// # Examples
     ///
@@ -1554,6 +1557,20 @@ impl<const N: usize> Decimal<N> {
     #[inline(always)]
     pub const fn round(self, digits: i16) -> Self {
         self.rescale(digits)
+    }
+
+    #[doc = doc::trunc::trunc!(256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn trunc(self) -> Self {
+        truncate::truncate(self, 0).check()
+    }
+
+    #[doc = doc::trunc::trunc_with_scale!(256)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn trunc_with_scale(self, scale: i16) -> Self {
+        truncate::truncate(self, scale).check()
     }
 
     /// Returns the largest integer less than or equal to a number.
@@ -1607,17 +1624,10 @@ impl<const N: usize> Decimal<N> {
         round::ceil(self)
     }
 
-    /// _Deprecated_, use [`rescale`](Self::rescale) instead.
-    #[must_use = doc::must_use_op!()]
-    #[inline]
-    #[track_caller]
-    #[deprecated(since = "0.1.4")]
-    pub const fn with_scale(self, new_scale: i16) -> Self {
-        self.rescale(new_scale)
-    }
-
     /// Returns the given decimal number _re-scaled_ to `digits` precision after
     /// the decimal point.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("rescale operation")]
     /// # Examples
     ///
@@ -1650,6 +1660,8 @@ impl<const N: usize> Decimal<N> {
 
     /// Returns a value equal to `self` (rounded), having the exponent of
     /// `other`.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("quantize operation")]
     /// # Examples
     ///
@@ -1718,6 +1730,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Takes the reciprocal (inverse) of a number, `1/x`.
     #[doc = doc::decimal_inexact!("reciprocal")]
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("reciprocal operation")]
     /// # Examples
     ///
@@ -1734,6 +1747,8 @@ impl<const N: usize> Decimal<N> {
     }
 
     /// Converts radians to degrees.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("conversion")]
     /// # Examples
     ///
@@ -1752,6 +1767,8 @@ impl<const N: usize> Decimal<N> {
     }
 
     /// Converts degrees to radians.
+    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("conversion")]
     /// # Examples
     ///
@@ -1818,56 +1835,7 @@ impl<const N: usize> Decimal<N> {
         self.resize()
     }
 
-    /// Resizes the underlying decimal to use `M` limbs while preserving the
-    /// numeric value when possible.
-    ///
-    /// This operation can either widen or narrow the internal representation:
-    /// - Widening (`M >= N`) is lossless: the value is preserved.
-    /// - Narrowing (`M < N`) may reduce available capacity. In this case the
-    ///   value is rounded according to the current [`Context`] and
-    ///   corresponding status flags are set.
-    ///
-    /// Behavior details:
-    /// - Rounding: extra precision is rounded using the active [`RoundingMode`]
-    ///   from the current context.
-    /// - Signals: status flags such as `Inexact`, `Rounded`, `Clamped`,
-    ///   `Overflow`, or `Underflow` may be raised depending on the operation
-    ///   outcome and context limits.
-    ///
-    /// Note: lossless, no-rounding conversions
-    /// - If you need to change width without any rounding:
-    ///   - Use [`Cast`] for guaranteed-lossless widening (value-preserving by
-    ///     definition).
-    ///   - Use [`TryCast`] for potential narrowing without rounding; it returns
-    ///     an error if the value does not fit into the target width, thus
-    ///     guaranteeing no silent rounding or truncation.
-    #[doc = doc::decimal_operation_panics!("resize operation")]
-    /// # Examples
-    /// ## Lossless widening:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// let x = dec64!(123.45);
-    ///
-    /// // Increase internal width from 2 to 4 limbs — value is preserved.
-    /// let y: D128 = x.resize();
-    /// assert_eq!(y, dec128!(123.45));
-    /// assert!(y.is_op_ok());
-    /// ```
-    ///
-    /// ## Narrowing with possible rounding:
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// let x = dec128!(1.8446744073709551616);
-    ///
-    /// // Reduce width; value may be rounded according to context.
-    /// let y: D64 = x.resize();
-    /// // Rounding/precision-loss indicators may be set, depending on capacity and context:
-    /// assert_eq!(y, dec64!(1.844674407370955162));
-    /// assert!(y.is_op_inexact() && y.is_op_rounded());
-    /// ```
+    #[doc = doc::resize::resize!(64)]
     #[must_use = doc::must_use_op!()]
     #[inline(always)]
     pub const fn resize<const M: usize>(self) -> Decimal<M> {
@@ -1926,7 +1894,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _sin(self)_ (trigonometric sine of decimal number in radians).
     #[doc = doc::decimal_inexact!("trigonometric sine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric sine operation")]
     /// # Examples
     ///
@@ -1949,7 +1917,7 @@ impl<const N: usize> Decimal<N> {
     /// Computes _cos(self)_ (trigonometric cosine of decimal number in
     /// radians).
     #[doc = doc::decimal_inexact!("trigonometric cosine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric cosine operation")]
     /// # Examples
     ///
@@ -1972,7 +1940,7 @@ impl<const N: usize> Decimal<N> {
     /// Computes _tan(self)_ (trigonometric tangent of decimal number in
     /// radians).
     #[doc = doc::decimal_inexact!("trigonometric tangent")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric tangent operation")]
     /// # Examples
     ///
@@ -1997,7 +1965,7 @@ impl<const N: usize> Decimal<N> {
     /// Return value is in radians in the range [-π/2, π/2] or `NaN`
     /// if the number is outside the range [-1, 1].
     #[doc = doc::decimal_inexact!("trigonometric arcsine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric arcsine operation")]
     /// # Examples
     ///
@@ -2022,7 +1990,7 @@ impl<const N: usize> Decimal<N> {
     /// Return value is in radians in the range [0, π] or `NaN`
     /// if the number is outside the range [-1, 1].
     #[doc = doc::decimal_inexact!("trigonometric arccosine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric arccosine operation")]
     /// # Examples
     ///
@@ -2046,7 +2014,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// Return value is in radians in the range [-π/2, π/2].
     #[doc = doc::decimal_inexact!("trigonometric arctangent")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric arctangent operation")]
     /// # Examples
     ///
@@ -2076,7 +2044,7 @@ impl<const N: usize> Decimal<N> {
     /// * `y >= 0`: `arctan(y/x) + π` -> `(pi/2, π]`
     /// * `y < 0`: `arctan(y/x) - π` -> `(-π, -π/2)`
     #[doc = doc::decimal_inexact!("trigonometric 2-argument arctangent")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric 2-argument arctangent operation")]
     /// # Examples
     ///
@@ -2102,7 +2070,7 @@ impl<const N: usize> Decimal<N> {
     /// Simultaneously computes the sine and cosine of the number, `x`.
     /// Returns `(sin(x), cos(x))`.
     #[doc = doc::decimal_inexact!("trigonometric sine and cosine function")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("trigonometric sine and cosine computation")]
     /// # Examples
     ///
@@ -2128,7 +2096,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _sinh(self)_ (hyperbolic sine of decimal number).
     #[doc = doc::decimal_inexact!("hyperbolic sine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("hyperbolic sine operation")]
     /// # Examples
     ///
@@ -2150,7 +2118,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _cosh(self)_ (hyperbolic cosine of decimal number).
     #[doc = doc::decimal_inexact!("hyperbolic cosine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("hyperbolic cosine operation")]
     /// # Examples
     ///
@@ -2172,7 +2140,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _tanh(self)_ (hyperbolic tangent of decimal number).
     #[doc = doc::decimal_inexact!("hyperbolic tangent")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("hyperbolic tangent operation")]
     /// # Examples
     ///
@@ -2195,7 +2163,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _arsinh(self)_ (inverse hyperbolic sine of decimal number).
     #[doc = doc::decimal_inexact!("inverse hyperbolic sine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("inverse hyperbolic sine operation")]
     /// # Examples
     ///
@@ -2217,7 +2185,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _arcosh(self)_ (inverse hyperbolic cosine of decimal number).
     #[doc = doc::decimal_inexact!("inverse hyperbolic cosine")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("inverse hyperbolic cosine operation")]
     /// # Examples
     ///
@@ -2239,7 +2207,7 @@ impl<const N: usize> Decimal<N> {
 
     /// Computes _artanh(self)_ (inverse hyperbolic tangent of decimal number).
     #[doc = doc::decimal_inexact!("inverse hyperbolic tangent")]
-    ///
+    /// # Panics:
     #[doc = doc::decimal_operation_panics!("inverse hyperbolic tangent operation")]
     /// # Examples
     ///

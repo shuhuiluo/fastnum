@@ -68,28 +68,6 @@ use fastnum::*", ";
 
 pub(crate) use example_header;
 
-macro_rules! small_sign {
-    (U) => {
-        "u"
-    };
-    (I) => {
-        "i"
-    };
-}
-
-pub(crate) use small_sign;
-
-macro_rules! text_sign {
-    (U) => {
-        "unsigned"
-    };
-    (I) => {
-        "signed"
-    };
-}
-
-pub(crate) use text_sign;
-
 macro_rules! doc_comment {
     { $(# $method: ident, )? $sign: ident $bits: literal, $($($desc: expr)+)? $(, $($code: expr)+)? } => {
         concat!(
