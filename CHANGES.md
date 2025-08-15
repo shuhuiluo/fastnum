@@ -6,7 +6,32 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 # [0.6.0] - 2025-08-16
 
+### Breaking changes
+
+- Removed previously deprecated Decimal methods:
+    - `from_scale` (use `quantum` instead).
+    - `normalized` (use `reduce` instead).
+    - `with_scale` (use `rescale` instead).
+
 ### Added
+
+- Decimal truncation API ([#39](https://github.com/neogenie/fastnum/issues/39)):
+    - `Decimal::trunc()` — truncates to integral with no fractional portion without rounding.
+    - `Decimal::trunc_with_scale(scale)` — truncates to the specified scale without rounding.
+
+### Changed
+
+- Internal documentation macro routing for decimal type aliases refined (no public API impact).
+
+### Documentation
+
+- Minor fixes.
+- Added a dedicated “Truncate” section with behavior details and examples.
+
+### Internal
+
+- Introduced an internal truncation implementation integrated with scaling and extra-precision handling to ensure true
+  truncation semantics (no rounding).
 
 # [0.5.0] - 2025-08-15
 
@@ -16,7 +41,8 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
     - `Cast` — type-safe, infallible conversion (e.g., widening or lossless transforms).
     - `TryCast` — checked conversion returning an error on overflow, sign mismatch, or incompatible scale.
     - Supported families: unsigned/signed big integers (`U64`, `U128`, `U256`, `U512`, `U1024`, and `I64`, `I128`,
-      `I256`, `I512`, `I1024`) [#42](https://github.com/neogenie/fastnum/issues/42) and decimals (`UD64`, `UD128`, `UD256`, `UD512`, `UD1024`, and `D64`, `D128`, `D256`,
+      `I256`, `I512`, `I1024`) [#42](https://github.com/neogenie/fastnum/issues/42) and decimals (`UD64`, `UD128`,
+      `UD256`, `UD512`, `UD1024`, and `D64`, `D128`, `D256`,
       `D512`, `D1024`).
     - Common scenarios:
         - Widening cast for integers — via `Cast`.

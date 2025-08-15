@@ -60,7 +60,7 @@ impl<const N: usize> TryCast<Int<N>> for UInt<N> {
 
     #[inline(always)]
     fn try_cast(self) -> Result<Int<N>, Self::Error> {
-        if self.bits() <= Int::<N>::BITS - 1 {
+        if self.bits() < Int::<N>::BITS {
             Ok(Int::from_bits(self))
         } else {
             Err(ParseError::PosOverflow)
@@ -76,7 +76,7 @@ where
 
     #[inline(always)]
     fn try_cast(self) -> Result<Int<N>, Self::Error> {
-        if self.bits() <= Int::<N>::BITS - 1 {
+        if self.bits() < Int::<N>::BITS {
             // SAFETY: UInt<M> is wider (`N` < `M`) but its value fit to Int<N>. So we can
             // safely cast to the narrow type.
             #[allow(unsafe_code)]

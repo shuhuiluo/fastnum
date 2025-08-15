@@ -19,21 +19,21 @@ macro_rules! resize {
 
             "Note: lossless, no-rounding conversions.\n"
             "If you need to change width without any rounding:"
-            "- Use [`Cast`] for guaranteed-lossless widening (value-preserving by"
+            "- Use [`crate::Cast`] for guaranteed-lossless widening (value-preserving by"
             "  definition).\n"
-            "- Use [`TryCast`] for potential narrowing without rounding; it returns"
+            "- Use [`crate::TryCast`] for potential narrowing without rounding; it returns"
             "  an error if the value does not fit into the target width, thus"
             "  guaranteeing no silent rounding or truncation.\n"
 
             "# Performance\n"
-            "This operation is typically much slower than [Cast] and [TryCast] transformations.\n",
+            "This operation is typically much slower than [crate::Cast] and [crate::TryCast] transformations.\n",
 
             #Panics
             doc::decimal_operation_panics!("resize operation"),
 
             #Also
-            "[Cast]"
-            "[TryCast]",
+            "[crate::Cast]"
+            "[crate::TryCast]",
 
             #Examples("Lossless widening:")
             ["let x = " doc::m!(64 $($sign)?) "(123.45);"]

@@ -25,7 +25,7 @@ where
 
     #[inline(always)]
     fn try_cast(self) -> Result<UD<N>, Self::Error> {
-        self.0.try_cast().map(|d| UD::new(d))
+        self.0.try_cast().map(UD::new)
     }
 }
 

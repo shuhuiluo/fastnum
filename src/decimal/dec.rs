@@ -64,7 +64,7 @@ impl<const N: usize> Decimal<N> {
     /// ```
     /// use fastnum::{*, decimal::*};
     ///
-    /// assert_eq!(D256::from_parts(u256!(12345), -4, Sign::Minus, Context::default()),dec256!(-1.2345));
+    /// assert_eq!(D256::from_parts(u256!(12345), -4, Sign::Minus, Context::default()), dec256!(-1.2345));
     /// ```
     #[track_caller]
     #[must_use]
@@ -145,14 +145,14 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(b.digits(), u256!(10));
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn digits(&self) -> UInt<N> {
         self.digits
     }
 
     /// Return the count of digits in the non-scaled integer representation
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn digits_count(&self) -> usize {
         clength(self.digits) as usize
     }
@@ -179,7 +179,7 @@ impl<const N: usize> Decimal<N> {
     /// assert_eq!(e.fractional_digits_count(), -9);
     /// ```
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn fractional_digits_count(&self) -> i16 {
         self.cb.get_scale()
     }
@@ -217,7 +217,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// More about [`OP_DIV_BY_ZERO`](Signals::OP_DIV_BY_ZERO) signal.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_div_by_zero(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_DIV_BY_ZERO)
     }
@@ -225,7 +225,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_OVERFLOW] signal flag,
     /// and `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_overflow(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_OVERFLOW)
     }
@@ -233,7 +233,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_UNDERFLOW] signal flag,
     /// and `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_underflow(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_UNDERFLOW)
     }
@@ -241,7 +241,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_INVALID] signal flag, and
     /// `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_invalid(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_INVALID)
     }
@@ -249,7 +249,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_SUBNORMAL] signal flag,
     /// and `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_subnormal(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_SUBNORMAL)
     }
@@ -257,7 +257,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_INEXACT] signal flag, and
     /// `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_inexact(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_INEXACT)
     }
@@ -265,7 +265,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_ROUNDED] signal flag, and
     /// `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_rounded(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_ROUNDED)
     }
@@ -273,7 +273,7 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has [Signals::OP_CLAMPED] signal flag, and
     /// `false` otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_clamped(&self) -> bool {
         self.cb.is_signals_raised(Signals::OP_CLAMPED)
     }
@@ -281,14 +281,14 @@ impl<const N: usize> Decimal<N> {
     /// Return `true` if the argument has no signal flags, and `false`
     /// otherwise.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_op_ok(&self) -> bool {
         self.cb.is_op_ok()
     }
 
     /// Return the [`signaling block`](Signals) of given decimal.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn op_signals(&self) -> Signals {
         self.signals()
     }
@@ -380,7 +380,7 @@ impl<const N: usize> Decimal<N> {
     ///
     /// [subnormal]: crate#normal-numbers-subnormal-numbers-and-underflow
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_subnormal(&self) -> bool {
         self.is_op_subnormal()
     }
@@ -408,7 +408,7 @@ impl<const N: usize> Decimal<N> {
     /// [`±Infinity`]: crate#special-values
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_finite(&self) -> bool {
         !self.cb.is_special()
     }
@@ -487,7 +487,7 @@ impl<const N: usize> Decimal<N> {
     /// [`+Infinity`]: crate#special-values
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_sign_positive(&self) -> bool {
         !self.cb.is_negative()
     }
@@ -518,7 +518,7 @@ impl<const N: usize> Decimal<N> {
     /// [`-Infinity`]: crate#special-values
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_sign_negative(&self) -> bool {
         self.cb.is_negative()
     }
@@ -601,7 +601,7 @@ impl<const N: usize> Decimal<N> {
     /// [`+Infinity`]: crate#special-values
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_positive(&self) -> bool {
         !self.cb.is_negative()
     }
@@ -632,7 +632,7 @@ impl<const N: usize> Decimal<N> {
     /// [`-Infinity`]: crate#special-values
     /// [`NaN`]: crate#special-values
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub const fn is_negative(&self) -> bool {
         self.cb.is_negative()
     }
@@ -2269,7 +2269,7 @@ impl<const N: usize> Decimal<N> {
         Self { digits, cb }
     }
 
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn decimal_power(&self) -> i32 {
         self.digits_count() as i32 - self.cb.get_scale() as i32
     }
