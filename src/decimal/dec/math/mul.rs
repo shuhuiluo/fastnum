@@ -53,58 +53,55 @@ pub(crate) const fn mul<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
         None
     };
 
-    let power = lhs.digits.decimal_digits() + rhs.digits.decimal_digits();
-    let digits = if power < UInt::<N>::MAX_POWER_OF_TEN {
-        lhs.digits.mul(rhs.digits)
-    } else {
-        let (mut low, mut high) = lhs.digits.widening_mul(rhs.digits);
+    // TODO: Performance optimization
+    // If overflows then we can try to truncate coefficient and make extra precision
+    // in single (several) step instead of iteration looping divide by 10.
+    // See `div` implementation.
+    let (mut low, mut high) = lhs.digits.widening_mul(rhs.digits);
 
-        if !high.is_zero() {
-            signals.raise(Signals::OP_ROUNDED);
+    if !high.is_zero() {
+        signals.raise(Signals::OP_ROUNDED);
 
-            let mut out;
-            let mut rem;
+        let mut out;
+        let mut rem;
 
-            while !high.is_zero() {
-                exp += 1;
+        while !high.is_zero() {
+            exp += 1;
 
-                out = [0; N];
-                rem = 0;
+            out = [0; N];
+            rem = 0;
 
-                let mut i = N;
-                while i > 0 {
-                    i -= 1;
-                    let (q, r) = _div_rem_128_64(high.digits()[i], rem, 10);
-                    rem = r;
-                    out[i] = q;
-                }
-
-                high = UInt::from_digits(out);
-
-                i = N;
-                out = [0; N];
-
-                while i > 0 {
-                    i -= 1;
-                    let (q, r) = _div_rem_128_64(low.digits()[i], rem, 10);
-                    rem = r;
-                    out[i] = q;
-                }
-
-                low = UInt::from_digits(out);
-
-                if rem != 0 {
-                    signals.raise(Signals::OP_INEXACT);
-                }
-
-                extra_precision.push_digit(rem);
+            let mut i = N;
+            while i > 0 {
+                i -= 1;
+                let (q, r) = _div_rem_128_64(high.digits()[i], rem, 10);
+                rem = r;
+                out[i] = q;
             }
+
+            high = UInt::from_digits(out);
+
+            i = N;
+            out = [0; N];
+
+            while i > 0 {
+                i -= 1;
+                let (q, r) = _div_rem_128_64(low.digits()[i], rem, 10);
+                rem = r;
+                out[i] = q;
+            }
+
+            low = UInt::from_digits(out);
+
+            if rem != 0 {
+                signals.raise(Signals::OP_INEXACT);
+            }
+
+            extra_precision.push_digit(rem);
         }
+    }
 
-        low
-    };
-
-    let result = construct(digits, exp, sign, signals, ctx, extra_precision);
+    let result = construct(low, exp, sign, signals, ctx, extra_precision);
 
     if let Some(correction) = correction {
         correct(result, correction)
