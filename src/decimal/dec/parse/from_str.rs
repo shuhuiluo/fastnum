@@ -6,7 +6,7 @@ use crate::{
         UInt,
     },
     decimal::{
-        dec::{construct::construct_with_clength, ExtraPrecision},
+        dec::{construct::construct, ExtraPrecision},
         signals::Signals,
         Context, Decimal, DecimalError, ParseError, Sign,
     },
@@ -153,14 +153,13 @@ pub const fn from_slice<const N: usize>(
         exp += -(clength as i32 + decimal_offset);
     }
 
-    let dec = construct_with_clength(
+    let dec = construct(
         value,
         exp,
         sign,
         Signals::empty(),
         ctx,
         ExtraPrecision::new(),
-        clength,
     );
 
     if dec.is_nan() {

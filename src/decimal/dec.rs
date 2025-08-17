@@ -27,12 +27,7 @@ use core::{cmp::Ordering, fmt, num::FpCategory, panic};
 use crate::{
     bint::UInt,
     decimal::{
-        dec::{
-            consts::consts_impl,
-            intrinsics::{clength, Intrinsics},
-            math::consts::Consts,
-            round::round,
-        },
+        dec::{consts::consts_impl, intrinsics::Intrinsics, math::consts::Consts, round::round},
         doc,
         signals::Signals,
         Context, DecimalError, ParseError, RoundingMode, Sign, UnsignedDecimal,
@@ -154,7 +149,7 @@ impl<const N: usize> Decimal<N> {
     #[must_use]
     #[inline(always)]
     pub const fn digits_count(&self) -> usize {
-        clength(self.digits) as usize
+        self.digits.decimal_digits() as usize
     }
 
     /// Return the scale of the `Decimal`, the total number of
@@ -2338,7 +2333,6 @@ impl<const N: usize> Decimal<N> {
         self
     }
 
-    #[track_caller]
     #[inline(always)]
     pub(crate) const fn check(mut self) -> Self {
         let trapped = self.cb.trap_signals();

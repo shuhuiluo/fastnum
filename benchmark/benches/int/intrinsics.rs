@@ -6,9 +6,9 @@ use fastnum::*;
 
 criterion_group!(
     intrinsics,
-    power_of_ten,
-    // decimal_digits,
-    div_rem,
+    // power_of_ten,
+    decimal_digits,
+    // div_rem,
     // div_rem_digit,
     // remaining_decimal_digits,
     // cmp_gt
@@ -150,6 +150,29 @@ fn div_rem_digit(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn decimal_digits(c: &mut Criterion) {
+    let mut group = c.benchmark_group("lz");
+
+    for power in [1, 10000, 1000000000, 10000000000000000000] {
+        let u = U64::from_digit(power);
+        group.bench_with_input(BenchmarkId::new("D64", u), &u, |b, u| {
+            b.iter(|| black_box(u).leading_zeros())
+        });
+    }
+
+    for power in [
+        1,
+        100000,
+        10000000000,
+        10000000000000000000,
+        100000000000000000000000000000000000000,
+    ] {
+        let u = U128::from_u128(power).unwrap();
+        group.bench_with_input(BenchmarkId::new("U128", u), &u, |b, u| {
+            b.iter(|| black_box(u).leading_zeros())
+        });
+    }
+    group.finish();
+
     let mut group = c.benchmark_group("decimal_digits");
 
     for power in [1, 10000, 1000000000, 10000000000000000000] {

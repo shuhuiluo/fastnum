@@ -47,6 +47,11 @@ path = "benches/decimal/div.rs"
 harness = false
 
 [[bench]]
+name = "decimal_intrinsics"
+path = "benches/decimal/intrinsics.rs"
+harness = false
+
+[[bench]]
 name = "decimal_mul"
 path = "benches/decimal/mul.rs"
 harness = false

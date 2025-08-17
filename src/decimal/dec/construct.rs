@@ -15,26 +15,12 @@ type D<const N: usize> = Decimal<N>;
 
 #[inline(always)]
 pub(crate) const fn construct<const N: usize>(
-    digits: UInt<N>,
-    exp: i32,
-    sign: Sign,
-    signals: Signals,
-    ctx: Context,
-    extra_precision: ExtraPrecision,
-) -> D<N> {
-    let clength = digits.decimal_digits();
-    construct_with_clength(digits, exp, sign, signals, ctx, extra_precision, clength)
-}
-
-#[inline(always)]
-pub(crate) const fn construct_with_clength<const N: usize>(
     mut digits: UInt<N>,
     mut exp: i32,
     sign: Sign,
     mut signals: Signals,
     ctx: Context,
     mut extra_precision: ExtraPrecision,
-    clength: u32,
 ) -> D<N> {
     if digits.is_zero() {
         return construct_zero(exp, sign, signals, ctx, extra_precision);
@@ -51,8 +37,12 @@ pub(crate) const fn construct_with_clength<const N: usize>(
     }
 
     if exp <= E_LIMIT {
-        if exp < E_MIN + (clength as i32 - 1) {
-            signals.raise(Signals::OP_SUBNORMAL);
+        if exp < Intrinsics::<N>::E_SUBNORMAL {
+            let clength = digits.decimal_digits();
+
+            if exp < E_MIN + (clength as i32 - 1) {
+                signals.raise(Signals::OP_SUBNORMAL);
+            }
         }
 
         let cb = ControlBlock::new(-exp as i16, sign, signals, ctx, extra_precision);

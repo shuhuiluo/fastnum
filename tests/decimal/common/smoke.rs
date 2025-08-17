@@ -123,7 +123,7 @@ macro_rules! test_impl {
         }
 
         #[rstest(::trace)]
-        #[case($dec!(0), 0, 1, 0)]
+        #[case($dec!(0), 0, 0, 0)]
         #[case($dec!(0.5), 5, 1, 1)]
         #[case($dec!(1.0), 10, 2, 1)]
         #[case($dec!(1), 1, 1, 0)]
@@ -165,7 +165,7 @@ macro_rules! test_impl {
         }
 
         #[rstest(::trace)]
-        #[case($dec!(0), 1)]
+        #[case($dec!(0), 0)]
         #[case($dec!(1), 1)]
         #[case($dec!(2), 1)]
         #[case($dec!(10), 2)]

@@ -1,9 +1,6 @@
-use crate::{
-    bint::{
-        intrinsics::{DIGIT_POWERS_10, DIGIT_POWER_10},
-        UInt,
-    },
-    decimal::dec::intrinsics::clength,
+use crate::bint::{
+    intrinsics::{DIGIT_POWERS_10, DIGIT_POWER_10},
+    UInt,
 };
 
 type U<const N: usize> = UInt<N>;
@@ -25,7 +22,7 @@ pub(super) const fn truncate<const N: usize>(mut digits: U<N>, exp: i32) -> Trun
     let mut extra_digit;
 
     while digits.bits() > u64::BITS {
-        let gap = clength(digits) - DIGIT_POWER_10;
+        let gap = digits.decimal_digits() - DIGIT_POWER_10;
         let pow10 = if gap > DIGIT_POWER_10 {
             DIGIT_POWER_10
         } else {
