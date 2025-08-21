@@ -1,10 +1,8 @@
 macro_rules! try_from_int_impl {
     ($($from_int:ident <- $int:ident ($(#$try: ident)? $from_uint:ident <- $uint:ident)),*) => {
-        impl<const N: usize> UInt<N> {
-            $(
-                try_from_int_impl!(@ $from_int <- $int ($($try)? $from_uint <- $uint));
-            )*
-        }
+        $(
+            try_from_int_impl!(@ $from_int <- $int ($($try)? $from_uint <- $uint));
+        )*
     };
     (@ $from_int:ident <- $int:ident ($from_uint:ident <- $uint:ident)) => {
         #[inline(always)]

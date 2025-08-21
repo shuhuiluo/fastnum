@@ -83,13 +83,13 @@ get rid of one indirect addressing, which improves cache-friendliness and reduce
 To install and use `fastnum`, add the following line to your `Cargo.toml` file in the `[dependencies]` section:
 
 ```toml
-fastnum = "0.6"
+fastnum = "0.7"
 ```
 
 Or, to enable various `fastnum` features as well, add for example this line instead:
 
 ```toml
-fastnum = { version = "0.6", features = ["serde"] } # enables the "serde" feature
+fastnum = { version = "0.7", features = ["serde"] } # enables the "serde" feature
 ```
 
 ## Example usage

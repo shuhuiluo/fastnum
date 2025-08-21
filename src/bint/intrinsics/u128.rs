@@ -1,9 +1,7 @@
 mod powers;
 
 use crate::{
-    bint::intrinsics::{
-        ExpType, _div_rem_128_64, _div_rem_64, _unchecked_mul_64, _widening_mul_64,
-    },
+    bint::intrinsics::{ExpType, _div_rem_128_64, _div_rem_64, _widening_mul_64},
     utils::assert_eq_size,
 };
 
@@ -105,12 +103,6 @@ impl _U128 {
     #[inline(always)]
     pub const fn can_scaled_by_power_of_ten(&self, power: ExpType) -> bool {
         self.le(&Self::MAX_REDUCED_BY_POWERS_10[power as usize])
-    }
-
-    #[allow(dead_code)]
-    #[inline(always)]
-    pub const fn ilog2(&self) -> ExpType {
-        self.bits() - 1
     }
 
     #[inline(always)]
@@ -250,10 +242,10 @@ impl _U128 {
     #[inline(always)]
     pub const unsafe fn unchecked_mul_u64(self, b: u64) -> Self {
         let (low, high) = _widening_mul_64(self.low, b);
-        let mid = _unchecked_mul_64(self.high, b);
+        let mid = self.high * b;
         Self {
             low,
-            high: high.unchecked_add(mid),
+            high: high + mid,
         }
     }
 
