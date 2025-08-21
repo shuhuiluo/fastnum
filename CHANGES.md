@@ -7,7 +7,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 # [0.7.0] - 2025-08-21
 
 ### Added
-- Big-integer conversion APIs:
+- Big-integer conversion APIs [#44](https://github.com/neogenie/fastnum/issues/44):
   - Parsing from raw bytes:
     - `from_radix_be(buf, radix) -> Option<Self>`
     - `from_radix_le(buf, radix) -> Option<Self>`
