@@ -4,6 +4,35 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+# [0.7.0] - 2025-08-21
+
+### Added
+- Big-integer conversion APIs:
+  - Parsing from raw bytes:
+    - `from_radix_be(buf, radix) -> Option<Self>`
+    - `from_radix_le(buf, radix) -> Option<Self>`
+
+  - Encoding to raw bytes:
+    - `to_radix_be(radix) -> Vec<u8>`
+    - `to_radix_le(radix) -> Vec<u8>`
+
+  - String conversion helpers:
+    - `parse_str_radix(s, radix) -> Self` (panicking variant)
+    - `parse_bytes(buf, radix) -> Option<Self>`
+    - `to_str_radix(radix) -> String`
+
+### Documentation
+- Conversion documentation expanded with clearer semantics, base handling, and examples.
+- Improved doc comments for:
+  - Base-aware parsing behavior and panic conditions.
+  - Byte-level import/export helpers.
+  - `parse_str(s)` and `from_str(s)` for big integers recognize `0x` and `0b` prefixes (decimal remains default without a prefix).
+
+### Internal
+- Conversion code reorganized into focused modules:
+  - `bint/convert/{from_bytes,to_bytes,from_str,to_str}.rs`
+- Macro routing for conversion implementation is simplified and de-duplicated.
+
 # [0.6.2] - 2025-08-18
 
 ### Changed
