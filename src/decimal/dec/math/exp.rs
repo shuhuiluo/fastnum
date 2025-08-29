@@ -16,14 +16,14 @@ pub(crate) const fn exp<const N: usize>(x: D<N>) -> D<N> {
     }
 
     if x.is_zero() {
-        return D::ONE.with_ctx(x.context());
+        return D::ONE.set_ctx(x.context());
     }
 
     if x.is_negative() {
         return div(D::ONE, exp_abs(x.abs()));
     }
 
-    exp_abs(x)
+    exp_abs(x).set_ctx(x.context())
 }
 
 #[inline]
@@ -76,5 +76,5 @@ const fn taylor_series<const N: usize>(x: D<N>) -> D<N> {
         i += 1;
     }
 
-    result.with_ctx(x.context())
+    result
 }

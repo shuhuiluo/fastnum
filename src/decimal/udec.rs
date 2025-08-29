@@ -435,17 +435,17 @@ impl<const N: usize> UnsignedDecimal<N> {
         self.0.is_nan()
     }
 
-    /// Apply [Context] to the given decimal number.
+    #[doc = doc::with_ctx::with_ctx!(256 U)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
+    #[inline(always)]
     pub const fn with_ctx(mut self, ctx: Context) -> Self {
         self.0 = self.0.with_ctx(ctx);
         self
     }
 
-    /// Apply [RoundingMode] to the given decimal number.
+    #[doc = doc::with_rounding_mode::with_rounding_mode!(256 U)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
+    #[inline(always)]
     pub const fn with_rounding_mode(mut self, rm: RoundingMode) -> Self {
         self.0 = self.0.with_rounding_mode(rm);
         self

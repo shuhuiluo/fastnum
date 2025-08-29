@@ -39,11 +39,7 @@ pub(crate) const fn mul<const N: usize>(mut lhs: D<N>, mut rhs: D<N>) -> D<N> {
 
     let mut extra_precision = ExtraPrecision::new();
 
-    if lhs.is_zero() {
-        return construct(UInt::ZERO, exp, sign, signals, ctx, extra_precision);
-    }
-
-    if rhs.is_zero() {
+    if lhs.is_zero() || rhs.is_zero() {
         return construct(UInt::ZERO, exp, sign, signals, ctx, extra_precision);
     }
 

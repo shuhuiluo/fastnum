@@ -18,7 +18,7 @@ pub(crate) const fn asin<const N: usize>(x: D<N>) -> D<N> {
     }
 
     if x.is_zero() {
-        return D::ZERO.with_ctx(x.context());
+        return D::ZERO.set_ctx(x.context());
     }
 
     if x.is_infinite() {
@@ -43,7 +43,7 @@ pub(crate) const fn asin<const N: usize>(x: D<N>) -> D<N> {
         }
     }
 
-    asin_reduction(x)
+    asin_reduction(x).set_ctx(x.context())
 }
 
 struct Reduction<const N: usize>;
@@ -98,5 +98,5 @@ const fn taylor_series<const N: usize>(x: D<N>) -> D<N> {
         i += 1;
     }
 
-    result.with_ctx(x.context())
+    result
 }

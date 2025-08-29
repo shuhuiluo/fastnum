@@ -59,9 +59,9 @@ const fn sin_less_pi<const N: usize>(x: D<N>) -> D<N> {
     debug_assert!(x.lt(&Consts::PI));
 
     if x.eq(&Consts::FRAC_PI_2) {
-        D::ONE.with_ctx(x.context())
+        D::ONE.set_ctx(x.context())
     } else {
-        taylor_series(x)
+        taylor_series(x).set_ctx(x.context())
     }
 }
 
@@ -95,5 +95,5 @@ const fn taylor_series<const N: usize>(x: D<N>) -> D<N> {
         result = D::ONE.compound(&result);
     }
 
-    result.with_ctx(x.context())
+    result
 }

@@ -33,7 +33,7 @@ pub(crate) const fn sqrt<const N: usize>(d: D<N>) -> D<N> {
         return D::SQRT_2;
     }
 
-    sqrt_heron(d)
+    sqrt_heron(d).set_ctx(d.context())
 }
 
 #[inline]

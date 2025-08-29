@@ -632,23 +632,21 @@ impl<const N: usize> Decimal<N> {
         self.cb.is_negative()
     }
 
-    /// Apply [Context] to the given decimal number.
+    #[doc = doc::with_ctx::with_ctx!(256)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn with_ctx(self, ctx: Context) -> Self {
-        self.set_ctx(ctx).check()
+        self.set_ctx(ctx).round_extra_precision().check()
     }
 
-    /// Apply [RoundingMode] to the given decimal number.
+    #[doc = doc::with_rounding_mode::with_rounding_mode!(256)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
-    pub const fn with_rounding_mode(mut self, rm: RoundingMode) -> Self {
-        self.cb.set_rounding_mode(rm);
-        self
+    #[inline(always)]
+    pub const fn with_rounding_mode(self, rm: RoundingMode) -> Self {
+        self.set_rounding_mode(rm).round_extra_precision().check()
     }
 
-    /// Invert sign of the given decimal.
+    /// Invert the sign of the given decimal.
     ///
     /// # Examples
     ///
@@ -1326,9 +1324,11 @@ impl<const N: usize> Decimal<N> {
     /// Basic usage:
     ///
     /// ```
-    /// use fastnum::*;
+    /// use fastnum::{*, decimal::RoundingMode::*};
     ///
-    /// assert_eq!(dec128!(7.0).ln().exp_m1(), D128::SIX);
+    /// // For exact result we need to use extra precision digits and no-rounding mode to keep precision between `.ln()` and `exp()` calls.
+    /// // Than we can use default rounding mode for round extra digits.
+    /// assert_eq!(dec128!(7.0).with_rounding_mode(No).ln().exp_m1().with_rounding_mode(HalfUp), D128::SIX);
     /// ```
     ///
     /// See more about the [exponential function](crate#exponential-function).
@@ -2330,6 +2330,12 @@ impl<const N: usize> Decimal<N> {
     #[inline(always)]
     pub(crate) const fn set_ctx(mut self, ctx: Context) -> Self {
         self.cb.set_context(ctx);
+        self
+    }
+
+    #[inline(always)]
+    pub(crate) const fn set_rounding_mode(mut self, rm: RoundingMode) -> Self {
+        self.cb.set_rounding_mode(rm);
         self
     }
 

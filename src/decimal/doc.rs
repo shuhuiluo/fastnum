@@ -1,5 +1,7 @@
 pub(crate) mod resize;
 pub(crate) mod trunc;
+pub(crate) mod with_ctx;
+pub(crate) mod with_rounding_mode;
 
 pub(crate) use crate::doc::*;
 
@@ -38,17 +40,31 @@ macro_rules! m {
 
 pub(crate) use m;
 
-macro_rules! decimal_operation_panics {
-    ($op: literal) => {
+macro_rules! decimal_panics {
+    ($cause:ident, $($args:tt),*) => {
+        doc::decimal_panics!($cause!($($args),*))
+    };
+    ($cause:expr) => {
         concat!(
             "### debug mode\n\n",
             "This method will panic if ",
-            $op,
-            " performs with some [Exceptional condition](crate#signaling-flags-and-trap-enablers) and corresponding [Signals] in the [Context]
-            is trapped by trap-enabler.
-            \n\n",
+            $cause,
+            "\n\n",
             "### release mode\n\n",
-            "In release mode panic will not occur and result will be [`NaN`](crate#nan).\n\n"
+            "In release mode panic will not occur and result can be one of [`Special values`](crate#special-values)([`NaN`](crate#nan) or [`±Infinity`](crate#infinity)).\n\n"
+        )
+    };
+}
+
+pub(crate) use decimal_panics;
+
+macro_rules! decimal_operation_panics {
+    ($op: literal) => {
+        doc::decimal_panics!(
+            concat,
+            $op,
+            " performs with some [Exceptional condition](crate#signaling-flags-and-trap-enablers) ",
+            " and corresponding [Signals] in the [Context] is trapped by trap-enabler."
         )
     };
 }

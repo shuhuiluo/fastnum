@@ -29,7 +29,7 @@ pub(crate) const fn nth_root<const N: usize>(d: D<N>, n: u32) -> D<N> {
         return d;
     }
 
-    nth_root_newton(d, n)
+    nth_root_newton(d, n).set_ctx(d.context())
 }
 
 #[inline]
