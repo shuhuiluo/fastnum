@@ -9,6 +9,7 @@ use crate::decimal::{
 
 type D<const N: usize> = Decimal<N>;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone)]
 enum Base<const N: usize> {
     TWO,
