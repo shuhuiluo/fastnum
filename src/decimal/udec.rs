@@ -1016,26 +1016,39 @@ impl<const N: usize> UnsignedDecimal<N> {
         Self::new(self.0.exp())
     }
 
-    /// Returns the natural logarithm of the unsigned decimal number.
-    ///
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!(udec256!(2).ln(), D256::LN_2);
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::ln!(256 U)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn ln(self) -> Decimal<N> {
         self.0.ln()
+    }
+
+    #[doc = doc::log::ln_1p!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn ln_1p(self) -> Decimal<N> {
+        self.0.ln_1p()
+    }
+
+    #[doc = doc::log::log!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn log(self, base: Self) -> Decimal<N> {
+        self.0.log(base.0)
+    }
+
+    #[doc = doc::log::log2!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn log2(self) -> Decimal<N> {
+        self.0.log2()
+    }
+
+    #[doc = doc::log::log10!(256 U)]
+    #[must_use = doc::must_use_op!()]
+    #[inline(always)]
+    pub const fn log10(self) -> Decimal<N> {
+        self.0.log10()
     }
 
     /// Fused multiply-add. Computes `(self * a) + b` with only one rounding

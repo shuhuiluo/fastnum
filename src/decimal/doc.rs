@@ -1,3 +1,4 @@
+pub(crate) mod log;
 pub(crate) mod resize;
 pub(crate) mod trunc;
 pub(crate) mod with_ctx;

@@ -1,5 +1,5 @@
 use crate::decimal::{
-    dec::math::{add::add, ln::ln, mul::mul, sqrt::sqrt},
+    dec::math::{add::add, log::ln, mul::mul, sqrt::sqrt},
     Decimal,
 };
 

@@ -1363,113 +1363,39 @@ impl<const N: usize> Decimal<N> {
         math::exp2::exp2(self).round_extra_precision().check()
     }
 
-    /// Returns the natural logarithm of the decimal number.
-    #[doc = doc::decimal_inexact!("natural logarithm")]
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!(dec256!(2).ln(), D256::LN_2);
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::ln!(256)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn ln(self) -> Self {
-        math::ln::ln(self).round_extra_precision().check()
+        math::log::ln(self).round_extra_precision().check()
     }
 
-    /// Returns _ln(1 + n)_ (natural logarithm).
-    #[doc = doc::decimal_inexact!("natural logarithm")]
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!((D128::E - dec128!(1)).ln_1p(), dec128!(1));
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::ln_1p!(256)]
     #[must_use = doc::must_use_op!()]
-    #[inline]
+    #[inline(always)]
     pub const fn ln_1p(self) -> Self {
-        math::ln::ln_1p(self).round_extra_precision().check()
+        math::log::ln_1p(self).round_extra_precision().check()
     }
 
-    /// Returns the _base_ logarithm of the decimal number.
-    #[doc = doc::decimal_inexact!("logarithm")]
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!(dec256!(64).log(dec256!(2)), dec256!(6));
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::log!(256)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn log(self, base: Self) -> Self {
         math::log::log(self, base).round_extra_precision().check()
     }
 
-    /// Returns the binary logarithm of the decimal number.
-    #[doc = doc::decimal_inexact!("binary logarithm")]
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!(dec256!(32).log2(), dec256!(5));
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::log2!(256)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn log2(self) -> Self {
-        math::log2::log2(self).round_extra_precision().check()
+        math::log::log2(self).round_extra_precision().check()
     }
 
-    /// Returns the decimal logarithm of the given number.
-    #[doc = doc::decimal_inexact!("decimal logarithm")]
-    /// # Panics:
-    #[doc = doc::decimal_operation_panics!("logarithm operation")]
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use fastnum::*;
-    ///
-    /// assert_eq!(dec256!(100).log10(), dec256!(2));
-    /// ```
-    ///
-    /// See more about the [logarithm function](crate#logarithm-function).
+    #[doc = doc::log::log10!(256)]
     #[must_use = doc::must_use_op!()]
-    #[track_caller]
-    #[inline]
+    #[inline(always)]
     pub const fn log10(self) -> Self {
-        math::log10::log10(self).round_extra_precision().check()
+        math::log::log10(self).round_extra_precision().check()
     }
 
     /// Calculate the length of the hypotenuse of a right-angle triangle given

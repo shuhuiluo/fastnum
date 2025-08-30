@@ -116,7 +116,7 @@ impl ControlBlock {
     }
 
     #[inline(always)]
-    pub(crate) const fn scale_cmp(&self, other: &Self) -> Ordering {
+    pub const fn scale_cmp(&self, other: &Self) -> Ordering {
         let self_scale = self.get_scale();
         let other_scale = other.get_scale();
 

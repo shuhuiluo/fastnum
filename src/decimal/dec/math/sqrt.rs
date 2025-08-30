@@ -11,7 +11,7 @@ use crate::decimal::{
 
 type D<const N: usize> = Decimal<N>;
 
-#[inline]
+#[inline(never)]
 pub(crate) const fn sqrt<const N: usize>(d: D<N>) -> D<N> {
     if d.is_nan() {
         return d.op_invalid();
@@ -36,7 +36,7 @@ pub(crate) const fn sqrt<const N: usize>(d: D<N>) -> D<N> {
     sqrt_heron(d).set_ctx(d.context())
 }
 
-#[inline]
+#[inline(always)]
 const fn sqrt_heron<const N: usize>(d: D<N>) -> D<N> {
     let approx_f64 = to_f64(d);
     let guess = types::f64::sqrt(approx_f64);

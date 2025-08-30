@@ -1,7 +1,7 @@
 use crate::decimal::{
     dec::{
         convert::to_i32,
-        math::{exp::exp, ln::ln, mul::mul, powi::powi},
+        math::{exp::exp, log::ln, mul::mul, powi::powi},
     },
     Decimal, Sign,
 };
