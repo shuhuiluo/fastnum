@@ -4,8 +4,12 @@ mod impls;
 
 use core::{cmp::Ordering, num::FpCategory};
 
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+
 use crate::{
     bint::UInt,
+    decimal,
     decimal::{
         doc, signals::Signals, udec::consts::consts_impl, Context, Decimal, DecimalError,
         ParseError, RoundingMode, Sign,
@@ -1349,6 +1353,8 @@ impl<const N: usize> UnsignedDecimal<N> {
 
 #[doc(hidden)]
 impl<const N: usize> UnsignedDecimal<N> {
+    const TYPE_NAME: &'static str = decimal::utils::fmt::type_name!("UD");
+
     #[inline(always)]
     pub(crate) const fn new(dec: Decimal<N>) -> Self {
         debug_assert!(!dec.is_negative());
@@ -1364,8 +1370,8 @@ impl<const N: usize> UnsignedDecimal<N> {
     }
 
     #[inline]
-    pub(crate) fn type_name() -> String {
-        format!("UD{}", N * 64)
+    pub(crate) const fn type_name() -> &'static str {
+        Self::TYPE_NAME
     }
 
     #[inline(always)]
