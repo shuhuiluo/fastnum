@@ -4,6 +4,19 @@ All user-visible changes to this library will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md).
 
+# [0.7.3] - 2025-10-14
+
+### Fixed 
+
+- Sign Extension Not Performed in From<i32/i64>, Cast, and TryCast for Signed Integers [#52](https://github.com/neogenie/fastnum/issues/52).
+
+### Internal
+- Refactored integer conversion implementation for better code organization and maintainability.
+- Simplified signed integer conversion methods by removing redundant intermediate logic.
+- Improved macro handling for literal construction to properly support token concatenation.
+- Reorganized test infrastructure with macro-based test generation for comprehensive coverage of integer conversions across different bit widths (64/128/256/512).
+- Consolidated test structure by moving conversion tests into dedicated modules with automatic test generation for all supported integer types.
+
 # [0.7.2] - 2025-09-20
 
 ### Fixed
