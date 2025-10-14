@@ -19,9 +19,9 @@ from_impl!(
 
 try_from_impl!(
     Int, I
+
     from_u64 u64,
     from_usize usize,
     from_u128 u128,
-
     from_i128 i128
 );

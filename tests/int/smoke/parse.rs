@@ -1,6 +1,6 @@
 use rstest::*;
 
-use fastnum::{u256, U256};
+use fastnum::*;
 
 #[rstest]
 fn test_max_u256() {

@@ -17,7 +17,10 @@ use core::str::from_utf8_unchecked;
 use alloc::{string::String, vec::Vec};
 
 use crate::bint::{
-    convert, doc, error::from_int_error_kind, int::intrinsics, Int, ParseError, UInt,
+    convert, doc,
+    error::from_int_error_kind,
+    int::intrinsics::{self, *},
+    Int, ParseError, UInt,
 };
 
 impl<const N: usize> Int<N> {
@@ -38,11 +41,11 @@ impl<const N: usize> Int<N> {
     );
 
     from_int_impl!(
-        from_i8 <- i8 (from_u8 <- u8),
-        from_i16 <- i16 (from_u16 <- u16),
-        from_i32 <- i32 (from_u32 <- u32),
-        from_i64 <- i64 (from_u64 <- u64),
-        from_isize <- isize (from_usize <- usize)
+        from_i8 <- i8,
+        from_i16 <- i16,
+        from_i32 <- i32,
+        from_i64 <- i64,
+        from_isize <- isize
     );
 
     try_from_int_impl!(

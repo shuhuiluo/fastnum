@@ -1,11 +1,11 @@
 macro_rules! from_uint_impl {
-    ($($name:ident <- $num:ident),*) => {
+    ($($from_uint:ident <- $num:ident),*) => {
         $(
             #[inline(always)]
             #[doc = doc::convert::from!($num I 256)]
-            pub const fn $name(n: $num) -> Self {
-                debug_assert!($num::BITS < Self::BITS);
-                Self::from_bits(UInt::$name(n))
+            pub const fn $from_uint(n: $num) -> Self {
+                debug_assert!($num::BITS <= Self::BITS);
+                Self::from_bits(UInt::$from_uint(n))
             }
         )*
     };

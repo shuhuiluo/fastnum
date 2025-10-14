@@ -1,6 +1,7 @@
+use rstest::*;
 use fastnum::*;
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i32_sign_extends() {
     assert_eq!(I512::from(-1_i32), I512::NEG_ONE);
     assert_eq!(I512::from(-2_i32), I512::NEG_TWO);
@@ -10,7 +11,7 @@ fn test_from_i32_sign_extends() {
     assert_eq!(I512::from(100_i32), i512!(100));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i64_sign_extends() {
     assert_eq!(I512::from(-1_i64), I512::NEG_ONE);
     assert_eq!(I512::from(-2_i64), I512::NEG_TWO);
@@ -20,21 +21,21 @@ fn test_from_i64_sign_extends() {
     assert_eq!(I512::from(100_i64), i512!(100));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i8_sign_extends() {
     assert_eq!(I512::from(-1_i8), I512::NEG_ONE);
     assert_eq!(I512::from(-128_i8), i512!(-128));
     assert_eq!(I512::from(127_i8), i512!(127));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i16_sign_extends() {
     assert_eq!(I512::from(-1_i16), I512::NEG_ONE);
     assert_eq!(I512::from(-32768_i16), i512!(-32768));
     assert_eq!(I512::from(32767_i16), i512!(32767));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_cast_sign_extends() {
     // Negative values must sign-extend
     let neg_one = I512::NEG_ONE;
@@ -53,7 +54,7 @@ fn test_cast_sign_extends() {
     assert_eq!(pos_cast, I1024::from(100_i64));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_cast_i256_to_i512() {
     let neg_one = I256::NEG_ONE;
     let neg_one_cast: I512 = <I256 as Cast<I512>>::cast(neg_one);
@@ -61,7 +62,7 @@ fn test_cast_i256_to_i512() {
     assert!(neg_one_cast.is_negative());
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_cast_i128_to_i256() {
     let neg_one = I128::NEG_ONE;
     let neg_one_cast: I256 = <I128 as Cast<I256>>::cast(neg_one);
@@ -69,7 +70,7 @@ fn test_cast_i128_to_i256() {
     assert!(neg_one_cast.is_negative());
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_try_cast_sign_extends() {
     // Test TryCast for narrowing that should succeed
     let small_neg = I1024::from(-100_i64);
@@ -84,7 +85,7 @@ fn test_try_cast_sign_extends() {
     assert!(result.is_negative());
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i32_boundary_values() {
     // Test i32::MIN
     let min_i32 = I512::from(i32::MIN);
@@ -97,7 +98,7 @@ fn test_from_i32_boundary_values() {
     assert_eq!(max_i32, i512!(2147483647));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_from_i64_boundary_values() {
     // Test i64::MIN
     let min_i64 = I512::from(i64::MIN);
@@ -110,7 +111,7 @@ fn test_from_i64_boundary_values() {
     assert_eq!(max_i64, i512!(9223372036854775807));
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_sign_extension_preserves_value() {
     // Verify that -1 is actually -1, not a large positive number
     let neg_one_i32 = I512::from(-1_i32);
@@ -127,7 +128,7 @@ fn test_sign_extension_preserves_value() {
     assert_eq!(neg_one_i32 + I512::ONE, I512::ZERO);
 }
 
-#[test]
+#[rstest(::trace)]
 fn test_cast_chain() {
     // Test multiple casts in a chain
     let val = I128::from(-42_i32);

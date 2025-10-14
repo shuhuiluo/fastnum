@@ -19,21 +19,13 @@ macro_rules! try_from_uint_impl {
             #[inline(always)]
             #[doc = doc::convert::from!($uint U 256)]
             pub const fn $from_uint(uint: $uint) -> Result<Self, ParseError> {
-                let uint_bits = $uint::BITS as usize - uint.leading_zeros() as usize;
+                let bits = $uint::BITS as usize - uint.leading_zeros() as usize;
 
-                if uint_bits > Self::BITS as usize {
+                if bits > Self::BITS as usize {
                     return Err(ParseError::PosOverflow);
                 }
 
-                let mut digits = [0; N];
-                let mut i = 0;
-                while i << DIGIT_BIT_SHIFT < uint_bits {
-                    let d = (uint >> (i << DIGIT_BIT_SHIFT)) as Digit;
-                    if d != 0 {
-                        digits[i] = d;
-                    }
-                    i += 1;
-                }
+                let digits = $crate::bint::convert::utils::digits_from_int_impl!(uint, $uint, bits);
 
                 Ok(Self::from_digits(digits))
             }
