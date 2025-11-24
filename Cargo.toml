@@ -53,7 +53,7 @@ itertools = { version = "0.14.0" }
 
 [features]
 default = ["std"]
-std = []
+std = ["num-integer/std", "num-traits/std"]
 
 numtraits = ["num-traits/libm", "bnum/numtraits", "num-integer"]
 
